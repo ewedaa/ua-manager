@@ -2253,3 +2253,72 @@ html {
         color: black !important;
     }
 }
+
+/* ============================================
+   MOBILE PERFORMANCE OPTIMIZATIONS
+   Kill heavy animations, blur, and shadows on phones
+   ============================================ */
+@media (max-width: 768px) {
+
+    /* Disable backdrop-blur — very GPU-intensive on mobile */
+    .glass-card,
+    .glass-card-strong {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    /* Disable continuous decorative animations */
+    .animate-float-premium,
+    .animate-float,
+    .animate-gentle-bounce,
+    .animate-sheen,
+    .animate-pulse-glow,
+    .animate-neon-pulse,
+    .breathing-glow,
+    .morph-gradient,
+    .text-gradient-animate,
+    .animate-float-gentle {
+        animation: none !important;
+    }
+
+    /* Reduce box-shadow complexity */
+    .glow-border::before {
+        display: none !important;
+    }
+
+    /* Simplify page transitions */
+    .page-transition-enter {
+        animation-duration: 0.2s !important;
+    }
+
+    /* Disable 3D transforms */
+    .tilt-card:hover {
+        transform: none !important;
+    }
+
+    /* Disable parallax */
+    .parallax-wrapper {
+        perspective: none !important;
+    }
+
+    .parallax-layer {
+        transform: none !important;
+    }
+
+    /* Reduce transition durations */
+    * {
+        transition-duration: 0.15s !important;
+    }
+}
+
+/* Respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

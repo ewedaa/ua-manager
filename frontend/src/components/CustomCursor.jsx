@@ -1,7 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 
-export default function CustomCursor() {
+// Check once at module level — avoids running hooks on mobile entirely
+const isTouchDevice = typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
+function CustomCursorInner() {
     const { isDark } = useTheme();
     const dotRef = useRef(null);
     const ringRef = useRef(null);
@@ -19,13 +22,12 @@ export default function CustomCursor() {
         let mouseY = 0;
         let ringX = 0;
         let ringY = 0;
+        let animId;
 
         const handleMouseMove = (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
             setIsVisible(true);
-
-            // Dot follows immediately
             dot.style.left = `${mouseX}px`;
             dot.style.top = `${mouseY}px`;
         };
@@ -35,56 +37,50 @@ export default function CustomCursor() {
         const handleMouseLeave = () => setIsVisible(false);
         const handleMouseEnter = () => setIsVisible(true);
 
-        // Smooth ring follow with lerp (faster = more responsive)
         const animateRing = () => {
             ringX += (mouseX - ringX) * 0.4;
             ringY += (mouseY - ringY) * 0.4;
             ring.style.left = `${ringX}px`;
             ring.style.top = `${ringY}px`;
-            requestAnimationFrame(animateRing);
+            animId = requestAnimationFrame(animateRing);
         };
 
-        // Detect hoverable elements
-        const handleElementHover = () => {
-            const hoverElements = document.querySelectorAll('button, a, input, textarea, select, [role="button"], .cursor-pointer, .hover-glow');
-
-            hoverElements.forEach(el => {
-                el.addEventListener('mouseenter', () => setIsHovering(true));
-                el.addEventListener('mouseleave', () => setIsHovering(false));
-            });
-        };
-
-        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
         window.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', handleMouseUp);
         document.body.addEventListener('mouseleave', handleMouseLeave);
         document.body.addEventListener('mouseenter', handleMouseEnter);
 
-        animateRing();
-        handleElementHover();
+        animId = requestAnimationFrame(animateRing);
 
-        // Re-check for hoverable elements periodically (for dynamically added content)
-        const observer = new MutationObserver(handleElementHover);
-        observer.observe(document.body, { childList: true, subtree: true });
+        // Use event delegation instead of MutationObserver
+        const handleHoverIn = (e) => {
+            if (e.target.closest('button, a, input, textarea, select, [role="button"], .cursor-pointer')) {
+                setIsHovering(true);
+            }
+        };
+        const handleHoverOut = (e) => {
+            if (e.target.closest('button, a, input, textarea, select, [role="button"], .cursor-pointer')) {
+                setIsHovering(false);
+            }
+        };
+        document.addEventListener('mouseover', handleHoverIn, { passive: true });
+        document.addEventListener('mouseout', handleHoverOut, { passive: true });
 
         return () => {
+            cancelAnimationFrame(animId);
             window.removeEventListener('mousemove', handleMouseMove);
             window.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', handleMouseUp);
             document.body.removeEventListener('mouseleave', handleMouseLeave);
             document.body.removeEventListener('mouseenter', handleMouseEnter);
-            observer.disconnect();
+            document.removeEventListener('mouseover', handleHoverIn);
+            document.removeEventListener('mouseout', handleHoverOut);
         };
     }, []);
 
-    // Hide on mobile/touch devices
-    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
-        return null;
-    }
-
     return (
         <>
-            {/* Cursor Dot */}
             <div
                 ref={dotRef}
                 className={`fixed pointer-events-none z-[9999] -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 ${isVisible ? 'opacity-100' : 'opacity-0'
@@ -98,8 +94,6 @@ export default function CustomCursor() {
                     transition: 'width 0.2s, height 0.2s, box-shadow 0.2s',
                 }}
             />
-
-            {/* Cursor Ring */}
             <div
                 ref={ringRef}
                 className={`fixed pointer-events-none z-[9998] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 transition-all duration-200 ${isVisible ? 'opacity-100' : 'opacity-0'
@@ -116,4 +110,10 @@ export default function CustomCursor() {
             />
         </>
     );
+}
+
+// Export: renders nothing on mobile — no hooks run at all
+export default function CustomCursor() {
+    if (isTouchDevice) return null;
+    return <CustomCursorInner />;
 }
