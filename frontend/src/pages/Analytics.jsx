@@ -27,7 +27,7 @@ export default function Analytics() {
             if (data.pdf_url) {
                 // We assume backend returns pdf_url or binary.
                 // If it returns a URL:
-                window.open(data.pdf_url, '_blank');
+                window.open(data.pdf_url.startsWith('http') ? data.pdf_url : `${new URL(API_BASE_URL).origin}${data.pdf_url}`, '_blank');
                 setSuccessMessage('Report generated successfully!');
             } else if (data.error) {
                 throw new Error(data.error);

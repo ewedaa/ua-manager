@@ -86,7 +86,9 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                     if (pdfRes.ok) {
                         const pdfData = await pdfRes.json();
                         if (pdfData.pdf_url) {
-                            window.open(pdfData.pdf_url, '_blank');
+                            const backendOrigin = new URL(API_BASE_URL).origin;
+                            const fullUrl = pdfData.pdf_url.startsWith('http') ? pdfData.pdf_url : `${backendOrigin}${pdfData.pdf_url}`;
+                            window.open(fullUrl, '_blank');
                         }
                     }
                 } catch (pdfErr) {
@@ -426,7 +428,9 @@ const InvoicePDFButton = ({ invoice }) => {
             if (!res.ok) throw new Error('Failed to generate PDF');
             const data = await res.json();
             queryClient.invalidateQueries(['invoices']);
-            window.open(data.pdf_url, '_blank');
+            const backendOrigin = new URL(API_BASE_URL).origin;
+            const fullUrl = data.pdf_url.startsWith('http') ? data.pdf_url : `${backendOrigin}${data.pdf_url}`;
+            window.open(fullUrl, '_blank');
         } catch (error) {
             console.error(error);
             alert('Failed to generate PDF');
@@ -436,9 +440,11 @@ const InvoicePDFButton = ({ invoice }) => {
     };
 
     if (invoice.pdf_file) {
+        const backendOrigin = new URL(API_BASE_URL).origin;
+        const pdfHref = invoice.pdf_file.startsWith('http') ? invoice.pdf_file : `${backendOrigin}${invoice.pdf_file}`;
         return (
             <a
-                href={invoice.pdf_file}
+                href={pdfHref}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-500 border border-green-500/25 rounded-lg transition-all text-xs font-semibold"

@@ -252,7 +252,7 @@ export default function ReportWriter() {
             });
             if (!res.ok) throw new Error('Generation failed');
             const data = await res.json();
-            window.open(data.pdf_url, '_blank');
+            window.open(data.pdf_url.startsWith('http') ? data.pdf_url : `${new URL(API_BASE_URL).origin}${data.pdf_url}`, '_blank');
             showToast('PDF generated successfully!');
         } catch (err) {
             console.error(err);
