@@ -2,9 +2,5 @@ django
 djangorestframework
 django-cors-headers
 django-filter
-langchain-google-genai
-langchain-community
-langchain
-langchain-openai
 google-generativeai
 reportlab
