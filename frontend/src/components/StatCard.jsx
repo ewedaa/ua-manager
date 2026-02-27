@@ -63,7 +63,7 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={handleMouseLeave}
-            className="relative overflow-hidden rounded-2xl p-6 transition-all duration-300 cursor-pointer group backdrop-blur-sm"
+            className="relative overflow-hidden rounded-xl md:rounded-2xl p-3 md:p-6 transition-all duration-300 cursor-pointer group"
             style={{
                 background: isDark
                     ? 'rgba(255,255,255,0.03)'
@@ -81,7 +81,7 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             }}
         >
             {/* Animated Gradient Accent */}
-            <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${colorClasses[color]} opacity-10 rounded-bl-full transform group-hover:scale-150 group-hover:opacity-20 transition-all duration-700`} />
+            <div className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${colorClasses[color]} opacity-10 rounded-bl-full transform group-hover:scale-150 group-hover:opacity-20 transition-all duration-700`} />
 
             {/* Premium Shimmer effect on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
@@ -95,26 +95,27 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             />
 
             <div className="relative flex items-start justify-between" style={{ transform: 'translateZ(30px)' }}>
-                <div>
-                    <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
+                <div className="min-w-0 flex-1">
+                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 truncate">{label}</p>
+                    <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
                     {subValue && (
-                        <p className="text-sm text-gray-400 dark:text-gray-500 mt-1 flex items-center gap-1">
-                            {trend === 'up' && <TrendingUp size={14} className="text-green-500" />}
-                            {trend === 'down' && <TrendingUp size={14} className="text-red-500 rotate-180" />}
+                        <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-500 mt-0.5 md:mt-1 flex items-center gap-1 truncate">
+                            {trend === 'up' && <TrendingUp size={12} className="text-green-500 shrink-0" />}
+                            {trend === 'down' && <TrendingUp size={12} className="text-red-500 rotate-180 shrink-0" />}
                             {subValue}
                         </p>
                     )}
                 </div>
                 <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]} shadow-lg transform transition-all duration-300`}
+                    className={`p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-br ${colorClasses[color]} shadow-lg transform transition-all duration-300 shrink-0 ml-2`}
                     style={{
                         transform: isHovered ? 'scale(1.1) rotate(3deg) translateZ(40px)' : 'translateZ(20px)',
                     }}
                 >
-                    <Icon className="text-white" size={24} />
+                    <Icon className="text-white w-4 h-4 md:w-6 md:h-6" />
                 </div>
             </div>
         </div>
     );
 }
+

@@ -81,7 +81,7 @@ export default function Dashboard() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className={`text-3xl font-extrabold tracking-tight flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                    <h1 className={`text-2xl md:text-3xl font-extrabold tracking-tight flex items-center gap-3 ${isDark ? 'text-white' : 'text-gray-900'}`}>
                         <span className="relative">
                             <Sparkles className="text-amber-500" size={26} />
                             <span className="absolute inset-0 text-amber-400/40 blur-md">
@@ -97,15 +97,15 @@ export default function Dashboard() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <button onClick={() => navigate('/clients?new=true')} className="flex items-center gap-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-medium transition-colors shadow-sm shadow-green-500/20">
+                    <button onClick={() => navigate('/clients?new=true')} className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm md:text-base font-medium transition-colors shadow-sm shadow-green-500/20">
                         <Users size={18} />
                         <span>New Client</span>
                     </button>
-                    <button onClick={() => navigate('/tickets?new=true')} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors shadow-sm">
+                    <button onClick={() => navigate('/tickets?new=true')} className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm md:text-base font-medium transition-colors shadow-sm">
                         <Ticket size={18} />
                         <span>Log Ticket</span>
                     </button>
-                    <button onClick={() => navigate('/invoices?new=true')} className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors shadow-sm">
+                    <button onClick={() => navigate('/invoices?new=true')} className="flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg text-sm md:text-base font-medium transition-colors shadow-sm">
                         <FileText size={18} />
                         <span>Invoice</span>
                     </button>
@@ -113,7 +113,7 @@ export default function Dashboard() {
             </div>
 
             {/* KPI Row (Elevated to top for prominence) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <StatCard
                     icon={AlertTriangle}
                     label="Expiring Soon"
@@ -154,7 +154,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats Grid - Row 1 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <StatCard
                     icon={Shield}
                     label="Retention Rate"
@@ -194,7 +194,7 @@ export default function Dashboard() {
             </div>
 
             {/* Stats Grid - Row 2 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 <StatCard
                     icon={Barcode}
                     label="4Genetics Serials"
@@ -281,8 +281,8 @@ export default function Dashboard() {
 
 
             {/* Health Summary Bar */}
-            <div className={`rounded-2xl border p-5 ${isDark ? 'bg-gradient-to-r from-white/[0.03] to-white/[0.01] border-white/[0.06]' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200 shadow-sm'}`}>
-                <div className="flex items-center justify-between flex-wrap gap-4">
+            <div className={`rounded-xl md:rounded-2xl border p-3 md:p-5 ${isDark ? 'bg-gradient-to-r from-white/[0.03] to-white/[0.01] border-white/[0.06]' : 'bg-gradient-to-r from-gray-50 to-white border-gray-200 shadow-sm'}`}>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl">
                             <Activity size={18} className="text-white" />
@@ -292,7 +292,7 @@ export default function Dashboard() {
                             <p className="text-xs text-gray-500 dark:text-gray-400">Real-time business metrics</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-6 flex-wrap">
+                    <div className="flex items-center gap-3 md:gap-6 flex-wrap">
                         {[
                             { label: 'Retention', value: stats?.kpis?.retention_rate, threshold: [80, 60] },
                             { label: 'Collection', value: stats?.kpis?.collection_rate, threshold: [70, 40] },
@@ -325,7 +325,7 @@ export default function Dashboard() {
             </div>
 
             {/* Analytics Charts & Activity Feed */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 md:gap-6">
                 <div className="lg:col-span-2">
                     <DashboardCharts />
                 </div>
