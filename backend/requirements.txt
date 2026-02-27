@@ -6,9 +6,5 @@ langchain-google-genai
 langchain-community
 langchain
 langchain-openai
-gunicorn
-dj-database-url
-psycopg2-binary
-whitenoise
 google-generativeai
 reportlab
