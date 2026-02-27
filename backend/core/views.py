@@ -10,7 +10,11 @@ from .serializers import (
     ReminderSerializer, GeneticsSerialSerializer
 )
 from .report_generator import generate_pdf_report
-from ai_agent import get_text_suggestion, analyze_file_content
+try:
+    from ai_agent import get_text_suggestion, analyze_file_content
+except ImportError:
+    def get_text_suggestion(*args, **kwargs): return "AI features are not available."
+    def analyze_file_content(*args, **kwargs): return "AI features are not available."
 import base64
 import os
 import uuid
