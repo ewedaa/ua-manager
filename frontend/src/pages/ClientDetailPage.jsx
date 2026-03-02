@@ -108,6 +108,23 @@ export default function ClientDetailPage() {
 
     const getInitials = (name) => name ? name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : '??';
 
+    // Format phone: ensure +2 prefix for Egyptian numbers
+    const formatPhone = (phone) => {
+        if (!phone) return '';
+        let cleaned = phone.replace(/\s+/g, '');
+        if (cleaned.startsWith('+2')) return cleaned;
+        if (cleaned.startsWith('002')) return '+2' + cleaned.slice(3);
+        if (cleaned.startsWith('2')) return '+' + cleaned;
+        if (cleaned.startsWith('0')) return '+2' + cleaned;
+        if (/^\d{10,11}$/.test(cleaned)) return '+2' + cleaned;
+        return cleaned.startsWith('+') ? cleaned : '+2' + cleaned;
+    };
+
+    const getWhatsAppLink = (phone) => {
+        const num = formatPhone(phone).replace(/[^\d]/g, '');
+        return `https://wa.me/${num}`;
+    };
+
     // Loading state
     if (isLoading) {
         return (
@@ -507,34 +524,77 @@ export default function ClientDetailPage() {
 
                         {/* ═══ CONTACTS SECTION ═══ */}
                         {activeSection === 'contacts' && (
-                            <div className="animate-in fade-in duration-200">
+                            <div className="space-y-4 animate-in fade-in duration-200">
+                                {/* Farm Owner Card */}
+                                <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm Owner</h3>
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>
+                                            {getInitials(client.name)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</p>
+                                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Owner • {client.farm_name}</p>
+                                            {client.phone && <p className={`text-xs font-mono mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{formatPhone(client.phone)}</p>}
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            {client.phone && (
+                                                <a href={getWhatsAppLink(client.phone)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors" title="WhatsApp">
+                                                    <MessageSquare size={16} />
+                                                </a>
+                                            )}
+                                            {client.phone && (
+                                                <a href={`tel:${formatPhone(client.phone)}`} className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`} title="Call">
+                                                    <Phone size={16} />
+                                                </a>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Other Contacts */}
                                 <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                     <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
-                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Contacts ({contacts.length})</h3>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Additional Contacts ({contacts.length})</h3>
                                     </div>
                                     {contacts.length === 0 ? (
                                         <div className="p-8 text-center">
                                             <Users size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
-                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No contacts added</p>
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No additional contacts</p>
                                         </div>
                                     ) : (
                                         <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
                                             {contacts.map((contact, i) => (
-                                                <div key={i} className="flex items-center justify-between p-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
-                                                            <Users size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+                                                <div key={i} className={`flex items-center justify-between p-4 transition-colors ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'}`}>
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                                                            {getInitials(contact.name)}
                                                         </div>
-                                                        <div>
+                                                        <div className="min-w-0">
                                                             <p className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{contact.name}</p>
-                                                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{contact.role || 'Contact'}</p>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-700'}`}>
+                                                                    {contact.role || 'Contact'}
+                                                                </span>
+                                                                {contact.phone && <span className={`text-[11px] font-mono ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{formatPhone(contact.phone)}</span>}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-1.5 shrink-0">
                                                         {contact.phone && (
-                                                            <a href={`tel:${contact.phone}`} className={`p-1.5 rounded-lg text-xs ${isDark ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                                                            <a href={getWhatsAppLink(contact.phone)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors" title="WhatsApp">
+                                                                <MessageSquare size={14} />
+                                                            </a>
+                                                        )}
+                                                        {contact.phone && (
+                                                            <a href={`tel:${formatPhone(contact.phone)}`} className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/[0.06] text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`} title="Call">
                                                                 <Phone size={14} />
                                                             </a>
+                                                        )}
+                                                        {contact.phone && (
+                                                            <button onClick={() => handleCopy(formatPhone(contact.phone), `phone-${i}`)} className={`p-2 rounded-lg transition-colors ${copiedField === `phone-${i}` ? 'text-green-500 bg-green-500/10' : isDark ? 'bg-white/[0.06] text-gray-500 hover:text-gray-300' : 'bg-gray-50 text-gray-400 hover:text-gray-600'}`} title="Copy number">
+                                                                {copiedField === `phone-${i}` ? <CheckCircle size={14} /> : <Copy size={14} />}
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </div>
