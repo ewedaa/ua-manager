@@ -222,7 +222,7 @@ export default function ClientDetailPage() {
                     <div className="w-72 shrink-0 hidden lg:block">
                         <div className={`rounded-2xl border p-5 sticky top-20 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                             {/* Avatar & Name */}
-                            <div className="text-center mb-5">
+                            <div className="text-center mb-4">
                                 <div className={`w-20 h-20 rounded-2xl mx-auto mb-3 flex items-center justify-center font-bold text-2xl bg-gradient-to-br ${status.gradient} text-white shadow-xl`}>
                                     {getInitials(client.farm_name)}
                                 </div>
@@ -230,8 +230,27 @@ export default function ClientDetailPage() {
                                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.name}</p>
                             </div>
 
+                            {/* Section Nav — TOP PRIORITY */}
+                            <nav className="space-y-1 mb-4 pb-4 border-b" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb' }}>
+                                {sections.map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setActiveSection(s.id)}
+                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${activeSection === s.id
+                                            ? isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+                                            : isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <s.icon size={14} />
+                                        <span className="flex-1 text-left">{s.label}</span>
+                                        {s.count > 0 && <span className={`text-[10px] font-bold px-1.5 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>{s.count}</span>}
+                                        {s.badge && <span className="text-[10px] font-bold text-orange-500">{s.badge}</span>}
+                                    </button>
+                                ))}
+                            </nav>
+
                             {/* Subscription Progress */}
-                            <div className="mb-5">
+                            <div className="mb-4">
                                 <div className="flex items-center justify-between mb-1.5">
                                     <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription</span>
                                     <span className={`text-xs font-bold tabular-nums ${progress > 90 ? 'text-red-500' : progress > 75 ? 'text-amber-500' : isDark ? 'text-green-400' : 'text-green-600'}`}>
@@ -281,25 +300,6 @@ export default function ClientDetailPage() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Section Nav */}
-                            <nav className="mt-5 pt-5 border-t space-y-1" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb' }}>
-                                {sections.map(s => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => setActiveSection(s.id)}
-                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${activeSection === s.id
-                                            ? isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
-                                            : isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-                                            }`}
-                                    >
-                                        <s.icon size={14} />
-                                        <span className="flex-1 text-left">{s.label}</span>
-                                        {s.count > 0 && <span className={`text-[10px] font-bold px-1.5 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>{s.count}</span>}
-                                        {s.badge && <span className="text-[10px] font-bold text-orange-500">{s.badge}</span>}
-                                    </button>
-                                ))}
-                            </nav>
 
                             {/* Delete Button */}
                             {isAdmin && (
