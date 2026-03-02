@@ -31,6 +31,7 @@ export default function ClientDetailPage() {
     const [previewImage, setPreviewImage] = useState(null);
     const [copiedField, setCopiedField] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [expandedTicket, setExpandedTicket] = useState(null);
 
     // Fetch all clients and find the one we need
     const { data: clients = [], isLoading } = useQuery({
@@ -339,15 +340,15 @@ export default function ClientDetailPage() {
                             ))}
                         </div>
 
-                        {/* KPI Cards */}
+                        {/* KPI Cards - Clickable to jump to sections */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                             {[
-                                { icon: Clock, label: 'Days Left', value: daysRemaining !== null ? (daysRemaining < 0 ? `${Math.abs(daysRemaining)} overdue` : daysRemaining) : '—', color: daysRemaining !== null && daysRemaining < 30 ? 'text-red-500' : 'text-emerald-500', iconBg: daysRemaining !== null && daysRemaining < 30 ? 'bg-red-500/10' : 'bg-emerald-500/10' },
-                                { icon: Receipt, label: 'Invoices', value: invoices.length, color: isDark ? 'text-blue-400' : 'text-blue-600', iconBg: 'bg-blue-500/10' },
-                                { icon: DollarSign, label: 'Due Amount', value: totalDue > 0 ? `${totalDue.toLocaleString()} EGP` : '0', color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100' },
-                                { icon: Ticket, label: 'Open Tickets', value: openTickets, color: openTickets > 0 ? 'text-violet-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: openTickets > 0 ? 'bg-violet-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100' },
+                                { icon: Clock, label: 'Days Left', value: daysRemaining !== null ? (daysRemaining < 0 ? `${Math.abs(daysRemaining)} overdue` : daysRemaining) : '—', color: daysRemaining !== null && daysRemaining < 30 ? 'text-red-500' : 'text-emerald-500', iconBg: daysRemaining !== null && daysRemaining < 30 ? 'bg-red-500/10' : 'bg-emerald-500/10', section: 'overview' },
+                                { icon: Receipt, label: 'Invoices', value: invoices.length, color: isDark ? 'text-blue-400' : 'text-blue-600', iconBg: 'bg-blue-500/10', section: 'finance' },
+                                { icon: DollarSign, label: 'Due Amount', value: totalDue > 0 ? `${totalDue.toLocaleString()} EGP` : '0', color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100', section: 'finance' },
+                                { icon: Ticket, label: 'Open Tickets', value: openTickets, color: openTickets > 0 ? 'text-violet-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: openTickets > 0 ? 'bg-violet-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100', section: 'tickets' },
                             ].map((kpi, i) => (
-                                <div key={i} className={`rounded-xl border p-4 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                <div key={i} onClick={() => setActiveSection(kpi.section)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.02] ${isDark ? 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}`}>
                                     <div className="flex items-center gap-3">
                                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.iconBg}`}>
                                             <kpi.icon size={18} className={kpi.color} />
@@ -364,6 +365,18 @@ export default function ClientDetailPage() {
                         {/* ═══ OVERVIEW SECTION ═══ */}
                         {activeSection === 'overview' && (
                             <div className="space-y-4 animate-in fade-in duration-200">
+                                {/* Quick Actions Bar */}
+                                <div className={`rounded-xl border p-4 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Quick Actions</h3>
+                                    <div className="flex flex-wrap gap-2">
+                                        {isAdmin && <button onClick={() => { setActiveSection('finance'); setIsAddInvoiceOpen(true); }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"><Plus size={13} /> New Invoice</button>}
+                                        <button onClick={() => navigate('/new-ticket')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Ticket size={13} /> New Ticket</button>
+                                        <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"><MessageSquare size={13} /> WhatsApp</a>
+                                        <a href={`tel:${client.phone}`} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Phone size={13} /> Call</a>
+                                        {isAdmin && <button onClick={() => setIsEditModalOpen(true)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Pencil size={13} /> Edit Client</button>}
+                                    </div>
+                                </div>
+
                                 {/* General Notes */}
                                 {client.general_notes && (
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
@@ -534,33 +547,70 @@ export default function ClientDetailPage() {
 
                         {/* ═══ TICKETS SECTION ═══ */}
                         {activeSection === 'tickets' && (
-                            <div className="animate-in fade-in duration-200">
+                            <div className="space-y-4 animate-in fade-in duration-200">
                                 <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
-                                    <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                    <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Tickets ({tickets.length})</h3>
+                                        <button onClick={() => navigate('/new-ticket')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Plus size={12} /> New Ticket</button>
                                     </div>
                                     {tickets.length === 0 ? (
                                         <div className="p-8 text-center">
                                             <Ticket size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
-                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No tickets</p>
+                                            <p className={`text-sm mb-3 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No tickets for this client</p>
+                                            <button onClick={() => navigate('/new-ticket')} className="px-4 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors">Create First Ticket</button>
                                         </div>
                                     ) : (
                                         <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
                                             {tickets.map(ticket => (
-                                                <div key={ticket.id} className="flex items-center justify-between p-4">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-2 h-2 rounded-full ${ticket.status === 'Open' ? 'bg-green-500' : ticket.status === 'In Progress' ? 'bg-amber-500' : 'bg-gray-400'}`} />
-                                                        <div>
-                                                            <p className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{ticket.title || ticket.subject}</p>
-                                                            <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : ''}</p>
+                                                <div key={ticket.id}>
+                                                    <div onClick={() => setExpandedTicket(expandedTicket === ticket.id ? null : ticket.id)} className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'}`}>
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${ticket.status === 'Open' ? 'bg-amber-500/10' : ticket.status === 'In Progress' ? 'bg-blue-500/10' : ticket.status === 'Resolved' ? 'bg-green-500/10' : isDark ? 'bg-white/[0.04]' : 'bg-gray-100'
+                                                                }`}>
+                                                                <Ticket size={14} className={`${ticket.status === 'Open' ? 'text-amber-500' : ticket.status === 'In Progress' ? 'text-blue-500' : ticket.status === 'Resolved' ? 'text-green-500' : isDark ? 'text-gray-500' : 'text-gray-400'
+                                                                    }`} />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className={`text-sm font-semibold truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>#{ticket.id} — {ticket.category || ticket.title || ticket.subject}</p>
+                                                                <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : ''}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 shrink-0">
+                                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${ticket.status === 'Open'
+                                                                ? isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'
+                                                                : ticket.status === 'In Progress'
+                                                                    ? isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700'
+                                                                    : ticket.status === 'Resolved'
+                                                                        ? isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
+                                                                        : isDark ? 'bg-gray-500/10 text-gray-400' : 'bg-gray-100 text-gray-600'
+                                                                }`}>{ticket.status}</span>
+                                                            <ChevronRight size={14} className={`transition-transform ${expandedTicket === ticket.id ? 'rotate-90' : ''} ${isDark ? 'text-gray-600' : 'text-gray-400'}`} />
                                                         </div>
                                                     </div>
-                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${ticket.status === 'Open'
-                                                        ? isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
-                                                        : ticket.status === 'In Progress'
-                                                            ? isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'
-                                                            : isDark ? 'bg-gray-500/10 text-gray-400' : 'bg-gray-100 text-gray-600'
-                                                        }`}>{ticket.status}</span>
+                                                    {/* Expanded Ticket Detail */}
+                                                    {expandedTicket === ticket.id && (
+                                                        <div className={`px-4 pb-4 animate-in fade-in duration-200`}>
+                                                            <div className={`rounded-xl p-4 space-y-3 ${isDark ? 'bg-white/[0.03] border border-white/[0.06]' : 'bg-gray-50 border border-gray-100'}`}>
+                                                                {ticket.issue_description && (
+                                                                    <div>
+                                                                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Description</p>
+                                                                        <p className={`text-sm ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{ticket.issue_description}</p>
+                                                                    </div>
+                                                                )}
+                                                                {ticket.resolution_notes && (
+                                                                    <div>
+                                                                        <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Resolution Notes</p>
+                                                                        <p className={`text-sm ${isDark ? 'text-green-400/80' : 'text-green-700'}`}>{ticket.resolution_notes}</p>
+                                                                    </div>
+                                                                )}
+                                                                <div className="flex items-center gap-2 pt-1">
+                                                                    <button onClick={() => navigate('/tickets')} className={`text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
+                                                                        <span className="flex items-center gap-1"><ExternalLink size={11} /> View in Tickets</span>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
