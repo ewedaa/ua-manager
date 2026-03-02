@@ -129,9 +129,13 @@ const SleepModeOverlay = () => {
               </span>
             </div>
 
-            {/* Date - Single line compact */}
+            {/* Date - Gregorian */}
             <p className="mt-3 text-sm font-light tracking-wide text-white/40">
               {currentTime.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+            </p>
+            {/* Date - Hijri */}
+            <p className="mt-1.5 text-xs font-light tracking-wide text-green-400/50">
+              ☪ {new Intl.DateTimeFormat('en-US-u-ca-islamic', { day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime)}
             </p>
           </div>
         </div>
