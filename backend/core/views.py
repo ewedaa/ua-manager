@@ -3,11 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import EmailMessage
-from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog
+from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile
 from .serializers import (
     ClientSerializer, ClientDetailSerializer, LivestockTypeSerializer,
     InvoiceSerializer, PaymentSerializer, TicketSerializer, SubscriptionModuleSerializer,
-    ReminderSerializer, GeneticsSerialSerializer
+    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer
 )
 from .report_generator import generate_pdf_report
 try:
@@ -303,6 +303,29 @@ class GeneticsSerialViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['serial_number', 'product_type', 'client__farm_name']
     ordering_fields = ['created_at', 'serial_number', 'product_type']
+
+
+class ClientFileViewSet(viewsets.ModelViewSet):
+    """Upload, list, and delete files for a client."""
+    serializer_class = ClientFileSerializer
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        return ClientFile.objects.filter(client_id=self.kwargs.get('client_pk'))
+
+    def perform_create(self, serializer):
+        client = Client.objects.get(pk=self.kwargs['client_pk'])
+        uploaded = self.request.FILES.get('file')
+        serializer.save(
+            client=client,
+            original_name=uploaded.name,
+            file_size=uploaded.size
+        )
+
+    def perform_destroy(self, instance):
+        # Remove file from disk then delete the DB record
+        instance.file.delete(save=False)
+        instance.delete()
 
 
 from rest_framework.views import APIView

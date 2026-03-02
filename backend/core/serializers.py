@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Client, LivestockType, Invoice, Payment, Ticket, Contact, SubscriptionModule, GeneticsSerial
+from .models import Client, LivestockType, Invoice, Payment, Ticket, Contact, SubscriptionModule, GeneticsSerial, ClientFile
 
 
 class LivestockTypeSerializer(serializers.ModelSerializer):
@@ -17,6 +17,15 @@ class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = ['id', 'name', 'phone', 'role']
+
+
+class ClientFileSerializer(serializers.ModelSerializer):
+    """Serializer for ClientFile model."""
+    
+    class Meta:
+        model = ClientFile
+        fields = ['id', 'client', 'file', 'original_name', 'file_size', 'category', 'uploaded_at']
+        read_only_fields = ['uploaded_at', 'original_name', 'file_size']
 
 
 class SubscriptionModuleSerializer(serializers.ModelSerializer):
@@ -83,6 +92,7 @@ class ClientSerializer(serializers.ModelSerializer):
     tickets = TicketSerializer(many=True, read_only=True)
     invoices = InvoiceSimpleSerializer(many=True, read_only=True)
     contacts = ContactSerializer(many=True, required=False)
+    files = ClientFileSerializer(many=True, read_only=True)
 
     class Meta:
         model = Client
@@ -91,7 +101,7 @@ class ClientSerializer(serializers.ModelSerializer):
             'subscription_modules', 'general_notes', 'contacts', 'whatsapp_link',
             'subscription_start_date', 'subscription_end_date',
             'is_demo', 'demo_start_date', 'demo_end_date',
-            'is_expiring_soon', 'alert_status', 'status', 'tickets', 'invoices', 'created_at', 'updated_at'
+            'is_expiring_soon', 'alert_status', 'status', 'tickets', 'invoices', 'files', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at', 'whatsapp_link', 'is_expiring_soon', 'alert_status', 'status']
     

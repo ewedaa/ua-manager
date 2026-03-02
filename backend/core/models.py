@@ -161,6 +161,27 @@ class Contact(models.Model):
         return f"{self.name} ({self.role}) - {self.client.farm_name}"
 
 
+class ClientFile(models.Model):
+    """File attachment for a Client."""
+    CATEGORY_CHOICES = [
+        ('general', 'General'),
+        ('whatsapp', 'WhatsApp Screenshot'),
+    ]
+
+    client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='files')
+    file = models.FileField(upload_to='client_files/')
+    original_name = models.CharField(max_length=255)
+    file_size = models.PositiveIntegerField(default=0, help_text="File size in bytes")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='general', db_index=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"{self.original_name} ({self.client.farm_name})"
+
+
 class SubscriptionModule(models.Model):
     """Available subscription modules that can be assigned to clients."""
     name = models.CharField(max_length=100, unique=True)

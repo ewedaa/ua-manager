@@ -4,7 +4,7 @@ import {
     Pencil, Receipt, Plus, ExternalLink, CheckCircle, ChevronDown, ChevronUp,
     BellRing, Sparkles, Loader2, DollarSign, Clock, Users, BarChart3,
     Copy, Mail, MapPin, Shield, Tag, TrendingUp, Ticket, Eye,
-    UserCircle, Building2, Zap, Trash2
+    UserCircle, Building2, Zap, Trash2, Paperclip, Upload, Download, Image
 } from 'lucide-react';
 import EditClientModal from './EditClientModal';
 import AddInvoiceModal from './AddInvoiceModal';
@@ -24,6 +24,11 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     const [isSummarizing, setIsSummarizing] = useState(false);
     const [copiedField, setCopiedField] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [previewImage, setPreviewImage] = useState(null);
+    const fileInputRef = useRef(null);
+    const whatsappInputRef = useRef(null);
     const queryClient = useQueryClient();
 
     const handleGenerateSummary = async (e) => {
@@ -67,6 +72,56 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     const tickets = client.tickets || [];
     const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
     const contacts = client.contacts || [];
+    const files = client.files || [];
+    const generalFiles = files.filter(f => f.category !== 'whatsapp');
+    const whatsappFiles = files.filter(f => f.category === 'whatsapp');
+
+    // File upload handler
+    const handleFileUpload = async (file, category = 'general') => {
+        if (!file) return;
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', category);
+            const response = await fetch(`${API_BASE_URL}/clients/${client.id}/files/`, {
+                method: 'POST',
+                body: formData,
+            });
+            if (!response.ok) throw new Error('Upload failed');
+            queryClient.invalidateQueries(['clients']);
+        } catch (err) {
+            console.error('Error uploading file:', err);
+        } finally {
+            setIsUploading(false);
+        }
+    };
+
+    // File delete handler
+    const handleFileDelete = async (fileId) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/clients/${client.id}/files/${fileId}/`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Delete failed');
+            queryClient.invalidateQueries(['clients']);
+        } catch (err) {
+            console.error('Error deleting file:', err);
+        }
+    };
+
+    // Format file size
+    const formatFileSize = (bytes) => {
+        if (!bytes) return 'N/A';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1048576).toFixed(1)} MB`;
+    };
+
+    // File extension badge color
+    const getFileExtColor = (name) => {
+        const ext = name?.split('.').pop()?.toLowerCase();
+        const map = { pdf: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400', doc: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400', docx: 'bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-400', xls: 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400', xlsx: 'bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-400', png: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400', jpg: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400', jpeg: 'bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-400' };
+        return map[ext] || 'bg-gray-100 text-gray-600 dark:bg-white/[0.06] dark:text-gray-400';
+    };
 
     // Update invoice
     const updateInvoiceMutation = useMutation({
@@ -199,6 +254,10 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     }
 
     // ═══════ GRID MODE ═══════
+    const accentColor = isCritical
+        ? (daysRemaining !== null && daysRemaining < 0 ? 'bg-red-500' : 'bg-amber-500')
+        : 'bg-emerald-500';
+
     return (
         <>
             <div
@@ -206,55 +265,58 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                 onMouseMove={handleMouseMove}
                 onMouseEnter={() => setIsHovered(true)}
                 onMouseLeave={handleMouseLeave}
-                className={`relative rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col h-full group backdrop-blur-sm ${isCritical
-                    ? 'bg-white/95 dark:bg-gray-900/95 border-red-200/60 dark:border-red-800/30'
-                    : 'bg-white dark:bg-gray-900/80 border-gray-200/60 dark:border-white/[0.06]'
+                className={`relative rounded-2xl border transition-all duration-300 overflow-hidden flex flex-col h-full group ${isCritical
+                    ? 'bg-white dark:bg-gray-900 border-red-200/50 dark:border-red-800/25'
+                    : 'bg-white dark:bg-gray-900 border-gray-200/70 dark:border-white/[0.08]'
                     }`}
                 style={{
-                    transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovered ? 1.01 : 1})`,
+                    transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) scale(${isHovered ? 1.015 : 1})`,
                     boxShadow: isHovered
                         ? isCritical
-                            ? '0 20px 40px -5px rgba(239, 68, 68, 0.15), 0 0 20px rgba(239, 68, 68, 0.08)'
-                            : '0 20px 40px -5px rgba(34, 197, 94, 0.12), 0 0 20px rgba(34, 197, 94, 0.06)'
-                        : '0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)',
-                    transition: 'transform 0.1s ease-out, box-shadow 0.3s ease',
+                            ? '0 20px 50px -10px rgba(239, 68, 68, 0.18), 0 8px 20px -8px rgba(239, 68, 68, 0.1)'
+                            : '0 20px 50px -10px rgba(34, 197, 94, 0.15), 0 8px 20px -8px rgba(34, 197, 94, 0.08)'
+                        : '0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)',
+                    transition: 'transform 0.15s ease-out, box-shadow 0.3s ease',
                 }}
             >
+                {/* Left accent bar */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor} z-20 rounded-l-2xl`} />
+
                 {/* Shimmer */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none z-10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.04] to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-[1200ms] pointer-events-none z-10" />
 
                 {/* ═══ HEADER ═══ */}
                 <div onClick={() => setIsExpanded(!isExpanded)} className="relative cursor-pointer">
                     {/* Progress bar */}
-                    <div className="absolute top-0 left-0 right-0 h-[3px] bg-gray-100 dark:bg-white/[0.04] z-20">
+                    <div className="absolute top-0 left-0 right-0 h-[2px] bg-gray-100 dark:bg-white/[0.04] z-20">
                         <div className={`h-full bg-gradient-to-r ${progressColor} transition-all duration-1000 rounded-r-full`} style={{ width: `${progress}%` }} />
                     </div>
 
-                    <div className="p-4 pt-5">
+                    <div className="p-5 pt-5 pl-6">
                         {/* Top Row: Avatar + Name + Status + Actions */}
-                        <div className="flex items-start gap-3">
-                            <div className={`w-11 h-11 rounded-xl flex shrink-0 items-center justify-center font-bold text-sm shadow-sm ${isCritical
-                                ? 'bg-gradient-to-br from-red-400 to-rose-600 text-white'
-                                : 'bg-gradient-to-br from-green-400 to-emerald-600 text-white'
-                                }`}>
+                        <div className="flex items-start gap-3.5">
+                            <div className={`w-12 h-12 rounded-xl flex shrink-0 items-center justify-center font-bold text-sm shadow-lg ring-2 ring-offset-2 ring-offset-white dark:ring-offset-gray-900 transition-all duration-300 ${isCritical
+                                ? 'bg-gradient-to-br from-red-400 to-rose-600 text-white ring-red-200/50 dark:ring-red-800/30'
+                                : 'bg-gradient-to-br from-emerald-400 to-green-600 text-white ring-emerald-200/50 dark:ring-emerald-800/30'
+                                } ${isHovered ? 'shadow-xl scale-105' : ''}`}>
                                 {getInitials(client.farm_name)}
                             </div>
 
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2">
-                                    <h3 className="text-base font-bold text-gray-900 dark:text-white truncate leading-tight">
+                                <div className="flex items-center gap-2.5">
+                                    <h3 className="text-[15px] font-extrabold text-gray-900 dark:text-white truncate leading-tight tracking-tight">
                                         {isAdmin ? (
                                             <span onClick={e => e.stopPropagation()}>
                                                 <InlineEdit value={client.farm_name} onSave={(val) => updateClientField('farm_name', val)} placeholder="Farm name" />
                                             </span>
                                         ) : client.farm_name}
                                     </h3>
-                                    <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full shrink-0 uppercase tracking-wider ${status.color}`}>
+                                    <span className={`inline-flex items-center gap-1.5 text-[9px] font-extrabold px-2.5 py-1 rounded-full shrink-0 uppercase tracking-widest ${status.color} shadow-sm`}>
                                         <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                                         {status.label}
                                     </span>
                                 </div>
-                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                                <p className="text-[13px] text-gray-500 dark:text-gray-400 truncate mt-1 font-medium">
                                     {isAdmin ? (
                                         <span onClick={e => e.stopPropagation()}>
                                             <InlineEdit value={client.name} onSave={(val) => updateClientField('name', val)} placeholder="Client name" />
@@ -265,7 +327,7 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
 
                             {/* Quick Actions + Chevron */}
                             <div className="flex items-center gap-1 shrink-0">
-                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
+                                <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200" onClick={e => e.stopPropagation()}>
                                     <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer"
                                         className="p-1.5 text-gray-400 hover:text-green-500 hover:bg-green-50 dark:hover:bg-green-500/10 rounded-lg transition-all hover:scale-110" title="WhatsApp">
                                         <MessageSquare size={14} />
@@ -287,40 +349,46 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                         </button>
                                     )}
                                 </div>
-                                {isExpanded ? <ChevronUp size={18} className="text-gray-400" /> : <ChevronDown size={18} className="text-gray-400" />}
+                                <div className={`p-1 rounded-lg transition-colors ${isExpanded ? 'bg-gray-100 dark:bg-white/[0.06]' : ''}`}>
+                                    {isExpanded ? <ChevronUp size={16} className="text-gray-500" /> : <ChevronDown size={16} className="text-gray-400" />}
+                                </div>
                             </div>
                         </div>
 
                         {/* ═══ KPI STRIP ═══ */}
-                        <div className="grid grid-cols-4 gap-2 mt-3">
+                        <div className="grid grid-cols-4 gap-2.5 mt-4">
                             {/* Days */}
-                            <div className={`text-center px-1.5 py-1.5 rounded-lg ${daysRemaining !== null && daysRemaining < 0 ? 'bg-red-50 dark:bg-red-500/10' : daysRemaining !== null && daysRemaining < 60 ? 'bg-amber-50 dark:bg-amber-500/10' : 'bg-gray-50 dark:bg-white/[0.03]'}`}>
-                                <p className={`text-sm font-extrabold tabular-nums ${daysRemaining !== null && daysRemaining < 0 ? 'text-red-600 dark:text-red-400' : daysRemaining !== null && daysRemaining < 60 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                            <div className={`text-center px-2 py-2 rounded-xl border transition-colors ${daysRemaining !== null && daysRemaining < 0 ? 'bg-red-50/80 dark:bg-red-500/[0.08] border-red-100 dark:border-red-500/10' : daysRemaining !== null && daysRemaining < 60 ? 'bg-amber-50/80 dark:bg-amber-500/[0.08] border-amber-100 dark:border-amber-500/10' : 'bg-gray-50/80 dark:bg-white/[0.02] border-gray-100 dark:border-white/[0.04]'}`}>
+                                <Clock size={12} className={`mx-auto mb-1 ${daysRemaining !== null && daysRemaining < 0 ? 'text-red-400' : daysRemaining !== null && daysRemaining < 60 ? 'text-amber-400' : 'text-gray-400'}`} />
+                                <p className={`text-sm font-extrabold tabular-nums leading-none ${daysRemaining !== null && daysRemaining < 0 ? 'text-red-600 dark:text-red-400' : daysRemaining !== null && daysRemaining < 60 ? 'text-amber-600 dark:text-amber-400' : 'text-gray-800 dark:text-gray-200'}`}>
                                     {daysRemaining !== null ? (daysRemaining < 0 ? Math.abs(daysRemaining) : daysRemaining) : '—'}
                                 </p>
-                                <p className="text-[9px] text-gray-500 dark:text-gray-500 font-semibold uppercase tracking-wider">
-                                    {daysRemaining !== null && daysRemaining < 0 ? 'Overdue' : 'Days Left'}
+                                <p className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mt-1">
+                                    {daysRemaining !== null && daysRemaining < 0 ? 'Overdue' : 'Days'}
                                 </p>
                             </div>
 
                             {/* Invoices */}
-                            <div className="text-center px-1.5 py-1.5 rounded-lg bg-gray-50 dark:bg-white/[0.03]">
-                                <p className="text-sm font-extrabold tabular-nums text-gray-800 dark:text-gray-200">{invoices.length}</p>
-                                <p className="text-[9px] text-gray-500 dark:text-gray-500 font-semibold uppercase tracking-wider">Invoices</p>
+                            <div className="text-center px-2 py-2 rounded-xl border bg-gray-50/80 dark:bg-white/[0.02] border-gray-100 dark:border-white/[0.04] transition-colors">
+                                <Receipt size={12} className="mx-auto mb-1 text-gray-400" />
+                                <p className="text-sm font-extrabold tabular-nums text-gray-800 dark:text-gray-200 leading-none">{invoices.length}</p>
+                                <p className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mt-1">Invoices</p>
                             </div>
 
                             {/* Due */}
-                            <div className={`text-center px-1.5 py-1.5 rounded-lg ${totalDue > 0 ? 'bg-orange-50 dark:bg-orange-500/10' : 'bg-gray-50 dark:bg-white/[0.03]'}`}>
-                                <p className={`text-sm font-extrabold tabular-nums ${totalDue > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-800 dark:text-gray-200'}`}>
+                            <div className={`text-center px-2 py-2 rounded-xl border transition-colors ${totalDue > 0 ? 'bg-orange-50/80 dark:bg-orange-500/[0.08] border-orange-100 dark:border-orange-500/10' : 'bg-gray-50/80 dark:bg-white/[0.02] border-gray-100 dark:border-white/[0.04]'}`}>
+                                <DollarSign size={12} className={`mx-auto mb-1 ${totalDue > 0 ? 'text-orange-400' : 'text-gray-400'}`} />
+                                <p className={`text-sm font-extrabold tabular-nums leading-none ${totalDue > 0 ? 'text-orange-600 dark:text-orange-400' : 'text-gray-800 dark:text-gray-200'}`}>
                                     {totalDue > 0 ? `${(totalDue / 1000).toFixed(totalDue >= 1000 ? 0 : 1)}k` : '0'}
                                 </p>
-                                <p className="text-[9px] text-gray-500 dark:text-gray-500 font-semibold uppercase tracking-wider">EGP Due</p>
+                                <p className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mt-1">Due</p>
                             </div>
 
                             {/* Tickets */}
-                            <div className={`text-center px-1.5 py-1.5 rounded-lg ${openTickets > 0 ? 'bg-blue-50 dark:bg-blue-500/10' : 'bg-gray-50 dark:bg-white/[0.03]'}`}>
-                                <p className={`text-sm font-extrabold tabular-nums ${openTickets > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>{openTickets}</p>
-                                <p className="text-[9px] text-gray-500 dark:text-gray-500 font-semibold uppercase tracking-wider">Tickets</p>
+                            <div className={`text-center px-2 py-2 rounded-xl border transition-colors ${openTickets > 0 ? 'bg-blue-50/80 dark:bg-blue-500/[0.08] border-blue-100 dark:border-blue-500/10' : 'bg-gray-50/80 dark:bg-white/[0.02] border-gray-100 dark:border-white/[0.04]'}`}>
+                                <Ticket size={12} className={`mx-auto mb-1 ${openTickets > 0 ? 'text-blue-400' : 'text-gray-400'}`} />
+                                <p className={`text-sm font-extrabold tabular-nums leading-none ${openTickets > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-800 dark:text-gray-200'}`}>{openTickets}</p>
+                                <p className="text-[8px] text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest mt-1">Tickets</p>
                             </div>
                         </div>
                     </div>
@@ -330,15 +398,17 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                 {isExpanded && (
                     <div className="flex flex-col flex-1 animate-in slide-in-from-top-2 duration-300">
                         {/* Tab Nav */}
-                        <div className="flex border-b border-gray-100 dark:border-white/[0.06] px-2">
+                        <div className="flex border-b border-gray-100 dark:border-white/[0.06] px-2 overflow-x-auto no-scrollbar">
                             {[
                                 { id: 'overview', label: 'Overview', icon: Eye },
                                 { id: 'invoices', label: 'Finance', icon: DollarSign, badge: totalDue > 0 },
                                 { id: 'contacts', label: 'Contacts', icon: Users, count: contacts.length },
                                 { id: 'tickets', label: 'Tickets', icon: Ticket, count: openTickets },
+                                { id: 'files', label: 'Files', icon: Paperclip, count: generalFiles.length },
+                                { id: 'whatsapp', label: 'WhatsApp', icon: MessageSquare, count: whatsappFiles.length },
                             ].map(tab => (
                                 <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-                                    className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 ${activeTab === tab.id
+                                    className={`px-3 py-2.5 text-xs font-semibold border-b-2 transition-colors flex items-center gap-1.5 whitespace-nowrap ${activeTab === tab.id
                                         ? 'border-green-500 text-green-600 dark:text-green-400'
                                         : 'border-transparent text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
                                         }`}>
@@ -722,7 +792,207 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                     )}
                                 </div>
                             )}
+
+                            {/* ════ TAB: FILES ════ */}
+                            {activeTab === 'files' && (
+                                <div className="animate-in fade-in duration-300">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <Paperclip size={12} /> Client Files
+                                        </h4>
+                                        {isAdmin && (
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    ref={fileInputRef}
+                                                    className="hidden"
+                                                    onChange={(e) => { if (e.target.files[0]) handleFileUpload(e.target.files[0], 'general'); e.target.value = ''; }}
+                                                />
+                                                <button
+                                                    onClick={() => fileInputRef.current?.click()}
+                                                    disabled={isUploading}
+                                                    className="text-[10px] bg-gradient-to-r from-green-500 to-emerald-500 text-white py-1.5 px-3 rounded-lg font-bold flex items-center gap-1 transition-all hover:shadow-md hover:shadow-green-500/20 disabled:opacity-50"
+                                                >
+                                                    {isUploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                                                    {isUploading ? 'Uploading...' : 'Upload File'}
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Drop zone */}
+                                    {isAdmin && (
+                                        <div
+                                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                            onDragLeave={() => setIsDragging(false)}
+                                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) handleFileUpload(e.dataTransfer.files[0], 'general'); }}
+                                            className={`mb-3 p-4 border-2 border-dashed rounded-xl text-center transition-all cursor-pointer ${isDragging
+                                                ? 'border-green-400 bg-green-50/50 dark:bg-green-500/10 dark:border-green-500/40'
+                                                : 'border-gray-200 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/[0.15]'
+                                                }`}
+                                            onClick={() => fileInputRef.current?.click()}
+                                        >
+                                            <Upload size={18} className={`mx-auto mb-1 ${isDragging ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'}`} />
+                                            <p className={`text-[10px] font-medium ${isDragging ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                                                {isDragging ? 'Drop file here' : 'Drag & drop or click to upload'}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* File list */}
+                                    {generalFiles.length > 0 ? (
+                                        <div className="space-y-2 max-h-60 overflow-y-auto pr-1 no-scrollbar">
+                                            {generalFiles.map((f) => (
+                                                <div key={f.id} className="flex items-center justify-between p-2.5 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-gray-100 dark:border-white/[0.06] hover:border-gray-200 dark:hover:border-white/[0.1] transition-colors group/file">
+                                                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${getFileExtColor(f.original_name)}`}>
+                                                            <FileText size={14} />
+                                                        </div>
+                                                        <div className="min-w-0 flex-1">
+                                                            <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate" title={f.original_name}>
+                                                                {f.original_name}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 mt-0.5">
+                                                                <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded ${getFileExtColor(f.original_name)}`}>
+                                                                    {f.original_name?.split('.').pop()}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400">{formatFileSize(f.file_size)}</span>
+                                                                <span className="text-[10px] text-gray-400">{f.uploaded_at?.split('T')[0]}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1 shrink-0 opacity-0 group-hover/file:opacity-100 transition-opacity">
+                                                        <a href={f.file?.startsWith('http') ? f.file : `${API_BASE_URL.replace('/api', '')}${f.file}`}
+                                                            target="_blank" rel="noopener noreferrer"
+                                                            className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-500/10 rounded-lg transition-colors"
+                                                            title="Download">
+                                                            <Download size={13} />
+                                                        </a>
+                                                        {isAdmin && (
+                                                            <button onClick={() => handleFileDelete(f.id)}
+                                                                className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
+                                                                title="Delete">
+                                                                <Trash2 size={13} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-8 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08]">
+                                            <Paperclip size={22} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                            <p className="text-xs text-gray-400 font-medium">No files attached</p>
+                                            <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Upload documents, images, or any files</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* ════ TAB: WHATSAPP SCREENSHOTS ════ */}
+                            {activeTab === 'whatsapp' && (
+                                <div className="animate-in fade-in duration-300">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h4 className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                            <MessageSquare size={12} className="text-green-500" /> WhatsApp Screenshots
+                                        </h4>
+                                        {isAdmin && (
+                                            <>
+                                                <input
+                                                    type="file"
+                                                    ref={whatsappInputRef}
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={(e) => { if (e.target.files[0]) handleFileUpload(e.target.files[0], 'whatsapp'); e.target.value = ''; }}
+                                                />
+                                                <button
+                                                    onClick={() => whatsappInputRef.current?.click()}
+                                                    disabled={isUploading}
+                                                    className="text-[10px] bg-gradient-to-r from-green-500 to-emerald-500 text-white py-1.5 px-3 rounded-lg font-bold flex items-center gap-1 transition-all hover:shadow-md hover:shadow-green-500/20 disabled:opacity-50"
+                                                >
+                                                    {isUploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                                                    {isUploading ? 'Uploading...' : 'Add Screenshot'}
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Drop zone for WhatsApp */}
+                                    {isAdmin && (
+                                        <div
+                                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                            onDragLeave={() => setIsDragging(false)}
+                                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); if (e.dataTransfer.files[0]) handleFileUpload(e.dataTransfer.files[0], 'whatsapp'); }}
+                                            className={`mb-3 p-4 border-2 border-dashed rounded-xl text-center transition-all cursor-pointer ${isDragging
+                                                ? 'border-green-400 bg-green-50/50 dark:bg-green-500/10 dark:border-green-500/40'
+                                                : 'border-gray-200 dark:border-white/[0.08] hover:border-gray-300 dark:hover:border-white/[0.15]'
+                                                }`}
+                                            onClick={() => whatsappInputRef.current?.click()}
+                                        >
+                                            <Image size={18} className={`mx-auto mb-1 ${isDragging ? 'text-green-500' : 'text-gray-300 dark:text-gray-600'}`} />
+                                            <p className={`text-[10px] font-medium ${isDragging ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
+                                                {isDragging ? 'Drop screenshot here' : 'Drag & drop or click to add screenshots'}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Screenshots grid */}
+                                    {whatsappFiles.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-2 max-h-72 overflow-y-auto pr-1 no-scrollbar">
+                                            {whatsappFiles.map((f) => {
+                                                const fileUrl = f.file?.startsWith('http') ? f.file : `${API_BASE_URL.replace('/api', '')}${f.file}`;
+                                                return (
+                                                    <div key={f.id} className="relative group/img rounded-xl overflow-hidden border border-gray-100 dark:border-white/[0.06] hover:border-gray-300 dark:hover:border-white/[0.15] transition-all">
+                                                        <img
+                                                            src={fileUrl}
+                                                            alt={f.original_name}
+                                                            className="w-full h-32 object-cover cursor-pointer hover:scale-105 transition-transform duration-300"
+                                                            onClick={() => setPreviewImage(fileUrl)}
+                                                        />
+                                                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                            <p className="text-[9px] text-white/90 truncate font-medium">{f.original_name}</p>
+                                                            <p className="text-[8px] text-white/60">{f.uploaded_at?.split('T')[0]}</p>
+                                                        </div>
+                                                        <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                                            <a href={fileUrl} target="_blank" rel="noopener noreferrer"
+                                                                className="p-1 bg-white/90 dark:bg-gray-800/90 text-blue-500 rounded-lg shadow-sm hover:bg-white transition-colors" title="Open">
+                                                                <ExternalLink size={11} />
+                                                            </a>
+                                                            {isAdmin && (
+                                                                <button onClick={() => handleFileDelete(f.id)}
+                                                                    className="p-1 bg-white/90 dark:bg-gray-800/90 text-red-500 rounded-lg shadow-sm hover:bg-white transition-colors" title="Delete">
+                                                                    <Trash2 size={11} />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-8 bg-gray-50 dark:bg-white/[0.02] rounded-xl border border-dashed border-gray-200 dark:border-white/[0.08]">
+                                            <MessageSquare size={22} className="text-gray-300 dark:text-gray-600 mb-2" />
+                                            <p className="text-xs text-gray-400 font-medium">No WhatsApp screenshots</p>
+                                            <p className="text-[10px] text-gray-300 dark:text-gray-600 mt-1">Upload conversation screenshots here</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
+
+                        {/* Image preview modal */}
+                        {previewImage && (
+                            <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 backdrop-blur-sm animate-in fade-in duration-200 cursor-pointer"
+                                onClick={() => setPreviewImage(null)}>
+                                <div className="relative max-w-3xl max-h-[85vh] p-2" onClick={e => e.stopPropagation()}>
+                                    <img src={previewImage} alt="Preview" className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl" />
+                                    <button onClick={() => setPreviewImage(null)}
+                                        className="absolute -top-2 -right-2 w-8 h-8 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-lg font-bold">
+                                        ×
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

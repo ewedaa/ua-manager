@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ClientViewSet, LivestockTypeViewSet, InvoiceViewSet,
     PaymentViewSet, TicketViewSet, AgentQueryView, SubscriptionModuleViewSet,
-    GeneticsSerialViewSet,
+    GeneticsSerialViewSet, ClientFileViewSet,
     DashboardStatsView, ChartDataView, NotificationsView,
     MarkAllNotificationsReadView, DismissAllNotificationsView, EmailReportView,
     AISuggestionView, FileAnalysisView, InsightsView,
@@ -50,4 +50,7 @@ urlpatterns = [
     path('import/', BackupImportView.as_view(), name='backup-import'),
     path('import-preview/', ImportPreviewView.as_view(), name='import-preview'),
     path('system-health/', SystemHealthView.as_view(), name='system-health'),
+    # Client files
+    path('clients/<int:client_pk>/files/', ClientFileViewSet.as_view({'get': 'list', 'post': 'create'}), name='client-files'),
+    path('clients/<int:client_pk>/files/<int:pk>/', ClientFileViewSet.as_view({'delete': 'destroy'}), name='client-file-detail'),
 ]
