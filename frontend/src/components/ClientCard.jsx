@@ -151,22 +151,22 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
 
                 <div className="p-5">
                     {/* ═══ HEADER ROW ═══ */}
-                    <div className="flex items-center gap-4">
-                        <div className={`w-14 h-14 rounded-2xl flex shrink-0 items-center justify-center font-bold text-lg shadow-xl bg-gradient-to-br ${status.gradient} text-white transition-transform duration-300 ${isHovered ? 'scale-105' : ''}`}>
+                    <div className="flex items-start gap-3">
+                        <div className={`w-12 h-12 rounded-2xl flex shrink-0 items-center justify-center font-bold text-base shadow-xl bg-gradient-to-br ${status.gradient} text-white transition-transform duration-300 ${isHovered ? 'scale-105' : ''}`}>
                             {getInitials(client.farm_name)}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h3 className={`text-base font-extrabold leading-snug tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
+                            <h3 className={`text-base font-extrabold leading-tight tracking-tight truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {client.farm_name}
                             </h3>
-                            <p className={`text-sm mt-0.5 font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
                                 {client.name}
                             </p>
+                            <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest mt-1.5 ${status.bg} ${status.text}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                                {status.label}
+                            </span>
                         </div>
-                        <span className={`inline-flex items-center gap-1.5 text-[9px] font-extrabold px-2.5 py-1 rounded-full tracking-widest shrink-0 ${status.bg} ${status.text}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                            {status.label}
-                        </span>
                     </div>
 
                     {/* ═══ SUBSCRIPTION PROGRESS ═══ */}
