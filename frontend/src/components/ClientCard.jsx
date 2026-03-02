@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Phone, MessageSquare, Pencil, Receipt, DollarSign, Clock,
+    MessageSquare, Pencil, Receipt, DollarSign, Clock,
     Trash2, Ticket, ChevronRight, ArrowUpRight, Layers
 } from 'lucide-react';
 import EditClientModal from './EditClientModal';
@@ -204,11 +204,6 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                 className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 ${isDark ? 'text-gray-500 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
                                 title="WhatsApp">
                                 <MessageSquare size={15} />
-                            </a>
-                            <a href={`tel:${client.phone}`}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}
-                                title="Call">
-                                <Phone size={15} />
                             </a>
                             {isAdmin && (
                                 <button onClick={() => setIsEditModalOpen(true)}

@@ -209,7 +209,6 @@ export default function ClientDetailPage() {
                             </div>
                             <div>
                                 <h1 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</h1>
-                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{client.farm_name}</p>
                             </div>
                             <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest ${status.color}`}>
                                 <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${status.dot}`} />
@@ -220,9 +219,6 @@ export default function ClientDetailPage() {
                     <div className="flex items-center gap-2">
                         <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}>
                             <MessageSquare size={18} />
-                        </a>
-                        <a href={`tel:${client.phone}`} className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}>
-                            <Phone size={18} />
                         </a>
                         {isAdmin && (
                             <button onClick={() => setIsEditModalOpen(true)} className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-purple-400 hover:bg-purple-500/10' : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'}`}>
@@ -244,7 +240,6 @@ export default function ClientDetailPage() {
                                     {getInitials(client.name)}
                                 </div>
                                 <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</h2>
-                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.farm_name}</p>
                             </div>
 
                             {/* Section Nav — TOP PRIORITY */}
@@ -389,7 +384,6 @@ export default function ClientDetailPage() {
                                         {isAdmin && <button onClick={() => { setActiveSection('finance'); setIsAddInvoiceOpen(true); }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"><Plus size={13} /> New Invoice</button>}
                                         <button onClick={() => navigate('/new-ticket')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Ticket size={13} /> New Ticket</button>
                                         <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"><MessageSquare size={13} /> WhatsApp</a>
-                                        <a href={`tel:${client.phone}`} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Phone size={13} /> Call</a>
                                         {isAdmin && <button onClick={() => setIsEditModalOpen(true)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Pencil size={13} /> Edit Client</button>}
                                     </div>
                                 </div>
@@ -409,7 +403,6 @@ export default function ClientDetailPage() {
                                         <div className="space-y-3">
                                             {[
                                                 { label: 'Farm', value: client.name },
-                                                { label: 'Owner', value: client.farm_name },
                                                 { label: 'Phone', value: client.phone },
                                                 { label: 'Area', value: client.area || '—' },
                                             ].map((item, i) => (
@@ -543,19 +536,19 @@ export default function ClientDetailPage() {
                                                     <MessageSquare size={16} />
                                                 </a>
                                             )}
-                                            {client.phone && (
-                                                <a href={`tel:${formatPhone(client.phone)}`} className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-blue-500/10 text-blue-400 hover:bg-blue-500/20' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`} title="Call">
-                                                    <Phone size={16} />
-                                                </a>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Other Contacts */}
                                 <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
-                                    <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                    <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Additional Contacts ({contacts.length})</h3>
+                                        {isAdmin && (
+                                            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
+                                                <Plus size={12} /> Add Contact
+                                            </button>
+                                        )}
                                     </div>
                                     {contacts.length === 0 ? (
                                         <div className="p-8 text-center">
@@ -584,11 +577,6 @@ export default function ClientDetailPage() {
                                                         {contact.phone && (
                                                             <a href={getWhatsAppLink(contact.phone)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors" title="WhatsApp">
                                                                 <MessageSquare size={14} />
-                                                            </a>
-                                                        )}
-                                                        {contact.phone && (
-                                                            <a href={`tel:${formatPhone(contact.phone)}`} className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/[0.06] text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`} title="Call">
-                                                                <Phone size={14} />
                                                             </a>
                                                         )}
                                                         {contact.phone && (
