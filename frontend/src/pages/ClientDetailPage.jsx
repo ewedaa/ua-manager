@@ -1,0 +1,705 @@
+import React, { useState, useRef } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
+import { API_BASE_URL } from '../lib/api';
+import EditClientModal from '../components/EditClientModal';
+import AddInvoiceModal from '../components/AddInvoiceModal';
+import {
+    ArrowLeft, Phone, Calendar, MessageSquare, Hash, FileText,
+    Pencil, Receipt, Plus, CheckCircle, Clock, Users, DollarSign,
+    Copy, Shield, TrendingUp, Ticket, Trash2, Paperclip, Upload,
+    Download, Image, Loader2, Sparkles, ExternalLink, Eye,
+    ChevronRight, Building2, Mail, MapPin, Tag, X, AlertTriangle
+} from 'lucide-react';
+
+export default function ClientDetailPage() {
+    const { id } = useParams();
+    const navigate = useNavigate();
+    const { isDark } = useTheme();
+    const { isAdmin } = useAuth();
+    const queryClient = useQueryClient();
+    const fileInputRef = useRef(null);
+    const whatsappInputRef = useRef(null);
+
+    const [activeSection, setActiveSection] = useState('overview');
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isAddInvoiceOpen, setIsAddInvoiceOpen] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [previewImage, setPreviewImage] = useState(null);
+    const [copiedField, setCopiedField] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // Fetch all clients and find the one we need
+    const { data: clients = [], isLoading } = useQuery({
+        queryKey: ['clients'],
+        queryFn: async () => {
+            const res = await fetch(`${API_BASE_URL}/clients/`);
+            if (!res.ok) throw new Error('Failed to fetch');
+            return res.json();
+        },
+    });
+
+    const client = clients.find(c => c.id === parseInt(id));
+
+    // Mutations
+    const updateInvoiceMutation = useMutation({
+        mutationFn: async ({ id: invId, status }) => {
+            const res = await fetch(`${API_BASE_URL}/invoices/${invId}/`, {
+                method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+            });
+            if (!res.ok) throw new Error('Failed');
+            return res.json();
+        },
+        onSuccess: () => queryClient.invalidateQueries(['clients']),
+    });
+
+    const deleteClientMutation = useMutation({
+        mutationFn: async (clientId) => {
+            const res = await fetch(`${API_BASE_URL}/clients/${clientId}/`, { method: 'DELETE' });
+            if (!res.ok) throw new Error('Failed');
+        },
+        onSuccess: () => { queryClient.invalidateQueries(['clients']); navigate('/clients'); },
+    });
+
+    // Helpers
+    const handleCopy = (text, field) => {
+        navigator.clipboard.writeText(text);
+        setCopiedField(field);
+        setTimeout(() => setCopiedField(null), 1500);
+    };
+
+    const handleFileUpload = async (file, category = 'general') => {
+        if (!file) return;
+        setIsUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('category', category);
+            const res = await fetch(`${API_BASE_URL}/clients/${client.id}/files/`, { method: 'POST', body: formData });
+            if (!res.ok) throw new Error('Upload failed');
+            queryClient.invalidateQueries(['clients']);
+        } catch (err) { console.error(err); } finally { setIsUploading(false); }
+    };
+
+    const handleFileDelete = async (fileId) => {
+        try {
+            await fetch(`${API_BASE_URL}/clients/${client.id}/files/${fileId}/`, { method: 'DELETE' });
+            queryClient.invalidateQueries(['clients']);
+        } catch (err) { console.error(err); }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (!bytes) return 'N/A';
+        if (bytes < 1024) return `${bytes} B`;
+        if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+        return `${(bytes / 1048576).toFixed(1)} MB`;
+    };
+
+    const getFileExtColor = (name) => {
+        const ext = name?.split('.').pop()?.toLowerCase();
+        const map = { pdf: 'bg-red-500/10 text-red-500', doc: 'bg-blue-500/10 text-blue-500', docx: 'bg-blue-500/10 text-blue-500', xls: 'bg-green-500/10 text-green-500', xlsx: 'bg-green-500/10 text-green-500', png: 'bg-purple-500/10 text-purple-500', jpg: 'bg-purple-500/10 text-purple-500', jpeg: 'bg-purple-500/10 text-purple-500' };
+        return map[ext] || 'bg-gray-500/10 text-gray-500';
+    };
+
+    const getInitials = (name) => name ? name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : '??';
+
+    // Loading state
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader2 size={40} className="text-emerald-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (!client) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+                <AlertTriangle size={48} className="text-amber-500" />
+                <p className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>Client not found</p>
+                <button onClick={() => navigate('/clients')} className="px-4 py-2 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition-colors">
+                    Back to Clients
+                </button>
+            </div>
+        );
+    }
+
+    // Derived data
+    const invoices = client.invoices || [];
+    const totalDue = invoices.filter(inv => inv.status === 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const paidAmount = invoices.filter(inv => inv.status !== 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const totalRevenue = invoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const tickets = client.tickets || [];
+    const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+    const contacts = client.contacts || [];
+    const files = client.files || [];
+    const generalFiles = files.filter(f => f.category !== 'whatsapp');
+    const whatsappFiles = files.filter(f => f.category === 'whatsapp');
+
+    const getDaysRemaining = () => {
+        if (!client.subscription_end_date) return null;
+        return Math.ceil((new Date(client.subscription_end_date) - new Date()) / (1000 * 60 * 60 * 24));
+    };
+    const daysRemaining = getDaysRemaining();
+
+    const isCritical = client.alert_status === 'critical';
+    const getStatusInfo = () => {
+        if (client.is_demo) return { label: 'Demo', color: 'bg-purple-500/15 text-purple-400', dot: 'bg-purple-500', gradient: 'from-purple-500 to-violet-600' };
+        if (daysRemaining !== null && daysRemaining < 0) return { label: 'Expired', color: 'bg-red-500/15 text-red-400', dot: 'bg-red-500', gradient: 'from-red-500 to-rose-600' };
+        if (isCritical) return { label: 'Expiring', color: 'bg-amber-500/15 text-amber-400', dot: 'bg-amber-500 animate-pulse', gradient: 'from-amber-500 to-orange-600' };
+        return { label: 'Active', color: 'bg-green-500/15 text-green-400', dot: 'bg-green-500', gradient: 'from-green-500 to-emerald-600' };
+    };
+    const status = getStatusInfo();
+
+    const calculateProgress = () => {
+        if (!client.subscription_start_date || !client.subscription_end_date) return 0;
+        const start = new Date(client.subscription_start_date).getTime();
+        const end = new Date(client.subscription_end_date).getTime();
+        const now = Date.now();
+        if (now > end) return 100;
+        if (now < start) return 0;
+        return Math.min(100, Math.max(0, ((now - start) / (end - start)) * 100));
+    };
+    const progress = calculateProgress();
+    const progressColor = progress > 90 ? 'from-red-500 to-rose-600' : progress > 75 ? 'from-amber-500 to-orange-500' : 'from-green-500 to-emerald-500';
+
+    const sections = [
+        { id: 'overview', label: 'Overview', icon: Eye },
+        { id: 'finance', label: 'Finance', icon: DollarSign, badge: totalDue > 0 ? `${totalDue.toLocaleString()}` : null },
+        { id: 'contacts', label: 'Contacts', icon: Users, count: contacts.length },
+        { id: 'tickets', label: 'Tickets', icon: Ticket, count: openTickets },
+        { id: 'files', label: 'Files', icon: Paperclip, count: generalFiles.length },
+        { id: 'whatsapp', label: 'WhatsApp', icon: Image, count: whatsappFiles.length },
+    ];
+
+    return (
+        <div className={`min-h-screen ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
+            {/* ═══ TOP BAR ═══ */}
+            <div className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isDark ? 'bg-gray-950/80 border-white/[0.06]' : 'bg-white/80 border-gray-200'}`}>
+                <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        <button onClick={() => navigate('/clients')} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/[0.06] text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+                            <ArrowLeft size={20} />
+                        </button>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>
+                                {getInitials(client.farm_name)}
+                            </div>
+                            <div>
+                                <h1 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.farm_name}</h1>
+                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{client.name}</p>
+                            </div>
+                            <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest ${status.color}`}>
+                                <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${status.dot}`} />
+                                {status.label}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-500 hover:text-green-600 hover:bg-green-50'}`}>
+                            <MessageSquare size={18} />
+                        </a>
+                        <a href={`tel:${client.phone}`} className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-500 hover:text-blue-600 hover:bg-blue-50'}`}>
+                            <Phone size={18} />
+                        </a>
+                        {isAdmin && (
+                            <button onClick={() => setIsEditModalOpen(true)} className={`p-2 rounded-xl transition-colors ${isDark ? 'text-gray-400 hover:text-purple-400 hover:bg-purple-500/10' : 'text-gray-500 hover:text-purple-600 hover:bg-purple-50'}`}>
+                                <Pencil size={18} />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="flex gap-6">
+                    {/* ═══ LEFT SIDEBAR ═══ */}
+                    <div className="w-72 shrink-0 hidden lg:block">
+                        <div className={`rounded-2xl border p-5 sticky top-20 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                            {/* Avatar & Name */}
+                            <div className="text-center mb-5">
+                                <div className={`w-20 h-20 rounded-2xl mx-auto mb-3 flex items-center justify-center font-bold text-2xl bg-gradient-to-br ${status.gradient} text-white shadow-xl`}>
+                                    {getInitials(client.farm_name)}
+                                </div>
+                                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.farm_name}</h2>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.name}</p>
+                            </div>
+
+                            {/* Subscription Progress */}
+                            <div className="mb-5">
+                                <div className="flex items-center justify-between mb-1.5">
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription</span>
+                                    <span className={`text-xs font-bold tabular-nums ${progress > 90 ? 'text-red-500' : progress > 75 ? 'text-amber-500' : isDark ? 'text-green-400' : 'text-green-600'}`}>
+                                        {daysRemaining !== null ? `${daysRemaining < 0 ? Math.abs(daysRemaining) + 'd overdue' : daysRemaining + 'd left'}` : '—'}
+                                    </span>
+                                </div>
+                                <div className={`h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>
+                                    <div className={`h-full bg-gradient-to-r ${progressColor} rounded-full transition-all duration-1000`} style={{ width: `${progress}%` }} />
+                                </div>
+                            </div>
+
+                            {/* Info Cards */}
+                            <div className="space-y-2.5">
+                                {[
+                                    { icon: Hash, label: 'Serial', value: client.serial_key || '—', copy: true },
+                                    { icon: Phone, label: 'Phone', value: client.phone || '—', copy: true },
+                                    { icon: Calendar, label: 'Started', value: client.subscription_start_date || '—' },
+                                    { icon: Calendar, label: 'Expires', value: client.subscription_end_date || '—', critical: daysRemaining !== null && daysRemaining < 30 },
+                                ].map((item, i) => (
+                                    <div key={i} className={`flex items-center gap-3 p-2.5 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}`}>
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${item.critical ? 'bg-red-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-white'}`}>
+                                            <item.icon size={14} className={item.critical ? 'text-red-500' : isDark ? 'text-gray-400' : 'text-gray-500'} />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{item.label}</p>
+                                            <p className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.value}</p>
+                                        </div>
+                                        {item.copy && item.value !== '—' && (
+                                            <button onClick={() => handleCopy(item.value, item.label)} className={`p-1 rounded-lg transition-colors ${copiedField === item.label ? 'text-green-500' : isDark ? 'text-gray-600 hover:text-gray-400' : 'text-gray-300 hover:text-gray-500'}`}>
+                                                {copiedField === item.label ? <CheckCircle size={12} /> : <Copy size={12} />}
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Modules */}
+                            {client.subscription_modules?.length > 0 && (
+                                <div className="mt-4">
+                                    <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Modules</p>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {client.subscription_modules.map((mod, i) => (
+                                            <span key={i} className={`text-[10px] font-medium px-2 py-1 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
+                                                {mod.name || mod}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Section Nav */}
+                            <nav className="mt-5 pt-5 border-t space-y-1" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb' }}>
+                                {sections.map(s => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setActiveSection(s.id)}
+                                        className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${activeSection === s.id
+                                            ? isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'
+                                            : isDark ? 'text-gray-500 hover:text-gray-300 hover:bg-white/[0.04]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        <s.icon size={14} />
+                                        <span className="flex-1 text-left">{s.label}</span>
+                                        {s.count > 0 && <span className={`text-[10px] font-bold px-1.5 rounded-full ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}>{s.count}</span>}
+                                        {s.badge && <span className="text-[10px] font-bold text-orange-500">{s.badge}</span>}
+                                    </button>
+                                ))}
+                            </nav>
+
+                            {/* Delete Button */}
+                            {isAdmin && (
+                                <div className="mt-4 pt-4 border-t" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#e5e7eb' }}>
+                                    {!showDeleteConfirm ? (
+                                        <button onClick={() => setShowDeleteConfirm(true)} className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-500/10 transition-colors">
+                                            <Trash2 size={14} /> Delete Client
+                                        </button>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            <p className="text-xs text-red-500 font-medium text-center">Are you sure?</p>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => setShowDeleteConfirm(false)} className={`flex-1 px-3 py-1.5 rounded-lg text-xs font-medium ${isDark ? 'bg-white/[0.06] text-gray-400' : 'bg-gray-100 text-gray-600'}`}>Cancel</button>
+                                                <button onClick={() => deleteClientMutation.mutate(client.id)} className="flex-1 px-3 py-1.5 rounded-lg text-xs font-bold bg-red-500 text-white hover:bg-red-600">Delete</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* ═══ MAIN CONTENT ═══ */}
+                    <div className="flex-1 min-w-0">
+                        {/* Mobile Section Nav */}
+                        <div className={`lg:hidden flex overflow-x-auto no-scrollbar gap-1 mb-4 p-1 rounded-xl ${isDark ? 'bg-white/[0.03]' : 'bg-gray-100'}`}>
+                            {sections.map(s => (
+                                <button
+                                    key={s.id}
+                                    onClick={() => setActiveSection(s.id)}
+                                    className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all ${activeSection === s.id
+                                        ? isDark ? 'bg-emerald-500/15 text-emerald-400' : 'bg-white text-emerald-700 shadow-sm'
+                                        : isDark ? 'text-gray-500' : 'text-gray-500'
+                                        }`}
+                                >
+                                    <s.icon size={13} />{s.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* KPI Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                            {[
+                                { icon: Clock, label: 'Days Left', value: daysRemaining !== null ? (daysRemaining < 0 ? `${Math.abs(daysRemaining)} overdue` : daysRemaining) : '—', color: daysRemaining !== null && daysRemaining < 30 ? 'text-red-500' : 'text-emerald-500', iconBg: daysRemaining !== null && daysRemaining < 30 ? 'bg-red-500/10' : 'bg-emerald-500/10' },
+                                { icon: Receipt, label: 'Invoices', value: invoices.length, color: isDark ? 'text-blue-400' : 'text-blue-600', iconBg: 'bg-blue-500/10' },
+                                { icon: DollarSign, label: 'Due Amount', value: totalDue > 0 ? `${totalDue.toLocaleString()} EGP` : '0', color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100' },
+                                { icon: Ticket, label: 'Open Tickets', value: openTickets, color: openTickets > 0 ? 'text-violet-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: openTickets > 0 ? 'bg-violet-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100' },
+                            ].map((kpi, i) => (
+                                <div key={i} className={`rounded-xl border p-4 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.iconBg}`}>
+                                            <kpi.icon size={18} className={kpi.color} />
+                                        </div>
+                                        <div>
+                                            <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{kpi.label}</p>
+                                            <p className={`text-lg font-extrabold tabular-nums ${kpi.color}`}>{kpi.value}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* ═══ OVERVIEW SECTION ═══ */}
+                        {activeSection === 'overview' && (
+                            <div className="space-y-4 animate-in fade-in duration-200">
+                                {/* General Notes */}
+                                {client.general_notes && (
+                                    <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Notes</h3>
+                                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{client.general_notes}</p>
+                                    </div>
+                                )}
+
+                                {/* Quick Info Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Client Information</h3>
+                                        <div className="space-y-3">
+                                            {[
+                                                { label: 'Farm', value: client.farm_name },
+                                                { label: 'Owner', value: client.name },
+                                                { label: 'Phone', value: client.phone },
+                                                { label: 'Area', value: client.area || '—' },
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex items-center justify-between">
+                                                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</span>
+                                                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription Details</h3>
+                                        <div className="space-y-3">
+                                            {[
+                                                { label: 'Serial Key', value: client.serial_key || '—' },
+                                                { label: 'Start Date', value: client.subscription_start_date || '—' },
+                                                { label: 'End Date', value: client.subscription_end_date || '—' },
+                                                { label: 'Status', value: status.label },
+                                            ].map((item, i) => (
+                                                <div key={i} className="flex items-center justify-between">
+                                                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</span>
+                                                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.value}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══ FINANCE SECTION ═══ */}
+                        {activeSection === 'finance' && (
+                            <div className="space-y-4 animate-in fade-in duration-200">
+                                {/* Finance Summary */}
+                                <div className="grid grid-cols-3 gap-3">
+                                    {[
+                                        { label: 'Total Revenue', value: `${totalRevenue.toLocaleString()} EGP`, color: isDark ? 'text-gray-200' : 'text-gray-800' },
+                                        { label: 'Collected', value: `${paidAmount.toLocaleString()} EGP`, color: 'text-green-500' },
+                                        { label: 'Pending', value: `${totalDue.toLocaleString()} EGP`, color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600' },
+                                    ].map((item, i) => (
+                                        <div key={i} className={`rounded-xl border p-4 text-center ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                            <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</p>
+                                            <p className={`text-lg font-extrabold tabular-nums ${item.color}`}>{item.value}</p>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Invoice List */}
+                                <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Invoice History</h3>
+                                        {isAdmin && (
+                                            <button onClick={() => setIsAddInvoiceOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
+                                                <Plus size={12} /> New Invoice
+                                            </button>
+                                        )}
+                                    </div>
+                                    {invoices.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Receipt size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No invoices yet</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
+                                            {invoices.map(inv => (
+                                                <div key={inv.id} className={`flex items-center justify-between p-4 hover:${isDark ? 'bg-white/[0.02]' : 'bg-gray-50'} transition-colors`}>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${inv.status === 'Due' ? 'bg-orange-500/10' : 'bg-green-500/10'}`}>
+                                                            <Receipt size={14} className={inv.status === 'Due' ? 'text-orange-500' : 'text-green-500'} />
+                                                        </div>
+                                                        <div>
+                                                            <p className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                                                                {inv.invoice_type || 'Invoice'} #{inv.id}
+                                                            </p>
+                                                            <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                                                                {inv.created_at ? new Date(inv.created_at).toLocaleDateString() : '—'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
+                                                            {parseFloat(inv.total_amount || 0).toLocaleString()} EGP
+                                                        </span>
+                                                        {isAdmin ? (
+                                                            <select
+                                                                value={inv.status}
+                                                                onChange={(e) => updateInvoiceMutation.mutate({ id: inv.id, status: e.target.value })}
+                                                                className={`text-[10px] font-bold px-2 py-1 rounded-lg border cursor-pointer ${inv.status === 'Due'
+                                                                    ? isDark ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' : 'bg-orange-50 border-orange-200 text-orange-700'
+                                                                    : isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'
+                                                                    }`}
+                                                            >
+                                                                <option value="Due">Due</option>
+                                                                <option value="Paid to Us">Paid to Us</option>
+                                                                <option value="Paid to Uniform">Paid to Uniform</option>
+                                                            </select>
+                                                        ) : (
+                                                            <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${inv.status === 'Due'
+                                                                ? isDark ? 'bg-orange-500/10 text-orange-400' : 'bg-orange-50 text-orange-700'
+                                                                : isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
+                                                                }`}>{inv.status}</span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══ CONTACTS SECTION ═══ */}
+                        {activeSection === 'contacts' && (
+                            <div className="animate-in fade-in duration-200">
+                                <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Contacts ({contacts.length})</h3>
+                                    </div>
+                                    {contacts.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Users size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No contacts added</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
+                                            {contacts.map((contact, i) => (
+                                                <div key={i} className="flex items-center justify-between p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${isDark ? 'bg-blue-500/10' : 'bg-blue-50'}`}>
+                                                            <Users size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+                                                        </div>
+                                                        <div>
+                                                            <p className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{contact.name}</p>
+                                                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{contact.role || 'Contact'}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        {contact.phone && (
+                                                            <a href={`tel:${contact.phone}`} className={`p-1.5 rounded-lg text-xs ${isDark ? 'text-gray-400 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                                                                <Phone size={14} />
+                                                            </a>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══ TICKETS SECTION ═══ */}
+                        {activeSection === 'tickets' && (
+                            <div className="animate-in fade-in duration-200">
+                                <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className={`p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Tickets ({tickets.length})</h3>
+                                    </div>
+                                    {tickets.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Ticket size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No tickets</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
+                                            {tickets.map(ticket => (
+                                                <div key={ticket.id} className="flex items-center justify-between p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className={`w-2 h-2 rounded-full ${ticket.status === 'Open' ? 'bg-green-500' : ticket.status === 'In Progress' ? 'bg-amber-500' : 'bg-gray-400'}`} />
+                                                        <div>
+                                                            <p className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{ticket.title || ticket.subject}</p>
+                                                            <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{ticket.created_at ? new Date(ticket.created_at).toLocaleDateString() : ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${ticket.status === 'Open'
+                                                        ? isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
+                                                        : ticket.status === 'In Progress'
+                                                            ? isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-700'
+                                                            : isDark ? 'bg-gray-500/10 text-gray-400' : 'bg-gray-100 text-gray-600'
+                                                        }`}>{ticket.status}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══ FILES SECTION ═══ */}
+                        {activeSection === 'files' && (
+                            <div className="animate-in fade-in duration-200">
+                                <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Client Files</h3>
+                                        {isAdmin && (
+                                            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold cursor-pointer hover:bg-emerald-600 transition-colors shadow-sm">
+                                                <Upload size={12} /> Upload File
+                                                <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => handleFileUpload(e.target.files[0], 'general')} />
+                                            </label>
+                                        )}
+                                    </div>
+                                    {generalFiles.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Paperclip size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No files uploaded</p>
+                                        </div>
+                                    ) : (
+                                        <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
+                                            {generalFiles.map(file => (
+                                                <div key={file.id} className="flex items-center justify-between p-4">
+                                                    <div className="flex items-center gap-3 min-w-0">
+                                                        <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase ${getFileExtColor(file.file_name)}`}>
+                                                            {file.file_name?.split('.').pop()}
+                                                        </span>
+                                                        <div className="min-w-0">
+                                                            <p className={`text-sm font-medium truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{file.file_name}</p>
+                                                            <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{formatFileSize(file.file_size)} • {file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : ''}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <a href={file.file_url?.startsWith('http') ? file.file_url : `${API_BASE_URL.replace('/api', '')}${file.file_url}`} target="_blank" rel="noopener noreferrer" className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                                                            <Download size={14} />
+                                                        </a>
+                                                        {isAdmin && (
+                                                            <button onClick={() => handleFileDelete(file.id)} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}>
+                                                                <Trash2 size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* ═══ WHATSAPP SECTION ═══ */}
+                        {activeSection === 'whatsapp' && (
+                            <div className="animate-in fade-in duration-200">
+                                <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                    <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                        <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>WhatsApp Screenshots</h3>
+                                        {isAdmin && (
+                                            <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-bold cursor-pointer hover:bg-green-600 transition-colors shadow-sm">
+                                                <Image size={12} /> Add Screenshot
+                                                <input ref={whatsappInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e.target.files[0], 'whatsapp')} />
+                                            </label>
+                                        )}
+                                    </div>
+
+                                    {/* Drag & Drop Zone */}
+                                    {isAdmin && (
+                                        <div
+                                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                                            onDragLeave={() => setIsDragging(false)}
+                                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('image/')) handleFileUpload(file, 'whatsapp'); }}
+                                            className={`mx-4 mt-4 border-2 border-dashed rounded-xl p-6 text-center transition-all ${isDragging
+                                                ? isDark ? 'border-green-500/50 bg-green-500/5' : 'border-green-400 bg-green-50'
+                                                : isDark ? 'border-white/[0.08]' : 'border-gray-200'
+                                                }`}
+                                        >
+                                            {isUploading ? (
+                                                <Loader2 size={24} className="mx-auto text-green-500 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    <Upload size={24} className={`mx-auto mb-2 ${isDark ? 'text-gray-600' : 'text-gray-300'}`} />
+                                                    <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Drag & drop images here</p>
+                                                </>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {/* Image Grid */}
+                                    {whatsappFiles.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Image size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
+                                            <p className={`text-sm ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No screenshots</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
+                                            {whatsappFiles.map(file => {
+                                                const imgUrl = file.file_url?.startsWith('http') ? file.file_url : `${API_BASE_URL.replace('/api', '')}${file.file_url}`;
+                                                return (
+                                                    <div key={file.id} className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer" onClick={() => setPreviewImage(imgUrl)}>
+                                                        <img src={imgUrl} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+                                                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
+                                                            <Eye size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
+                                                        {isAdmin && (
+                                                            <button onClick={(e) => { e.stopPropagation(); handleFileDelete(file.id); }} className="absolute top-2 right-2 p-1 rounded-lg bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                                                                <Trash2 size={12} />
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* ═══ IMAGE PREVIEW MODAL ═══ */}
+            {previewImage && (
+                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
+                    <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+                        <X size={20} />
+                    </button>
+                    <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
+                </div>
+            )}
+
+            {/* ═══ MODALS ═══ */}
+            {isEditModalOpen && <EditClientModal client={client} onClose={() => setIsEditModalOpen(false)} />}
+            {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.farm_name} onClose={() => setIsAddInvoiceOpen(false)} />}
+        </div>
+    );
+}

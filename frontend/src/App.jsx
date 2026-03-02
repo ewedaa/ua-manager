@@ -26,6 +26,7 @@ const TodoPage = React.lazy(() => import('./pages/TodoPage'));
 const DocsPage = React.lazy(() => import('./pages/DocsPage'));
 const Analytics = React.lazy(() => import('./pages/Analytics'));
 const ReportWriter = React.lazy(() => import('./pages/ReportWriter'));
+const ClientDetailPage = React.lazy(() => import('./pages/ClientDetailPage'));
 
 
 // Loading Screen Component with Premium Animation
@@ -258,6 +259,7 @@ function AppContent() {
                   <Route path="/tickets" element={<TicketsPage />} />
                   <Route path="/projects" element={<ProjectsPage />} />
                   <Route path="/clients" element={<Clients />} />
+                  <Route path="/clients/:id" element={<ClientDetailPage />} />
                   <Route path="/invoices" element={<InvoiceMaker />} />
                   <Route path="/serials" element={<SerialsPage />} />
                   <Route path="/payments" element={<PaymentTracker />} />
