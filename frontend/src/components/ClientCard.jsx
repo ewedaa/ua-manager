@@ -159,9 +159,6 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                             <h3 className={`text-base font-extrabold leading-tight tracking-tight truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {client.farm_name}
                             </h3>
-                            <p className={`text-xs mt-0.5 truncate ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                {client.name}
-                            </p>
                             <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest mt-1.5 ${status.bg} ${status.text}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
                                 {status.label}
