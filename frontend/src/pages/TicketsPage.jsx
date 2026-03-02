@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Plus, Search, CheckCircle, Clock, AlertCircle, Edit2, FileDown, Printer, MessageSquare, Sparkles } from 'lucide-react';
 import EditTicketModal from '../components/EditTicketModal';
@@ -15,11 +15,20 @@ import { fetchTickets } from '../lib/fetchers';
 export default function TicketsPage() {
     const { isAdmin } = useAuth();
     const queryClient = useQueryClient();
+    const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('');
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [draftingId, setDraftingId] = useState(null);
+
+    // Handle filter from dashboard tiles
+    useEffect(() => {
+        const filterParam = searchParams.get('filter');
+        if (filterParam === 'open') setStatusFilter('Open');
+        else if (filterParam === 'in_progress') setStatusFilter('In Progress');
+        else if (filterParam === 'resolved') setStatusFilter('Resolved');
+    }, [searchParams]);
 
     const handleAIDraft = async (ticket) => {
         setDraftingId(ticket.id);

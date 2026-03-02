@@ -120,7 +120,7 @@ export default function Dashboard() {
                     value={stats?.clients?.expiring_soon || 0}
                     subValue="Within 60 days"
                     color="orange"
-                    to="/clients"
+                    to="/clients?filter=expiring"
                     delay={0}
                 />
                 <StatCard
@@ -138,7 +138,7 @@ export default function Dashboard() {
                     value={stats?.tickets?.open || 0}
                     subValue={`+${stats?.tickets?.new_this_week || 0} this week`}
                     color="red"
-                    to="/tickets"
+                    to="/tickets?filter=open"
                     delay={200}
                 />
                 <StatCard
@@ -161,7 +161,7 @@ export default function Dashboard() {
                     value={`${stats?.kpis?.retention_rate || 0}%`}
                     subValue={`${stats?.clients?.active || 0} active farms`}
                     color={stats?.kpis?.retention_rate >= 80 ? 'green' : stats?.kpis?.retention_rate >= 60 ? 'orange' : 'red'}
-                    to="/clients"
+                    to="/clients?filter=active"
                     delay={0}
                 />
                 <StatCard
@@ -179,7 +179,7 @@ export default function Dashboard() {
                     value={`${stats?.kpis?.sla_adherence || 0}%`}
                     subValue="Resolved within 48h"
                     color={stats?.kpis?.sla_adherence >= 80 ? 'green' : stats?.kpis?.sla_adherence >= 50 ? 'orange' : 'red'}
-                    to="/tickets"
+                    to="/tickets?filter=open"
                     delay={200}
                 />
                 <StatCard
@@ -210,7 +210,7 @@ export default function Dashboard() {
                     value={stats?.clients?.demo_farms || 0}
                     subValue={stats?.clients?.demo_expiring_soon > 0 ? `${stats.clients.demo_expiring_soon} expiring soon` : 'All active'}
                     color="purple"
-                    to="/clients"
+                    to="/clients?filter=demo"
                     delay={500}
                 />
                 <StatCard
@@ -219,7 +219,7 @@ export default function Dashboard() {
                     value={stats?.tickets?.avg_resolution_hours ? `${stats.tickets.avg_resolution_hours}h` : 'N/A'}
                     subValue="Ticket resolution"
                     color="blue"
-                    to="/tickets"
+                    to="/tickets?filter=open"
                     delay={600}
                 />
                 <StatCard
@@ -229,7 +229,7 @@ export default function Dashboard() {
                     subValue="Last 30 days"
                     trend="up"
                     color="green"
-                    to="/clients"
+                    to="/clients?filter=active"
                     delay={700}
                 />
             </div>
@@ -241,7 +241,7 @@ export default function Dashboard() {
                     label="Hot Leads"
                     value={stats?.clients?.hot_leads || 0}
                     color="orange"
-                    to="/clients"
+                    to="/clients?filter=expiring"
                     delay={800}
                 />
                 <StatCard
@@ -249,7 +249,7 @@ export default function Dashboard() {
                     label="Expired Subscriptions"
                     value={stats?.clients?.expired || 0}
                     color="red"
-                    to="/clients"
+                    to="/clients?filter=expired"
                     delay={900}
                 />
                 <StatCard
@@ -257,7 +257,7 @@ export default function Dashboard() {
                     label="Resolved Tickets"
                     value={stats?.tickets?.resolved || 0}
                     color="green"
-                    to="/tickets"
+                    to="/tickets?filter=resolved"
                     delay={1000}
                 />
                 <StatCard
@@ -265,7 +265,7 @@ export default function Dashboard() {
                     label="In Progress"
                     value={stats?.tickets?.in_progress || 0}
                     color="orange"
-                    to="/tickets"
+                    to="/tickets?filter=in_progress"
                     delay={1100}
                 />
                 <StatCard

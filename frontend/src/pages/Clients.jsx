@@ -34,9 +34,15 @@ export default function Clients() {
     useEffect(() => {
         if (searchParams.get('action') === 'new') {
             setIsModalOpen(true);
-            // Clean up URL
             setSearchParams({});
         }
+        // Handle filter from dashboard tiles
+        const filterParam = searchParams.get('filter');
+        if (filterParam === 'expiring') setFilterStatus('expiring_soon');
+        else if (filterParam === 'expired') setFilterStatus('expired');
+        else if (filterParam === 'active') setFilterStatus('active');
+        else if (filterParam === 'demo') setFilterStatus('demo');
+        else if (filterParam === 'due') setFilterFinance('due_invoices');
     }, [searchParams, setSearchParams]);
     const [searchTerm, setSearchTerm] = useState('');
     const [viewMode, setViewMode] = useState('grid');
@@ -94,6 +100,7 @@ export default function Clients() {
         if (filterStatus === 'active') matchesStatus = client.status === 'Active';
         if (filterStatus === 'expiring_soon') matchesStatus = client.status === 'Expiring Soon';
         if (filterStatus === 'expired') matchesStatus = client.status === 'Expired';
+        if (filterStatus === 'demo') matchesStatus = client.is_demo === true;
 
         if (filterFinance === 'due_invoices') {
             const hasDue = client.invoices?.some(inv => inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
