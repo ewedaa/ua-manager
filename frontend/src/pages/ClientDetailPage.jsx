@@ -205,11 +205,11 @@ export default function ClientDetailPage() {
                         </button>
                         <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>
-                                {getInitials(client.farm_name)}
+                                {getInitials(client.name)}
                             </div>
                             <div>
-                                <h1 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.farm_name}</h1>
-                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{client.name}</p>
+                                <h1 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</h1>
+                                <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{client.farm_name}</p>
                             </div>
                             <span className={`text-[9px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-widest ${status.color}`}>
                                 <span className={`inline-block w-1.5 h-1.5 rounded-full mr-1 ${status.dot}`} />
@@ -241,10 +241,10 @@ export default function ClientDetailPage() {
                             {/* Avatar & Name */}
                             <div className="text-center mb-4">
                                 <div className={`w-20 h-20 rounded-2xl mx-auto mb-3 flex items-center justify-center font-bold text-2xl bg-gradient-to-br ${status.gradient} text-white shadow-xl`}>
-                                    {getInitials(client.farm_name)}
+                                    {getInitials(client.name)}
                                 </div>
-                                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.farm_name}</h2>
-                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.name}</p>
+                                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</h2>
+                                <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.farm_name}</p>
                             </div>
 
                             {/* Section Nav — TOP PRIORITY */}
@@ -408,8 +408,8 @@ export default function ClientDetailPage() {
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Client Information</h3>
                                         <div className="space-y-3">
                                             {[
-                                                { label: 'Farm', value: client.farm_name },
-                                                { label: 'Owner', value: client.name },
+                                                { label: 'Farm', value: client.name },
+                                                { label: 'Owner', value: client.farm_name },
                                                 { label: 'Phone', value: client.phone },
                                                 { label: 'Area', value: client.area || '—' },
                                             ].map((item, i) => (
