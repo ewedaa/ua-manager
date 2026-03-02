@@ -85,22 +85,11 @@ export default function EditClientModal({ client, onClose }) {
                     {/* Basic Info */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="col-span-2">
-                            <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Owner Name</label>
+                            <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
                             <input
                                 type="text"
                                 name="name"
                                 value={formData.name}
-                                onChange={handleChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
-                                required
-                            />
-                        </div>
-                        <div className="col-span-2">
-                            <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
-                            <input
-                                type="text"
-                                name="farm_name"
-                                value={formData.farm_name}
                                 onChange={handleChange}
                                 className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
                                 required

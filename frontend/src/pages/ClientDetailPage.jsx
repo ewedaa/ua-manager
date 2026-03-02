@@ -690,16 +690,16 @@ export default function ClientDetailPage() {
                                             {generalFiles.map(file => (
                                                 <div key={file.id} className="flex items-center justify-between p-4">
                                                     <div className="flex items-center gap-3 min-w-0">
-                                                        <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase ${getFileExtColor(file.file_name)}`}>
-                                                            {file.file_name?.split('.').pop()}
+                                                        <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase ${getFileExtColor(file.original_name)}`}>
+                                                            {file.original_name?.split('.').pop()}
                                                         </span>
                                                         <div className="min-w-0">
-                                                            <p className={`text-sm font-medium truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{file.file_name}</p>
+                                                            <p className={`text-sm font-medium truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{file.original_name}</p>
                                                             <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{formatFileSize(file.file_size)} • {file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : ''}</p>
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-1.5">
-                                                        <a href={file.file_url?.startsWith('http') ? file.file_url : `${API_BASE_URL.replace('/api', '')}${file.file_url}`} target="_blank" rel="noopener noreferrer" className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                                                        <a href={file.file?.startsWith('http') ? file.file : `${API_BASE_URL.replace('/api', '')}${file.file}`} target="_blank" rel="noopener noreferrer" className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
                                                             <Download size={14} />
                                                         </a>
                                                         {isAdmin && (
@@ -761,10 +761,10 @@ export default function ClientDetailPage() {
                                     ) : (
                                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-4">
                                             {whatsappFiles.map(file => {
-                                                const imgUrl = file.file_url?.startsWith('http') ? file.file_url : `${API_BASE_URL.replace('/api', '')}${file.file_url}`;
+                                                const imgUrl = file.file?.startsWith('http') ? file.file : `${API_BASE_URL.replace('/api', '')}${file.file}`;
                                                 return (
                                                     <div key={file.id} className="relative group aspect-square rounded-xl overflow-hidden cursor-pointer" onClick={() => setPreviewImage(imgUrl)}>
-                                                        <img src={imgUrl} alt={file.file_name} className="w-full h-full object-cover" loading="lazy" />
+                                                        <img src={imgUrl} alt={file.original_name} className="w-full h-full object-cover" loading="lazy" />
                                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
                                                             <Eye size={20} className="text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                                                         </div>
