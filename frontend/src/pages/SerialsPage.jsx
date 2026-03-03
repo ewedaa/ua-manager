@@ -7,6 +7,12 @@ import { API_BASE_URL } from '../lib/api';
 
 import { fetchSerials, fetchClients } from '../lib/fetchers';
 
+const fetchModules = async () => {
+    const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
+    if (!res.ok) throw new Error('Failed to fetch modules');
+    return res.json();
+};
+
 const API = API_BASE_URL;
 
 const PRODUCT_TYPES = ['Dairy Cows', 'Dairy Buffalos', 'Fattening', 'Sheep and Goat'];
@@ -40,6 +46,11 @@ export default function SerialsPage() {
 
     // Only show 4Genetics College clients in the dropdown
     const collegeClients = clients.filter(c => c.is_4genetics_college);
+
+    const { data: availableModules = [] } = useQuery({
+        queryKey: ['subscription-modules'],
+        queryFn: fetchModules,
+    });
 
     const saveMutation = useMutation({
         mutationFn: (data) => {
@@ -269,7 +280,30 @@ export default function SerialsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modules</label>
-                                    <input value={form.modules} onChange={e => setForm(f => ({ ...f, modules: e.target.value }))} placeholder="e.g. Reproduction, Health, Feed" className={inputClass} />
+                                    <div className={`grid grid-cols-2 gap-2 p-3 rounded-xl border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
+                                        {availableModules.length > 0 ? availableModules.map((mod) => (
+                                            <label key={mod.id} className={`flex items-center space-x-2 text-sm cursor-pointer p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/[0.06]' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={(form.modules || '').includes(mod.name)}
+                                                    onChange={(e) => {
+                                                        const current = (form.modules || '').split(',').map(s => s.trim()).filter(Boolean);
+                                                        let updated;
+                                                        if (e.target.checked) {
+                                                            updated = [...current, mod.name];
+                                                        } else {
+                                                            updated = current.filter(m => m !== mod.name);
+                                                        }
+                                                        setForm(f => ({ ...f, modules: updated.join(', ') }));
+                                                    }}
+                                                    className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
+                                                />
+                                                <span>{mod.name}</span>
+                                            </label>
+                                        )) : (
+                                            <p className="col-span-2 text-xs text-gray-400 italic">No modules configured. Add them in Settings.</p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
