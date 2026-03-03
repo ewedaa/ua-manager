@@ -5,7 +5,7 @@ import {
     ArrowLeft, Loader2, AlertCircle, Trash2, Edit2, ExternalLink,
     AlertTriangle, FileText, Ticket, Users, Shield, Target, Gauge,
     DollarSign, Barcode, Play, Timer, Zap, Info, CheckCircle, Clock,
-    RefreshCw, Flame, XCircle, Plus
+    RefreshCw, Flame, XCircle, Plus, X
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
