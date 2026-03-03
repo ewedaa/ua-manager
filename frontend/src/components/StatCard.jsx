@@ -37,6 +37,9 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
     const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
     const { isDark } = useTheme();
 
+    // Timer for long press
+    const touchTimerRef = useRef(null);
+
     const handleClick = () => {
         if (onClick) onClick();
         else if (to) navigate(to);
@@ -60,7 +63,7 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
     };
 
     const handleInfoClick = (e) => {
-        e.stopPropagation();
+        if (e) e.stopPropagation();
         if (infoBtnRef.current) {
             const rect = infoBtnRef.current.getBoundingClientRect();
             const tooltipW = 256;
@@ -71,7 +74,28 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
                 left,
             });
         }
-        setShowInfo(!showInfo);
+        setShowInfo(prev => !prev);
+    };
+
+    // --- Long Press Handlers ---
+    const handleTouchStart = (e) => {
+        touchTimerRef.current = setTimeout(() => {
+            handleInfoClick();
+        }, 500); // 500ms long press
+    };
+
+    const handleTouchEnd = () => {
+        if (touchTimerRef.current) {
+            clearTimeout(touchTimerRef.current);
+            touchTimerRef.current = null;
+        }
+    };
+
+    const handleTouchMove = () => {
+        if (touchTimerRef.current) {
+            clearTimeout(touchTimerRef.current);
+            touchTimerRef.current = null;
+        }
     };
 
     // Close tooltip on outside click
@@ -98,6 +122,9 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             onMouseMove={handleMouseMove}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={handleMouseLeave}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
             className="relative overflow-hidden rounded-xl md:rounded-2xl p-3 md:p-6 transition-all duration-300 cursor-pointer group"
             style={{
                 background: isDark
