@@ -137,8 +137,9 @@ class Ticket(models.Model):
 
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='tickets')
     issue_description = models.TextField()
+    contact_person = models.CharField(max_length=255, blank=True, help_text="Contact person related to this ticket")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Open', db_index=True)
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES, db_index=True)
+    category = models.CharField(max_length=50, db_index=True)
     resolution_notes = models.TextField(blank=True, help_text="Feedback or resolution notes for this ticket")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -159,6 +160,19 @@ class Contact(models.Model):
     
     def __str__(self):
         return f"{self.name} ({self.role}) - {self.client.farm_name}"
+
+
+class IssueCategory(models.Model):
+    """Dynamic issue categories for tickets."""
+    name = models.CharField(max_length=100, unique=True)
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'name']
+        verbose_name_plural = 'Issue Categories'
+
+    def __str__(self):
+        return self.name
 
 
 class ClientFile(models.Model):

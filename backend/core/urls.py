@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ClientViewSet, LivestockTypeViewSet, InvoiceViewSet,
     PaymentViewSet, TicketViewSet, AgentQueryView, SubscriptionModuleViewSet,
-    GeneticsSerialViewSet, ClientFileViewSet,
+    GeneticsSerialViewSet, ClientFileViewSet, IssueCategoryViewSet,
     DashboardStatsView, ChartDataView, NotificationsView,
     MarkAllNotificationsReadView, DismissAllNotificationsView, EmailReportView,
     AISuggestionView, FileAnalysisView, InsightsView,
@@ -23,6 +23,7 @@ router.register(r'tickets', TicketViewSet)
 router.register(r'subscription-modules', SubscriptionModuleViewSet)
 router.register(r'genetics-serials', GeneticsSerialViewSet)
 router.register(r'projects', ProjectViewSet)
+router.register(r'issue-categories', IssueCategoryViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

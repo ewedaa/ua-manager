@@ -400,7 +400,7 @@ export default function ClientDetailPage() {
                                     <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Quick Actions</h3>
                                     <div className="flex flex-wrap gap-2">
                                         {isAdmin && <button onClick={() => { setActiveSection('finance'); setIsAddInvoiceOpen(true); }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"><Plus size={13} /> New Invoice</button>}
-                                        <button onClick={() => navigate('/new-ticket')} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Ticket size={13} /> New Ticket</button>
+                                        <button onClick={() => navigate(`/new-ticket?clientId=${client.id}`)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Ticket size={13} /> New Ticket</button>
                                         <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"><MessageSquare size={13} /> WhatsApp</a>
                                         {isAdmin && <button onClick={() => setIsEditModalOpen(true)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Pencil size={13} /> Edit Client</button>}
                                     </div>
@@ -617,13 +617,13 @@ export default function ClientDetailPage() {
                                 <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                     <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Tickets ({tickets.length})</h3>
-                                        <button onClick={() => navigate('/new-ticket')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Plus size={12} /> New Ticket</button>
+                                        <button onClick={() => navigate(`/new-ticket?clientId=${client.id}`)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Plus size={12} /> New Ticket</button>
                                     </div>
                                     {tickets.length === 0 ? (
                                         <div className="p-8 text-center">
                                             <Ticket size={32} className={`mx-auto mb-2 ${isDark ? 'text-gray-700' : 'text-gray-300'}`} />
                                             <p className={`text-sm mb-3 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>No tickets for this client</p>
-                                            <button onClick={() => navigate('/new-ticket')} className="px-4 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors">Create First Ticket</button>
+                                            <button onClick={() => navigate(`/new-ticket?clientId=${client.id}`)} className="px-4 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors">Create First Ticket</button>
                                         </div>
                                     ) : (
                                         <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>

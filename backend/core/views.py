@@ -3,11 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import EmailMessage
-from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile
+from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile, IssueCategory
 from .serializers import (
     ClientSerializer, ClientDetailSerializer, LivestockTypeSerializer,
     InvoiceSerializer, PaymentSerializer, TicketSerializer, SubscriptionModuleSerializer,
-    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer
+    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer
 )
 from .report_generator import generate_pdf_report
 try:
@@ -294,6 +294,12 @@ class SubscriptionModuleViewSet(viewsets.ModelViewSet):
     """ViewSet for managing subscription modules (full CRUD)."""
     queryset = SubscriptionModule.objects.all()
     serializer_class = SubscriptionModuleSerializer
+
+
+class IssueCategoryViewSet(viewsets.ModelViewSet):
+    """ViewSet for managing issue categories (full CRUD)."""
+    queryset = IssueCategory.objects.all()
+    serializer_class = IssueCategorySerializer
 
 
 class GeneticsSerialViewSet(viewsets.ModelViewSet):

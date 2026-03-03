@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Client, LivestockType, Invoice, Payment, Ticket, Contact, SubscriptionModule, GeneticsSerial, ClientFile
+from .models import Client, LivestockType, Invoice, Payment, Ticket, Contact, SubscriptionModule, GeneticsSerial, ClientFile, IssueCategory
 
 
 class LivestockTypeSerializer(serializers.ModelSerializer):
@@ -47,6 +47,14 @@ class GeneticsSerialSerializer(serializers.ModelSerializer):
         read_only_fields = ['created_at']
 
 
+class IssueCategorySerializer(serializers.ModelSerializer):
+    """Serializer for IssueCategory model."""
+    
+    class Meta:
+        model = IssueCategory
+        fields = ['id', 'name', 'order']
+
+
 class TicketSerializer(serializers.ModelSerializer):
     """Serializer for Ticket model."""
     client_name = serializers.CharField(source='client.name', read_only=True)
@@ -54,7 +62,7 @@ class TicketSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ticket
         fields = [
-            'id', 'client', 'client_name', 'issue_description',
+            'id', 'client', 'client_name', 'issue_description', 'contact_person',
             'status', 'category', 'resolution_notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
