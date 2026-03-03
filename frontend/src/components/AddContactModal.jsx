@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Save, Loader2, UserPlus } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
@@ -50,8 +51,8 @@ export default function AddContactModal({ clientId, clientName, onClose }) {
     const inputClass = `w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all focus:ring-2 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-600' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder-gray-400'}`;
     const labelClass = `block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`;
 
-    return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200" onClick={onClose}>
+    return createPortal(
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200" onClick={onClose}>
             <div className={`rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${isDark ? 'bg-gray-900/95 backdrop-blur-xl border border-white/[0.08]' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
@@ -123,6 +124,7 @@ export default function AddContactModal({ clientId, clientName, onClose }) {
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
