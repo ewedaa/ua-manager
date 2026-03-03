@@ -24,8 +24,19 @@ export default function AddContactModal({ clientId, clientName, onClose }) {
                 body: JSON.stringify(form)
             });
             if (!res.ok) {
-                const data = await res.json();
-                throw new Error(data.detail || 'Failed to add contact');
+                let errorMessage = 'Failed to add contact';
+                try {
+                    const data = await res.json();
+                    errorMessage = data.detail || JSON.stringify(data);
+                } catch (parseError) {
+                    // If it returns HTML (like a 404 page because backend isn't updated)
+                    if (res.status === 404) {
+                        errorMessage = 'Endpoint not found. Please ensure the backend is updated (git pull).';
+                    } else {
+                        errorMessage = `Server error: ${res.status} ${res.statusText}`;
+                    }
+                }
+                throw new Error(errorMessage);
             }
             queryClient.invalidateQueries(['clients']);
             onClose();
