@@ -5,7 +5,7 @@ import {
     ArrowLeft, Loader2, AlertCircle, Trash2, Edit2, ExternalLink,
     AlertTriangle, FileText, Ticket, Users, Shield, Target, Gauge,
     DollarSign, Barcode, Play, Timer, Zap, Info, CheckCircle, Clock,
-    RefreshCw, Flame, XCircle
+    RefreshCw, Flame, XCircle, Plus
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
@@ -18,6 +18,7 @@ const TILE_CONFIG = {
         color: 'orange',
         description: 'These are client subscriptions set to expire within the next 60 days. You should proactively contact each farm to discuss renewal, pricing, and whether they need any additional modules.',
         tip: 'Following up with clients 30+ days before expiry significantly improves renewal rates.',
+        quickAction: { label: 'New Client', to: '/clients' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => {
@@ -41,6 +42,7 @@ const TILE_CONFIG = {
         color: 'blue',
         description: 'These invoices have been issued but not yet paid. Keeping this list small is important for your cash flow. Review each invoice and follow up with the client if payment is overdue.',
         tip: 'Mark invoices as "Paid to Us" once you receive payment to keep your records accurate.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
         filter: (items) => items.filter(i => i.status === 'Due'),
@@ -65,6 +67,7 @@ const TILE_CONFIG = {
         color: 'red',
         description: 'Open support tickets that still need resolution. Each unresolved ticket represents a client who is waiting for help. Prioritise by urgency and SLA deadlines.',
         tip: 'Resolve tickets within 48 hours to maintain a 100% SLA adherence score.',
+        quickAction: { label: 'New Ticket', to: '/new-ticket' },
         fetchKey: 'tickets',
         fetchUrl: `${API_BASE_URL}/tickets/`,
         filter: (items) => items.filter(t => t.status !== 'Closed'),
@@ -89,6 +92,7 @@ const TILE_CONFIG = {
         color: 'green',
         description: 'All farms currently registered in your system, regardless of their status. This includes active subscribers, expired clients, and farms on demo.',
         tip: 'Click on any farm name to view its full profile and history.',
+        quickAction: { label: 'New Farm', to: '/clients' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items,
@@ -108,6 +112,7 @@ const TILE_CONFIG = {
         color: 'green',
         description: 'The percentage of clients who renewed their subscriptions. A high retention rate shows that your clients are satisfied with the service. Track which farms have renewed and which have lapsed.',
         tip: 'Focus on clients with expiring subscriptions to maintain a high retention rate.',
+        quickAction: { label: 'New Client', to: '/clients' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => c.status === 'Active' || c.is_active),
@@ -127,6 +132,7 @@ const TILE_CONFIG = {
         color: 'red',
         description: 'How much of your invoiced amount has actually been collected. Shows paid invoices versus the total invoiced. A low rate means clients are not paying on time — follow up or set up payment reminders.',
         tip: 'Mark invoices "Paid to Us" promptly after receiving payment to keep this rate accurate.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
         filter: (items) => items,
@@ -151,6 +157,7 @@ const TILE_CONFIG = {
         color: 'green',
         description: 'Percentage of support tickets resolved within the 48-hour SLA window. This metric reflects your team\'s responsiveness. Tickets still open past 48 hours are SLA violations.',
         tip: 'Aim for 100% SLA adherence. Each unresolved ticket after 48h counted as a breach.',
+        quickAction: { label: 'New Ticket', to: '/new-ticket' },
         fetchKey: 'tickets',
         fetchUrl: `${API_BASE_URL}/tickets/`,
         filter: (items) => items,
@@ -175,6 +182,7 @@ const TILE_CONFIG = {
         color: 'cyan',
         description: 'Average revenue earned per active client. Calculated by dividing total received payments by the number of active farms. Growing this number means increasing revenue without needing new clients.',
         tip: 'Upselling additional modules to existing clients is the easiest way to grow revenue per client.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
         filter: (items) => items.filter(i => i.status === 'Paid to Us'),
@@ -199,6 +207,7 @@ const TILE_CONFIG = {
         color: 'cyan',
         description: 'Active 4Genetics serial numbers registered in your system. Each serial is a software license assigned to a client farm. Unassigned serials are available to assign to new clients.',
         tip: 'Assign serials promptly when a new client signs up to avoid delays in their onboarding.',
+        quickAction: { label: 'Add Serial', to: '/serials' },
         fetchKey: 'serials',
         fetchUrl: `${API_BASE_URL}/genetics-serials/`,
         filter: (items) => items,
@@ -223,6 +232,7 @@ const TILE_CONFIG = {
         color: 'purple',
         description: 'Clients currently on a free trial or demo period. These are high-value prospects who have shown interest in the system. Follow up to convert them into paying customers before the demo expires.',
         tip: 'Demo clients who don\'t convert after 30 days of inactivity should be contacted directly.',
+        quickAction: { label: 'New Demo Farm', to: '/clients' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => c.is_demo || c.status?.toLowerCase().includes('demo')),
@@ -242,6 +252,7 @@ const TILE_CONFIG = {
         color: 'blue',
         description: 'The average number of hours it takes your team to resolve a support ticket. Shorter times mean happier clients. Review recently closed tickets to identify patterns and bottlenecks.',
         tip: 'Fast responses build trust. Clients who get quick support are more likely to renew.',
+        quickAction: { label: 'New Ticket', to: '/new-ticket' },
         fetchKey: 'tickets',
         fetchUrl: `${API_BASE_URL}/tickets/`,
         filter: (items) => items.filter(t => t.status === 'Closed' || t.resolved_at),
@@ -271,6 +282,7 @@ const TILE_CONFIG = {
         color: 'green',
         description: 'Clients who had any activity in the last 30 days — including support tickets, invoices, or interactions logged in the system. These are your most engaged farms.',
         tip: 'Use this list to identify your most engaged clients and prioritise their support.',
+        quickAction: { label: 'New Client', to: '/clients' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => {
@@ -302,6 +314,7 @@ const TILE_CONFIG = {
         color: 'orange',
         description: 'Clients whose subscriptions are imminently expiring — your hottest renewal opportunities. These farms need urgent outreach before their access lapses. A personal call or email at this stage dramatically improves conversion.',
         tip: 'Prepare a renewal quote in advance so you can send it immediately when you contact them.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => {
@@ -335,6 +348,7 @@ const TILE_CONFIG = {
         color: 'red',
         description: 'Clients whose subscriptions have already lapsed. They no longer have active access to the system. These are re-engagement opportunities — reach out with a discount or renewal offer to win them back.',
         tip: 'Clients expired within the last 90 days are much easier to re-engage than older ones.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => {
@@ -357,6 +371,7 @@ const TILE_CONFIG = {
         color: 'green',
         description: 'Support tickets that have been successfully closed and resolved. A high resolved count shows your team is handling client issues effectively. Use this list to identify common problems and improve your documentation.',
         tip: 'Review resolved tickets regularly to spot recurring issues and build a knowledge base.',
+        quickAction: { label: 'New Ticket', to: '/new-ticket' },
         fetchKey: 'tickets',
         fetchUrl: `${API_BASE_URL}/tickets/`,
         filter: (items) => items.filter(t => t.status === 'Closed'),
@@ -381,6 +396,7 @@ const TILE_CONFIG = {
         color: 'orange',
         description: 'Support tickets that are currently being worked on by your team. These are active investigations or fixes in progress. Make sure each ticket has an owner and a target resolution time to avoid delays.',
         tip: 'Update ticket status regularly so clients know their issue is being handled.',
+        quickAction: { label: 'New Ticket', to: '/new-ticket' },
         fetchKey: 'tickets',
         fetchUrl: `${API_BASE_URL}/tickets/`,
         filter: (items) => items.filter(t => t.status === 'In Progress'),
@@ -405,6 +421,7 @@ const TILE_CONFIG = {
         color: 'cyan',
         description: 'Total money actually collected from all paid invoices. This is your real income — it only counts invoices marked as "Paid to Us". Use this to track your business performance over time and plan for expansion.',
         tip: 'Compare this against your Uniform Agri costs to understand your net profit margin.',
+        quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
         filter: (items) => items.filter(i => i.status === 'Paid to Us' || i.status === 'Paid to Uniform'),
@@ -545,6 +562,15 @@ export default function StatDetailPage() {
                 >
                     <RefreshCw size={16} />
                 </button>
+                {config.quickAction && (
+                    <Link
+                        to={config.quickAction.to}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-green-600 hover:bg-green-500 text-white shadow-md shadow-green-500/20 transition-all whitespace-nowrap"
+                    >
+                        <Plus size={15} />
+                        {config.quickAction.label}
+                    </Link>
+                )}
             </div>
 
             {/* Data table */}
