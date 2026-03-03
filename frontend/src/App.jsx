@@ -151,6 +151,7 @@ const SleepModeOverlay = () => {
 
 const SyncManager = () => {
   useEffect(() => {
+    // 1. Existing offline ticket sync logic
     const syncTickets = async () => {
       if (navigator.onLine) {
         const offlineTickets = JSON.parse(localStorage.getItem('offline_tickets') || '[]');
@@ -184,7 +185,29 @@ const SyncManager = () => {
     window.addEventListener('online', syncTickets);
     syncTickets();
 
-    return () => window.removeEventListener('online', syncTickets);
+    // 2. Force data refetch on window focus
+    // React Query sometimes misses focus events when using PersistQueryClientProvider
+    const handleFocus = () => {
+      if (navigator.onLine) {
+        console.log('Window focused: Forcing data refresh...');
+        // Invalidate all queries to trigger immediate background refetch
+        queryClient.invalidateQueries();
+      }
+    };
+
+    // Add event listeners for visibility and focus
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        handleFocus();
+      }
+    });
+
+    return () => {
+      window.removeEventListener('online', syncTickets);
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    }
   }, []);
 
   return null;
