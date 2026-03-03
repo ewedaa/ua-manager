@@ -261,6 +261,20 @@ export default function NewTicket() {
                             </option>
                         ))}
                     </select>
+                    {/* Quick add — always visible */}
+                    <div className="flex items-center gap-2 mt-2">
+                        <input
+                            type="text"
+                            value={newCategoryName}
+                            onChange={(e) => setNewCategoryName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCategory(); } }}
+                            placeholder="Add new category..."
+                            className={`flex-1 px-3 py-2 rounded-xl text-sm border focus:ring-2 focus:ring-green-500 outline-none transition-all ${isDark ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-600' : 'bg-gray-50 border-gray-200 placeholder-gray-400'}`}
+                        />
+                        <button type="button" onClick={addCategory} className="p-2 bg-green-600 hover:bg-green-500 text-white rounded-xl transition-colors" title="Add category">
+                            <Plus size={16} />
+                        </button>
+                    </div>
 
                     {/* Inline Category Manager */}
                     {showCategoryManager && (
@@ -296,19 +310,6 @@ export default function NewTicket() {
                                         )}
                                     </div>
                                 ))}
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <input
-                                    type="text"
-                                    value={newCategoryName}
-                                    onChange={(e) => setNewCategoryName(e.target.value)}
-                                    onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addCategory())}
-                                    placeholder="New category name..."
-                                    className={`flex-1 px-3 py-2 rounded-lg text-sm border ${isDark ? 'bg-gray-900 border-gray-700 text-white placeholder-gray-600' : 'bg-white border-gray-300 placeholder-gray-400'}`}
-                                />
-                                <button type="button" onClick={addCategory} className="px-3 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg text-sm font-bold flex items-center gap-1 transition-colors">
-                                    <Plus size={14} /> Add
-                                </button>
                             </div>
                         </div>
                     )}
