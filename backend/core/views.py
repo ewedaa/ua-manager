@@ -9,7 +9,7 @@ from .serializers import (
     InvoiceSerializer, PaymentSerializer, TicketSerializer, SubscriptionModuleSerializer,
     ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer, ContactSerializer
 )
-from .report_generator import generate_pdf_report
+from .report_generator import generate_pdf_report, generate_formal_invoice_pdf
 try:
     from ai_agent import get_text_suggestion, analyze_file_content
 except ImportError:
@@ -94,78 +94,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def generate_pdf(self, request, pk=None):
-        """Generate a customer-facing PDF for this invoice."""
+        """Generate a formal, professional customer-facing PDF for this invoice."""
         from django.core.files.base import ContentFile
-        from decimal import Decimal
 
         invoice = self.get_object()
-        is_renewal = invoice.invoice_type == 'Renewal Invoice'
-        is_dairylive = getattr(invoice, 'is_dairylive', False)
-
-        def get_customer_price(mod):
-            if is_renewal:
-                return mod.renewal_customer_price
-            price = mod.purchase_customer_price
-            if is_dairylive:
-                price = (price * Decimal('0.5')).quantize(Decimal('0.01'))
-            return price
-
-        doc_title = invoice.invoice_type or 'Invoice'
-        lines = [
-            f"# {doc_title.upper()} #{invoice.id}",
-            f"**Date:** {invoice.created_at.strftime('%Y-%m-%d')}",
-            f"**To:** {invoice.client.farm_name}",
-            f"**Attn:** {invoice.client.name}",
-            "",
-            "## Details",
-            f"- **Type:** {invoice.invoice_type}",
-            f"- **Status:** {invoice.status}",
-        ]
-
-        if is_dairylive and not is_renewal:
-            lines.append("- **Discount:** DairyLive Customer — 50% off")
-
-        lines.append("")
-
-        # Add Selected Modules (customer price only)
-        modules = invoice.selected_modules.all()
-        if modules.exists():
-            lines.extend([
-                "## Modules",
-                "| Module | Price |",
-                "|---|---|",
-            ])
-            for mod in modules:
-                lines.append(f"| {mod.name} | {get_customer_price(mod)} EGP |")
-            lines.append("")
-
-        # Add Livestock Items
-        livestock = invoice.livestock_selection.all()
-        if livestock.exists():
-            lines.extend([
-                "## Livestock",
-                "| Item | Multiplier |",
-                "|---|---|",
-            ])
-            for item in livestock:
-                lines.append(f"| {item.name} | x{item.price_multiplier} |")
-            lines.append("")
-
-        lines.extend([
-            "## Total",
-            f"# {invoice.customer_total or invoice.total_amount} EGP",
-            "",
-        ])
-
-        if invoice.notes:
-            lines.extend(["## Notes", invoice.notes, ""])
-
-        lines.extend(["---", "*Thank you for your business!*", "**4Genetics**"])
-
-        content = "\n".join(lines)
 
         try:
-            buffer = generate_pdf_report(content, title=f"{doc_title} #{invoice.id}")
+            buffer = generate_formal_invoice_pdf(invoice)
             filename = f"invoice_{invoice.id}.pdf"
             if invoice.pdf_file:
                 invoice.pdf_file.delete(save=False)
