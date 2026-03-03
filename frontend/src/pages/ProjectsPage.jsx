@@ -223,7 +223,7 @@ export default function ProjectsPage() {
     if (isLoading) return <div className="flex justify-center items-center h-64"><Loader2 className="animate-spin text-green-500" size={32} /></div>;
 
     return (
-        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 space-y-6">
+        <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-4 space-y-5">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">

@@ -42,7 +42,7 @@ export default function Analytics() {
     };
 
     return (
-        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 space-y-6 md:space-y-8 animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-2 md:px-6 md:pb-6 md:pt-4 space-y-5 md:space-y-6 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
