@@ -24,7 +24,7 @@ class ClientFileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = ClientFile
-        fields = ['id', 'client', 'file', 'original_name', 'file_size', 'category', 'uploaded_at']
+        fields = ['id', 'client', 'file', 'original_name', 'file_size', 'category', 'description', 'contact_person', 'file_date', 'uploaded_at']
         read_only_fields = ['client', 'uploaded_at', 'original_name', 'file_size']
 
 

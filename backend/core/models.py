@@ -173,6 +173,9 @@ class ClientFile(models.Model):
     original_name = models.CharField(max_length=255)
     file_size = models.PositiveIntegerField(default=0, help_text="File size in bytes")
     category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='general', db_index=True)
+    description = models.CharField(max_length=500, blank=True, help_text="Description of the file or screenshot")
+    contact_person = models.CharField(max_length=255, blank=True, help_text="Related contact person")
+    file_date = models.DateField(null=True, blank=True, help_text="Date of the file or screenshot")
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

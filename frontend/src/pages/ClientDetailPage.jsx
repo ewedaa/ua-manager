@@ -32,6 +32,7 @@ export default function ClientDetailPage() {
     const [copiedField, setCopiedField] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [expandedTicket, setExpandedTicket] = useState(null);
+    const [uploadModal, setUploadModal] = useState(null); // { file, category }
 
     // Fetch all clients and find the one we need
     const { data: clients = [], isLoading } = useQuery({
@@ -73,17 +74,34 @@ export default function ClientDetailPage() {
         setTimeout(() => setCopiedField(null), 1500);
     };
 
-    const handleFileUpload = async (file, category = 'general') => {
+    const handleFileUpload = async (file, category = 'general', meta = {}) => {
         if (!file) return;
         setIsUploading(true);
         try {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('category', category);
+            if (meta.description) formData.append('description', meta.description);
+            if (meta.contact_person) formData.append('contact_person', meta.contact_person);
+            if (meta.file_date) formData.append('file_date', meta.file_date);
             const res = await fetch(`${API_BASE_URL}/clients/${client.id}/files/`, { method: 'POST', body: formData });
             if (!res.ok) throw new Error('Upload failed');
             queryClient.invalidateQueries(['clients']);
         } catch (err) { console.error(err); } finally { setIsUploading(false); }
+    };
+
+    const openUploadModal = (file, category) => {
+        setUploadModal({ file, category, description: '', contact_person: '', file_date: '' });
+    };
+
+    const submitUploadModal = () => {
+        if (!uploadModal) return;
+        handleFileUpload(uploadModal.file, uploadModal.category, {
+            description: uploadModal.description,
+            contact_person: uploadModal.contact_person,
+            file_date: uploadModal.file_date,
+        });
+        setUploadModal(null);
     };
 
     const handleFileDelete = async (fileId) => {
@@ -676,7 +694,7 @@ export default function ClientDetailPage() {
                                         {isAdmin && (
                                             <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold cursor-pointer hover:bg-emerald-600 transition-colors shadow-sm">
                                                 <Upload size={12} /> Upload File
-                                                <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => handleFileUpload(e.target.files[0], 'general')} />
+                                                <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => { if (e.target.files[0]) openUploadModal(e.target.files[0], 'general'); }} />
                                             </label>
                                         )}
                                     </div>
@@ -688,26 +706,35 @@ export default function ClientDetailPage() {
                                     ) : (
                                         <div className="divide-y" style={{ borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#f3f4f6' }}>
                                             {generalFiles.map(file => (
-                                                <div key={file.id} className="flex items-center justify-between p-4">
-                                                    <div className="flex items-center gap-3 min-w-0">
-                                                        <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase ${getFileExtColor(file.original_name)}`}>
-                                                            {file.original_name?.split('.').pop()}
-                                                        </span>
-                                                        <div className="min-w-0">
-                                                            <p className={`text-sm font-medium truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{file.original_name}</p>
-                                                            <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{formatFileSize(file.file_size)} • {file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : ''}</p>
+                                                <div key={file.id} className={`p-4 ${isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-gray-50'} transition-colors`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-3 min-w-0">
+                                                            <span className={`text-[9px] font-bold px-2 py-1 rounded-md uppercase ${getFileExtColor(file.original_name)}`}>
+                                                                {file.original_name?.split('.').pop()}
+                                                            </span>
+                                                            <div className="min-w-0">
+                                                                <p className={`text-sm font-medium truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{file.original_name}</p>
+                                                                <p className={`text-[10px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{formatFileSize(file.file_size)} • {file.uploaded_at ? new Date(file.uploaded_at).toLocaleDateString() : ''}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <a href={file.file?.startsWith('http') ? file.file : `${API_BASE_URL.replace('/api', '')}${file.file}`} target="_blank" rel="noopener noreferrer" className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
+                                                                <Download size={14} />
+                                                            </a>
+                                                            {isAdmin && (
+                                                                <button onClick={() => handleFileDelete(file.id)} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}>
+                                                                    <Trash2 size={14} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <a href={file.file?.startsWith('http') ? file.file : `${API_BASE_URL.replace('/api', '')}${file.file}`} target="_blank" rel="noopener noreferrer" className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-blue-400 hover:bg-blue-500/10' : 'text-gray-400 hover:text-blue-600 hover:bg-blue-50'}`}>
-                                                            <Download size={14} />
-                                                        </a>
-                                                        {isAdmin && (
-                                                            <button onClick={() => handleFileDelete(file.id)} className={`p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-500 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-400 hover:text-red-600 hover:bg-red-50'}`}>
-                                                                <Trash2 size={14} />
-                                                            </button>
-                                                        )}
-                                                    </div>
+                                                    {(file.description || file.contact_person || file.file_date) && (
+                                                        <div className={`mt-2 ml-11 flex flex-wrap gap-3 text-[11px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                            {file.description && <span className={`${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{file.description}</span>}
+                                                            {file.contact_person && <span className={`px-1.5 py-0.5 rounded ${isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600'}`}>{file.contact_person}</span>}
+                                                            {file.file_date && <span>{new Date(file.file_date).toLocaleDateString()}</span>}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
@@ -725,7 +752,7 @@ export default function ClientDetailPage() {
                                         {isAdmin && (
                                             <label className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500 text-white text-xs font-bold cursor-pointer hover:bg-green-600 transition-colors shadow-sm">
                                                 <Image size={12} /> Add Screenshot
-                                                <input ref={whatsappInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e.target.files[0], 'whatsapp')} />
+                                                <input ref={whatsappInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files[0]) openUploadModal(e.target.files[0], 'whatsapp'); }} />
                                             </label>
                                         )}
                                     </div>
@@ -735,7 +762,7 @@ export default function ClientDetailPage() {
                                         <div
                                             onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
                                             onDragLeave={() => setIsDragging(false)}
-                                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('image/')) handleFileUpload(file, 'whatsapp'); }}
+                                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files[0]; if (file?.type.startsWith('image/')) openUploadModal(file, 'whatsapp'); }}
                                             className={`mx-4 mt-4 border-2 border-dashed rounded-xl p-6 text-center transition-all ${isDragging
                                                 ? isDark ? 'border-green-500/50 bg-green-500/5' : 'border-green-400 bg-green-50'
                                                 : isDark ? 'border-white/[0.08]' : 'border-gray-200'
@@ -773,6 +800,15 @@ export default function ClientDetailPage() {
                                                                 <Trash2 size={12} />
                                                             </button>
                                                         )}
+                                                        {(file.description || file.contact_person || file.file_date) && (
+                                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/70 to-transparent">
+                                                                {file.description && <p className="text-white text-[10px] truncate">{file.description}</p>}
+                                                                <div className="flex gap-2 text-[9px] text-white/70">
+                                                                    {file.contact_person && <span>{file.contact_person}</span>}
+                                                                    {file.file_date && <span>{new Date(file.file_date).toLocaleDateString()}</span>}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 );
                                             })}
@@ -786,18 +822,60 @@ export default function ClientDetailPage() {
             </div>
 
             {/* ═══ IMAGE PREVIEW MODAL ═══ */}
-            {previewImage && (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
-                    <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
-                        <X size={20} />
-                    </button>
-                    <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
-                </div>
-            )}
+            {
+                previewImage && (
+                    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setPreviewImage(null)}>
+                        <button onClick={() => setPreviewImage(null)} className="absolute top-6 right-6 p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors">
+                            <X size={20} />
+                        </button>
+                        <img src={previewImage} alt="Preview" className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl" onClick={e => e.stopPropagation()} />
+                    </div>
+                )
+            }
 
             {/* ═══ MODALS ═══ */}
             {isEditModalOpen && <EditClientModal client={client} onClose={() => setIsEditModalOpen(false)} />}
             {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.farm_name} onClose={() => setIsAddInvoiceOpen(false)} />}
-        </div>
+
+            {/* ═══ UPLOAD METADATA MODAL ═══ */}
+            {
+                uploadModal && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+                        <div className={`rounded-xl shadow-2xl w-full max-w-md ${isDark ? 'bg-gray-900/95 backdrop-blur-xl border border-white/[0.08]' : 'bg-white'}`}>
+                            <div className={`p-5 border-b flex justify-between items-center ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>File Details</h2>
+                                <button onClick={() => setUploadModal(null)} className={`transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-400 hover:text-gray-600'}`}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="p-5 space-y-4">
+                                <div>
+                                    <p className={`text-xs font-medium mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>File: <span className={isDark ? 'text-gray-300' : 'text-gray-700'}>{uploadModal.file?.name}</span></p>
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Description</label>
+                                    <input type="text" value={uploadModal.description} onChange={(e) => setUploadModal(prev => ({ ...prev, description: e.target.value }))} placeholder="What is this file about?" className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-600' : 'border-gray-300 bg-white placeholder-gray-400'}`} />
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Contact Person</label>
+                                    <input type="text" value={uploadModal.contact_person} onChange={(e) => setUploadModal(prev => ({ ...prev, contact_person: e.target.value }))} placeholder="Who is this related to?" className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-600' : 'border-gray-300 bg-white placeholder-gray-400'}`} />
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Date</label>
+                                    <input type="date" value={uploadModal.file_date} onChange={(e) => setUploadModal(prev => ({ ...prev, file_date: e.target.value }))} className={`w-full px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`} />
+                                </div>
+                            </div>
+                            <div className={`flex justify-end gap-3 p-5 border-t ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                <button onClick={() => setUploadModal(null)} className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${isDark ? 'text-gray-400 hover:bg-white/[0.06]' : 'text-gray-500 hover:bg-gray-100'}`}>Cancel</button>
+                                <button onClick={submitUploadModal} disabled={isUploading} className="px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50">
+                                    {isUploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                    Upload
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+        </div >
     );
 }
