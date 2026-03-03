@@ -1,6 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const colorClasses = {
@@ -25,11 +26,14 @@ const glowColors = {
     gray: 'rgba(107, 114, 128, 0.4)',
 };
 
-export default function StatCard({ icon: Icon, label, value, subValue, color = 'green', trend, to, onClick }) {
+export default function StatCard({ icon: Icon, label, value, subValue, color = 'green', trend, to, onClick, info }) {
     const navigate = useNavigate();
     const cardRef = useRef(null);
+    const infoBtnRef = useRef(null);
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
+    const [showInfo, setShowInfo] = useState(false);
+    const [tooltipPos, setTooltipPos] = useState({ top: 0, left: 0 });
     const { isDark } = useTheme();
 
     const handleClick = () => {
@@ -53,6 +57,30 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
         setTilt({ x: 0, y: 0 });
         setIsHovered(false);
     };
+
+    const handleInfoClick = (e) => {
+        e.stopPropagation();
+        if (infoBtnRef.current) {
+            const rect = infoBtnRef.current.getBoundingClientRect();
+            setTooltipPos({
+                top: rect.bottom + 8,
+                left: Math.max(12, Math.min(rect.left, window.innerWidth - 280)),
+            });
+        }
+        setShowInfo(!showInfo);
+    };
+
+    // Close tooltip on outside click
+    useEffect(() => {
+        if (!showInfo) return;
+        const handleClickOutside = (e) => {
+            if (infoBtnRef.current && !infoBtnRef.current.contains(e.target)) {
+                setShowInfo(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [showInfo]);
 
     const glow = glowColors[color] || glowColors.green;
 
@@ -82,6 +110,44 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
         >
             {/* Animated Gradient Accent */}
             <div className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${colorClasses[color]} opacity-10 rounded-bl-full transform group-hover:scale-150 group-hover:opacity-20 transition-all duration-700`} />
+
+            {/* Info Button */}
+            {info && (
+                <button
+                    ref={infoBtnRef}
+                    onClick={handleInfoClick}
+                    className={`absolute top-2 left-2 z-20 p-1 rounded-full transition-all duration-200 ${showInfo
+                            ? isDark ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                            : isDark ? 'bg-white/[0.06] text-gray-500 hover:bg-white/15 hover:text-gray-300' : 'bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                        }`}
+                    title="What is this?"
+                >
+                    <Info size={13} />
+                </button>
+            )}
+
+            {/* Info Tooltip Portal */}
+            {info && showInfo && createPortal(
+                <div
+                    className={`fixed z-[9999] w-64 p-3.5 rounded-xl shadow-2xl border text-sm leading-relaxed animate-in fade-in zoom-in-95 duration-200 ${isDark
+                            ? 'bg-gray-800/95 backdrop-blur-xl border-white/10 text-gray-200 shadow-black/50'
+                            : 'bg-white border-gray-200 text-gray-700 shadow-gray-300/50'
+                        }`}
+                    style={{ top: tooltipPos.top, left: tooltipPos.left }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className="flex items-start gap-2.5">
+                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 bg-gradient-to-br ${colorClasses[color]}`}>
+                            <Info size={12} className="text-white" />
+                        </div>
+                        <div>
+                            <p className={`text-xs font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</p>
+                            <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{info}</p>
+                        </div>
+                    </div>
+                </div>,
+                document.body
+            )}
 
             {/* Premium Shimmer effect on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />

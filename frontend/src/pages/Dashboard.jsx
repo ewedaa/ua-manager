@@ -122,6 +122,7 @@ export default function Dashboard() {
                     color="orange"
                     to="/clients?filter=expiring"
                     delay={0}
+                    info="Number of client subscriptions that will expire in the next 60 days. Follow up with these clients to renew their contracts."
                 />
                 <StatCard
                     icon={FileText}
@@ -131,6 +132,7 @@ export default function Dashboard() {
                     color="blue"
                     to="/invoices"
                     delay={100}
+                    info="Invoices that haven't been paid yet. Click to view and manage all outstanding payments from your clients."
                 />
                 <StatCard
                     icon={Ticket}
@@ -140,6 +142,7 @@ export default function Dashboard() {
                     color="red"
                     to="/tickets?filter=open"
                     delay={200}
+                    info="Support tickets that are still open and waiting to be resolved. These need your attention to keep clients happy."
                 />
                 <StatCard
                     icon={Users}
@@ -150,6 +153,7 @@ export default function Dashboard() {
                     color="green"
                     to="/clients"
                     delay={300}
+                    info="The total number of farms registered in your system. This includes all active, expired, and demo clients."
                 />
             </div>
 
@@ -163,6 +167,7 @@ export default function Dashboard() {
                     color={stats?.kpis?.retention_rate >= 80 ? 'green' : stats?.kpis?.retention_rate >= 60 ? 'orange' : 'red'}
                     to="/clients?filter=active"
                     delay={0}
+                    info="Percentage of clients who renewed their subscription. A high rate means clients are satisfied and staying with you."
                 />
                 <StatCard
                     icon={Target}
@@ -172,6 +177,7 @@ export default function Dashboard() {
                     color={stats?.kpis?.collection_rate >= 70 ? 'green' : stats?.kpis?.collection_rate >= 40 ? 'orange' : 'red'}
                     to="/invoices"
                     delay={100}
+                    info="How much money you've actually collected compared to what you've invoiced. Higher is better — it means clients are paying on time."
                 />
                 <StatCard
                     icon={Gauge}
@@ -181,6 +187,7 @@ export default function Dashboard() {
                     color={stats?.kpis?.sla_adherence >= 80 ? 'green' : stats?.kpis?.sla_adherence >= 50 ? 'orange' : 'red'}
                     to="/tickets?filter=open"
                     delay={200}
+                    info="Percentage of support tickets resolved within 48 hours. This measures how fast your team responds to client issues."
                 />
                 <StatCard
                     icon={DollarSign}
@@ -190,6 +197,7 @@ export default function Dashboard() {
                     color="cyan"
                     to="/invoices"
                     delay={300}
+                    info="Average revenue earned from each active client. Helps you understand how much each farm is worth to your business."
                 />
             </div>
 
@@ -203,6 +211,7 @@ export default function Dashboard() {
                     color="cyan"
                     to="/serials"
                     delay={400}
+                    info="Active 4Genetics serial numbers in your system. Serials are assigned to clients for software licensing."
                 />
                 <StatCard
                     icon={Play}
@@ -212,6 +221,7 @@ export default function Dashboard() {
                     color="purple"
                     to="/clients?filter=demo"
                     delay={500}
+                    info="Clients currently on a free trial/demo period. These are potential paying customers you should follow up with."
                 />
                 <StatCard
                     icon={Timer}
@@ -221,6 +231,7 @@ export default function Dashboard() {
                     color="blue"
                     to="/tickets?filter=open"
                     delay={600}
+                    info="The average number of hours it takes to resolve a support ticket. Lower is better — aim for quick turnaround."
                 />
                 <StatCard
                     icon={Zap}
@@ -231,6 +242,7 @@ export default function Dashboard() {
                     color="green"
                     to="/clients?filter=active"
                     delay={700}
+                    info="Clients who had any activity (tickets, invoices, or interactions) in the last 30 days."
                 />
             </div>
 
@@ -243,6 +255,7 @@ export default function Dashboard() {
                     color="orange"
                     to="/clients?filter=expiring"
                     delay={800}
+                    info="Clients whose subscriptions are about to expire and need urgent follow-up. These are your best renewal opportunities."
                 />
                 <StatCard
                     icon={XCircle}
@@ -251,6 +264,7 @@ export default function Dashboard() {
                     color="red"
                     to="/clients?filter=expired"
                     delay={900}
+                    info="Clients whose subscriptions have already expired. Reach out to re-engage them and offer renewal deals."
                 />
                 <StatCard
                     icon={CheckCircle}
@@ -259,6 +273,7 @@ export default function Dashboard() {
                     color="green"
                     to="/tickets?filter=resolved"
                     delay={1000}
+                    info="Total number of support tickets that have been successfully resolved. A high count shows good customer support."
                 />
                 <StatCard
                     icon={Clock}
@@ -267,6 +282,7 @@ export default function Dashboard() {
                     color="orange"
                     to="/tickets?filter=in_progress"
                     delay={1100}
+                    info="Support tickets currently being worked on by the team. These are actively being addressed."
                 />
                 <StatCard
                     icon={DollarSign}
@@ -276,6 +292,7 @@ export default function Dashboard() {
                     color="cyan"
                     to="/invoices"
                     delay={1100}
+                    info="Total money collected from all paid invoices. This is your actual received revenue, not including unpaid invoices."
                 />
             </div>
 
