@@ -116,7 +116,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
     ];
 
     return (
-        <div className={`h-screen flex flex-col fixed left-0 top-0 overflow-hidden no-scrollbar transform transition-all duration-500 ease-out z-50 ${isCollapsed ? 'md:w-20' : 'md:w-64'} w-64 ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+        <div className={`h-screen sticky left-0 top-0 overflow-y-auto overflow-x-hidden no-scrollbar transform transition-all duration-500 ease-out z-50 ${isCollapsed ? 'md:w-20 shrink-0' : 'md:w-64 shrink-0'} w-64 ${isOpen ? 'translate-x-0 fixed md:sticky' : '-translate-x-full fixed md:sticky md:translate-x-0'}`}
             style={{
                 background: isDark
                     ? 'linear-gradient(180deg, rgba(3,7,18,0.97) 0%, rgba(9,14,28,0.98) 50%, rgba(3,7,18,0.97) 100%)'
@@ -169,7 +169,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
             </button>
 
             {/* Content Container */}
-            <div className="relative z-10 flex flex-col h-full overflow-y-auto no-scrollbar overflow-x-hidden">
+            <div className="relative z-10 flex flex-col h-full">
                 {/* Logo Area */}
                 <div className={`flex flex-col items-center w-full transition-all duration-300 ${isCollapsed ? 'px-2 pt-4 pb-2' : 'p-5 pb-3'}`}>
                     <Link to="/" className="relative block group mb-4 cursor-pointer flex justify-center">
