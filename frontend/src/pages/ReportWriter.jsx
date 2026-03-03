@@ -117,10 +117,10 @@ const MODULES = [
             {
                 id: 'product_type', label: 'Product Type', type: 'select', options: [
                     { value: '', label: 'All' },
-                    { value: 'Milk Meter', label: 'Milk Meter' },
-                    { value: 'Activity Collar', label: 'Activity Collar' },
-                    { value: 'Rumination Tag', label: 'Rumination Tag' },
-                    { value: 'Gateway', label: 'Gateway' },
+                    { value: 'Dairy Cows', label: 'Dairy Cows' },
+                    { value: 'Dairy Buffalos', label: 'Dairy Buffalos' },
+                    { value: 'Fattening', label: 'Fattening' },
+                    { value: 'Sheep and Goat', label: 'Sheep and Goat' },
                 ]
             },
             {

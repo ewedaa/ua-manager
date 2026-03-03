@@ -117,7 +117,7 @@ const sections = [
         items: [
             {
                 q: 'What is tracked in 4Genetics Serials?',
-                a: 'This section tracks active hardware units installed at client farms. Product types include Milk Meters, Activity Collars, Rumination Tags, Controllers, Antennas, and Routers. Each item is logged with a unique Serial Number and assigned to a specific Client. This is crucial for warranty tracking and technical support.',
+                a: 'This section tracks active hardware units installed at client farms. Product types include Dairy Cows, Dairy Buffalos, Fattening, and Sheep and Goat. Each item is logged with a unique Serial Number and assigned to a specific Client. This is crucial for warranty tracking and technical support.',
                 image: { title: 'Serial Number Tracking', icon: Barcode }
             },
         ]
