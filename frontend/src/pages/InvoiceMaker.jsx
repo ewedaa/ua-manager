@@ -56,17 +56,27 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     // Fetch live EUR→EGP rate
     const fetchRate = useCallback(async () => {
         setRateLoading(true);
+        setError('');
         try {
             const res = await fetch(`${API_BASE_URL}/invoices/live_exchange_rate/`);
             const data = await res.json();
             if (data.rate) {
                 setExchangeRate(data.rate);
                 setRateDate(data.date);
+                if (data.is_fallback) {
+                    // Soft warning — don't block usage, just inform
+                    setError('__FALLBACK__');
+                }
             } else {
-                setError('Could not fetch exchange rate. Please try again.');
+                // Still set a default so the invoice maker stays usable
+                setExchangeRate(57.5);
+                setRateDate('');
+                setError('__FALLBACK__');
             }
         } catch {
-            setError('Failed to reach rate server.');
+            setExchangeRate(57.5);
+            setRateDate('');
+            setError('__FALLBACK__');
         } finally {
             setRateLoading(false);
         }
@@ -280,31 +290,55 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
 
                         {/* Live Rate Box (only when EGP selected) */}
                         {currency === 'EGP' && (
-                            <div className={`mt-2 p-3 rounded-xl flex items-center gap-3 ${isDark ? 'bg-blue-500/8 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
-                                <Globe size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-                                <div className="flex-1 min-w-0">
-                                    {rateLoading ? (
-                                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                            <Loader2 size={11} className="inline animate-spin mr-1" />Fetching live rate...
-                                        </span>
-                                    ) : exchangeRate ? (
-                                        <span className={`text-xs font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
-                                            <b>1 € = {exchangeRate} EGP</b>
-                                            {rateDate && <span className={`ml-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>(as of {rateDate})</span>}
-                                        </span>
-                                    ) : (
-                                        <span className={`text-xs ${isDark ? 'text-red-400' : 'text-red-600'}`}>Rate unavailable</span>
-                                    )}
+                            <div className={`mt-2 p-3 rounded-xl ${error === '__FALLBACK__'
+                                    ? isDark ? 'bg-amber-500/8 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
+                                    : isDark ? 'bg-blue-500/8 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'
+                                }`}>
+                                <div className="flex items-center gap-3">
+                                    <Globe size={16} className={error === '__FALLBACK__' ? (isDark ? 'text-amber-400' : 'text-amber-600') : (isDark ? 'text-blue-400' : 'text-blue-600')} />
+                                    <div className="flex-1 min-w-0">
+                                        {rateLoading ? (
+                                            <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                <Loader2 size={11} className="inline animate-spin mr-1" />Fetching live rate...
+                                            </span>
+                                        ) : error === '__FALLBACK__' ? (
+                                            <span className={`text-xs ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                                                ⚠ Live rate unavailable — using estimated <b>1 € = {exchangeRate} EGP</b>
+                                            </span>
+                                        ) : exchangeRate ? (
+                                            <span className={`text-xs font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                                                <b>1 € = {exchangeRate} EGP</b>
+                                                {rateDate && <span className={`ml-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>(as of {rateDate})</span>}
+                                            </span>
+                                        ) : (
+                                            <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Select EGP to fetch rate</span>
+                                        )}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={fetchRate}
+                                        disabled={rateLoading || !isAdmin}
+                                        className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-blue-100 text-blue-600'} disabled:opacity-40`}
+                                        title="Refresh rate"
+                                    >
+                                        <RefreshCw size={13} className={rateLoading ? 'animate-spin' : ''} />
+                                    </button>
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={fetchRate}
-                                    disabled={rateLoading || !isAdmin}
-                                    className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-blue-100 text-blue-600'} disabled:opacity-40`}
-                                    title="Refresh rate"
-                                >
-                                    <RefreshCw size={13} className={rateLoading ? 'animate-spin' : ''} />
-                                </button>
+                                {/* Manual rate override when fallback */}
+                                {error === '__FALLBACK__' && !rateLoading && (
+                                    <div className="mt-2 flex items-center gap-2">
+                                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Enter rate manually:</span>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="1"
+                                            value={exchangeRate || ''}
+                                            onChange={e => setExchangeRate(parseFloat(e.target.value) || 0)}
+                                            className={`w-24 px-2 py-1 rounded-lg border text-xs outline-none focus:ring-1 focus:ring-amber-400 ${isDark ? 'bg-white/[0.06] border-white/10 text-white' : 'bg-white border-gray-200 text-gray-900'}`}
+                                        />
+                                        <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>EGP / €</span>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>

@@ -94,28 +94,60 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'])
     def live_exchange_rate(self, request):
-        """Fetch the live EUR→EGP exchange rate from frankfurter.app (free, no key needed)."""
+        """Fetch the live EUR→EGP exchange rate. Tries multiple free APIs in sequence."""
         import requests as http_requests
         from decimal import Decimal
-        try:
+
+        FALLBACK_RATE = 57.50   # reasonable EUR→EGP fallback
+        TIMEOUT = 7
+
+        def _try_frankfurter():
             resp = http_requests.get(
                 'https://api.frankfurter.app/latest?from=EUR&to=EGP',
-                timeout=8
+                timeout=TIMEOUT
             )
-            data = resp.json()
-            rate = Decimal(str(data['rates']['EGP'])).quantize(Decimal('0.0001'))
-            return Response({
-                'rate': float(rate),
-                'from': 'EUR',
-                'to': 'EGP',
-                'date': data.get('date', ''),
-            })
-        except Exception as e:
-            # Fallback rate if internet is unavailable
-            return Response({
-                'rate': None,
-                'error': f'Could not fetch live rate: {str(e)}',
-            }, status=503)
+            d = resp.json()
+            return float(Decimal(str(d['rates']['EGP'])).quantize(Decimal('0.0001'))), d.get('date', '')
+
+        def _try_exchangerate_host():
+            resp = http_requests.get(
+                'https://open.er-api.com/v6/latest/EUR',
+                timeout=TIMEOUT
+            )
+            d = resp.json()
+            rate = d['rates']['EGP']
+            return float(Decimal(str(rate)).quantize(Decimal('0.0001'))), d.get('time_last_update_utc', '')[:10]
+
+        def _try_fixer_free():
+            resp = http_requests.get(
+                'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/eur.json',
+                timeout=TIMEOUT
+            )
+            d = resp.json()
+            rate = d['eur']['egp']
+            return float(Decimal(str(rate)).quantize(Decimal('0.0001'))), ''
+
+        for fn in [_try_frankfurter, _try_exchangerate_host, _try_fixer_free]:
+            try:
+                rate, date = fn()
+                return Response({
+                    'rate': rate,
+                    'from': 'EUR',
+                    'to': 'EGP',
+                    'date': date,
+                    'is_fallback': False,
+                })
+            except Exception:
+                continue
+
+        # All APIs failed — return hardcoded fallback so the user can still work
+        return Response({
+            'rate': FALLBACK_RATE,
+            'from': 'EUR',
+            'to': 'EGP',
+            'date': '',
+            'is_fallback': True,
+        })
 
     @action(detail=True, methods=['post'])
     def generate_pdf(self, request, pk=None):
