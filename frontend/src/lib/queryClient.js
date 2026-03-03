@@ -6,8 +6,8 @@ export const queryClient = new QueryClient({
     defaultOptions: {
         queries: {
             gcTime: 1000 * 60 * 60 * 24, // 24 hours
-            staleTime: 1000 * 60 * 10, // 10 minutes - Data stays fresh longer
-            refetchOnWindowFocus: false, // Don't refetch on window focus
+            staleTime: 1000 * 60, // 1 minute (data becomes stale much faster)
+            refetchOnWindowFocus: true, // Always refetch when user switches tabs/windows
             retry: 1,
         },
     },
