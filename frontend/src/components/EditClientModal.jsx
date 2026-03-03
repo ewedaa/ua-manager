@@ -82,100 +82,29 @@ export default function EditClientModal({ client, onClose }) {
                 )}
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    {/* Basic Info */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="col-span-2">
-                            <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className={`block text-xs font-bold uppercase mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial Number</label>
-                            <input
-                                type="text"
-                                name="serial_number"
-                                value={formData.serial_number || ''}
-                                onChange={handleChange}
-                                className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
-                            />
-                        </div>
+                    {/* Farm Name */}
+                    <div>
+                        <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
+                        <input
+                            type="text"
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                            required
+                        />
                     </div>
 
-                    {/* Structured Contacts List */}
-                    <div className={`p-4 rounded-lg border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
-                        <label className={`block text-xs font-bold uppercase mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Key Contacts</label>
-                        <div className="space-y-3">
-                            {formData.contacts && formData.contacts.map((contact, index) => (
-                                <div key={index} className="flex gap-2 items-start">
-                                    <div className="grid grid-cols-3 gap-2 flex-1">
-                                        <input
-                                            type="text"
-                                            placeholder="Name"
-                                            value={contact.name}
-                                            onChange={(e) => {
-                                                const newContacts = [...(formData.contacts || [])];
-                                                newContacts[index].name = e.target.value;
-                                                setFormData({ ...formData, contacts: newContacts });
-                                            }}
-                                            className={`px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300'}`}
-                                            required
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Phone"
-                                            value={contact.phone}
-                                            onChange={(e) => {
-                                                const newContacts = [...(formData.contacts || [])];
-                                                newContacts[index].phone = e.target.value;
-                                                setFormData({ ...formData, contacts: newContacts });
-                                            }}
-                                            className={`px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300'}`}
-                                            required
-                                        />
-                                        <input
-                                            type="text"
-                                            placeholder="Role (e.g. Manager)"
-                                            value={contact.role}
-                                            onChange={(e) => {
-                                                const newContacts = [...(formData.contacts || [])];
-                                                newContacts[index].role = e.target.value;
-                                                setFormData({ ...formData, contacts: newContacts });
-                                            }}
-                                            className={`px-2 py-1.5 text-sm border rounded focus:ring-1 focus:ring-green-500 outline-none ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300'}`}
-                                        />
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            const newContacts = formData.contacts.filter((_, i) => i !== index);
-                                            setFormData({ ...formData, contacts: newContacts });
-                                        }}
-                                        className={`p-1.5 rounded transition-colors ${isDark ? 'text-red-400 hover:bg-red-500/10' : 'text-red-500 hover:bg-red-50'}`}
-                                        title="Remove Contact"
-                                    >
-                                        <X size={16} />
-                                    </button>
-                                </div>
-                            ))}
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setFormData({
-                                        ...formData,
-                                        contacts: [...(formData.contacts || []), { name: '', phone: '', role: '' }]
-                                    });
-                                }}
-                                className="text-xs font-bold text-green-600 hover:text-green-700 flex items-center gap-1"
-                            >
-                                + Add Contact Person
-                            </button>
-                        </div>
+                    {/* Serial Number */}
+                    <div>
+                        <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial Number</label>
+                        <input
+                            type="text"
+                            name="serial_number"
+                            value={formData.serial_number || ''}
+                            onChange={handleChange}
+                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                        />
                     </div>
 
                     {/* Subscription Modules (Multi-select from API) */}
