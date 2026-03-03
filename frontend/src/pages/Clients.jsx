@@ -52,9 +52,9 @@ export default function Clients() {
     const [filterOpen, setFilterOpen] = useState(false);
 
     const [formData, setFormData] = useState({
-        name: '',
+        name: '-',
         farm_name: '',
-        phone: '',
+        phone: '-',
         subscription_start_date: '',
         subscription_end_date: '',
         serial_number: '',
@@ -139,10 +139,7 @@ export default function Clients() {
     const handleSubmit = (e) => {
         e.preventDefault();
         const errors = {};
-        if (!formData.name.trim()) errors.name = 'Full name is required';
         if (!formData.farm_name.trim()) errors.farm_name = 'Farm name is required';
-        if (!formData.phone.trim()) errors.phone = 'Phone number is required';
-        else if (formData.phone.replace(/[^\d+]/g, '').length < 7) errors.phone = 'Phone number too short';
         if (!formData.subscription_start_date) errors.subscription_start_date = 'Start date is required';
         if (!formData.subscription_end_date) errors.subscription_end_date = 'End date is required';
         if (formData.subscription_start_date && formData.subscription_end_date && formData.subscription_end_date <= formData.subscription_start_date) {
@@ -153,7 +150,14 @@ export default function Clients() {
             return;
         }
         setFieldErrors({});
-        mutation.mutate(formData);
+
+        // Send farm_name as name, and dummy phone to bypass backend validation
+        const payload = {
+            ...formData,
+            name: formData.farm_name,
+            phone: '-'
+        };
+        mutation.mutate(payload);
     };
 
     const handleExport = async () => {
@@ -353,17 +357,7 @@ export default function Clients() {
                             )}
 
                             <form onSubmit={handleSubmit} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.name ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
-                                        value={formData.name}
-                                        onChange={handleInputChange}
-                                    />
-                                    {fieldErrors.name && <p className="text-xs text-red-500 mt-1">{fieldErrors.name}</p>}
-                                </div>
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Farm Name</label>
                                     <input
@@ -375,17 +369,7 @@ export default function Clients() {
                                     />
                                     {fieldErrors.farm_name && <p className="text-xs text-red-500 mt-1">{fieldErrors.farm_name}</p>}
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        name="phone"
-                                        className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.phone ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                        value={formData.phone}
-                                        onChange={handleInputChange}
-                                    />
-                                    {fieldErrors.phone && <p className="text-xs text-red-500 mt-1">{fieldErrors.phone}</p>}
-                                </div>
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
                                     <input

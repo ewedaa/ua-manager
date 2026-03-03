@@ -66,7 +66,10 @@ export default function EditClientModal({ client, onClose }) {
             setError('Subscription end date must be after start date.');
             return;
         }
-        mutation.mutate(formData);
+
+        // Sync name to farm_name so the backend required field is satisfied
+        const payload = { ...formData, name: formData.farm_name };
+        mutation.mutate(payload);
     };
 
     return (
@@ -92,8 +95,8 @@ export default function EditClientModal({ client, onClose }) {
                         <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
                         <input
                             type="text"
-                            name="name"
-                            value={formData.name}
+                            name="farm_name"
+                            value={formData.farm_name || ''}
                             onChange={handleChange}
                             className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
                             required

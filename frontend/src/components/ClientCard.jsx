@@ -26,7 +26,7 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     const tickets = client.tickets || [];
     const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
 
-    const getInitials = (name) => name ? name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : '??';
+    const getInitials = (name) => name && name !== '-' ? name.split(' ').slice(0, 2).map(n => n[0]).join('').toUpperCase() : '??';
 
     const getDaysRemaining = () => {
         if (!client.subscription_end_date) return null;
@@ -83,12 +83,11 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                 >
                     <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shrink-0 bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>
-                            {getInitials(client.name)}
+                            {getInitials(client.farm_name)}
                         </div>
                         <div className="min-w-0">
-                            <h3 className={`font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</h3>
+                            <h3 className={`font-bold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.farm_name}</h3>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <p className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{client.farm_name}</p>
                                 <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${status.bg} ${status.text}`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />{status.label}
                                 </span>
@@ -153,11 +152,11 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                     {/* ═══ HEADER ROW ═══ */}
                     <div className="flex items-start gap-3">
                         <div className={`w-12 h-12 rounded-2xl flex shrink-0 items-center justify-center font-bold text-base shadow-xl bg-gradient-to-br ${status.gradient} text-white transition-transform duration-300 ${isHovered ? 'scale-105' : ''}`}>
-                            {getInitials(client.name)}
+                            {getInitials(client.farm_name)}
                         </div>
                         <div className="flex-1 min-w-0">
                             <h3 className={`text-base font-extrabold leading-tight tracking-tight truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
-                                {client.name}
+                                {client.farm_name}
                             </h3>
                             <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest mt-1.5 ${status.bg} ${status.text}`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
