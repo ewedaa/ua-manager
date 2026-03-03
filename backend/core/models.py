@@ -89,6 +89,10 @@ class Invoice(models.Model):
         help_text="Total customer price (what the farm pays us)")
     notes = models.TextField(blank=True, help_text="Invoice notes")
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Due', db_index=True)
+    is_dairylive = models.BooleanField(
+        default=False,
+        help_text="DairyLive customer? Gives 50% discount on purchase customer price"
+    )
     pdf_file = models.FileField(upload_to='invoices/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -204,21 +208,47 @@ class SubscriptionModule(models.Model):
     """Available subscription modules that can be assigned to clients."""
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Cost price in EGP (what we pay Uniform Agri)")
+
+    # Dual pricing: purchase vs renewal
+    purchase_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Cost for NEW PURCHASE (what we pay Uniform Agri)"
+    )
+    renewal_price = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Cost for RENEWAL (what we pay Uniform Agri)"
+    )
+
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
+    # ── Computed customer prices (40% markup) ──────────────────────
+    @property
+    def purchase_customer_price(self):
+        """Purchase cost × 1.40 = what the farm pays us for a new purchase."""
+        from decimal import Decimal, ROUND_HALF_UP
+        return (self.purchase_price * Decimal('1.40')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    @property
+    def renewal_customer_price(self):
+        """Renewal cost × 1.40 = what the farm pays us at renewal."""
+        from decimal import Decimal, ROUND_HALF_UP
+        return (self.renewal_price * Decimal('1.40')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    # ── Backward-compat aliases ────────────────────────────────────
+    @property
+    def price(self):
+        return self.purchase_price
+
     @property
     def customer_price(self):
-        """Price x 1.30 x 1.10 = what the farm pays us."""
-        from decimal import Decimal, ROUND_HALF_UP
-        return (self.price * Decimal('1.30') * Decimal('1.10')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-    
+        return self.purchase_customer_price
+
     class Meta:
         ordering = ['order', 'name']
-    
+
     def __str__(self):
-        return f"{self.name} ({self.price} EGP)"
+        return f"{self.name} (P:{self.purchase_price} / R:{self.renewal_price} EGP)"
 
 
 class GeneticsSerial(models.Model):

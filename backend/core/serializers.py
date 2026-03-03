@@ -30,11 +30,21 @@ class ClientFileSerializer(serializers.ModelSerializer):
 
 class SubscriptionModuleSerializer(serializers.ModelSerializer):
     """Serializer for SubscriptionModule model."""
+    purchase_customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    renewal_customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    # Backward-compat aliases
+    price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
-    
+
     class Meta:
         model = SubscriptionModule
-        fields = ['id', 'name', 'description', 'price', 'customer_price', 'is_active', 'order']
+        fields = [
+            'id', 'name', 'description',
+            'purchase_price', 'renewal_price',
+            'purchase_customer_price', 'renewal_customer_price',
+            'price', 'customer_price',
+            'is_active', 'order',
+        ]
 
 
 class GeneticsSerialSerializer(serializers.ModelSerializer):
@@ -167,7 +177,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'livestock_selection', 'livestock_ids',
             'selected_modules', 'selected_module_ids',
             'total_amount', 'cost_total', 'customer_total', 'notes',
-            'status', 'pdf_file', 'payments', 'created_at', 'updated_at'
+            'status', 'is_dairylive', 'pdf_file', 'payments', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 

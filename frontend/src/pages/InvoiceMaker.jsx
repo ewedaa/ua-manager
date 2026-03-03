@@ -20,6 +20,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const queryClient = useQueryClient();
     const { isAdmin } = useAuth();
     const { isDark } = useTheme();
+    const isPurchaseType = (type) => type === 'Purchase Invoice' || type === 'Purchase Quotation';
+
     const [formData, setFormData] = useState({
         client: editInvoice?.client || '',
         invoice_type: editInvoice?.invoice_type || 'Renewal Invoice',
@@ -30,6 +32,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const [selectedModuleIds, setSelectedModuleIds] = useState(
         editInvoice?.selected_modules?.map(m => m.id) || []
     );
+    const [isDairyLive, setIsDairyLive] = useState(editInvoice?.is_dairylive || false);
     const [error, setError] = useState('');
 
     // Fetch modules
@@ -43,16 +46,24 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     });
 
     const activeModules = modules.filter(m => m.is_active);
+    const isRenewal = formData.invoice_type === 'Renewal Invoice';
+
+    // Per-module price helpers (based on invoice type)
+    const getModuleCost = (mod) => parseFloat(isRenewal ? (mod.renewal_price || 0) : (mod.purchase_price || 0));
+    const getModuleCustomerPrice = (mod) => {
+        const base = parseFloat(isRenewal ? (mod.renewal_customer_price || 0) : (mod.purchase_customer_price || 0));
+        return (!isRenewal && isDairyLive) ? base * 0.5 : base;
+    };
 
     // Calculate totals
     const costTotal = selectedModuleIds.reduce((sum, id) => {
         const mod = modules.find(m => m.id === id);
-        return sum + (mod ? parseFloat(mod.price || 0) : 0);
+        return sum + (mod ? getModuleCost(mod) : 0);
     }, 0);
 
     const customerTotal = selectedModuleIds.reduce((sum, id) => {
         const mod = modules.find(m => m.id === id);
-        return sum + (mod ? parseFloat(mod.customer_price || 0) : 0);
+        return sum + (mod ? getModuleCustomerPrice(mod) : 0);
     }, 0);
 
     const profit = customerTotal - costTotal;
@@ -120,6 +131,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
             total_amount: customerTotal.toFixed(2),
             cost_total: costTotal.toFixed(2),
             customer_total: customerTotal.toFixed(2),
+            is_dairylive: isDairyLive,
         });
     };
 
@@ -198,16 +210,46 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         </div>
                     </div>
 
+                    {/* DairyLive Checkbox (purchase only) */}
+                    {!isRenewal && (
+                        <div>
+                            <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${isDairyLive
+                                ? isDark ? 'bg-sky-500/10 border-sky-500/30' : 'bg-sky-50 border-sky-400'
+                                : isDark ? 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                                }`}>
+                                <div
+                                    className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all shrink-0 ${isDairyLive ? 'bg-sky-500 border-sky-500' : isDark ? 'border-gray-600' : 'border-gray-300'}`}
+                                    onClick={() => isAdmin && setIsDairyLive(v => !v)}
+                                >
+                                    {isDairyLive && <Check size={12} className="text-white" />}
+                                </div>
+                                <div onClick={() => isAdmin && setIsDairyLive(v => !v)} className="flex-1 select-none">
+                                    <span className={`font-bold text-sm ${isDairyLive ? isDark ? 'text-sky-300' : 'text-sky-700' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        DairyLive Customer?
+                                    </span>
+                                    <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                        50% discount applied to customer price
+                                    </p>
+                                </div>
+                                {isDairyLive && (
+                                    <span className="text-xs font-bold bg-sky-500 text-white px-2 py-0.5 rounded-full shrink-0">50% OFF</span>
+                                )}
+                            </label>
+                        </div>
+                    )}
+
                     {/* Module Selection */}
                     {activeModules.length > 0 && (
                         <div>
                             <label className={`block text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                                 <Package size={12} className="inline mr-1.5 -mt-0.5" />
-                                Select Modules *
+                                Select Modules * <span className={`normal-case ml-1 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>({isRenewal ? 'Renewal prices' : 'Purchase prices'})</span>
                             </label>
                             <div className="space-y-2">
                                 {activeModules.map((mod) => {
                                     const isSelected = selectedModuleIds.includes(mod.id);
+                                    const modCost = getModuleCost(mod);
+                                    const modCustomer = getModuleCustomerPrice(mod);
                                     return (
                                         <button
                                             key={mod.id}
@@ -229,24 +271,22 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                                     }`}>
                                                     {isSelected && <Check size={12} className="text-white" />}
                                                 </div>
-                                                <div className="text-left">
-                                                    <span className={`font-semibold ${isSelected ? isDark ? 'text-green-300' : 'text-green-800' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                        {mod.name}
-                                                    </span>
-                                                </div>
+                                                <span className={`font-semibold ${isSelected ? isDark ? 'text-green-300' : 'text-green-800' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                    {mod.name}
+                                                </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <div className="text-right">
                                                     <div className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Cost</div>
                                                     <span className={`text-xs font-semibold tabular-nums ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        {parseFloat(mod.price || 0).toLocaleString()} EGP
+                                                        {modCost.toLocaleString()} EGP
                                                     </span>
                                                 </div>
                                                 <ArrowRight size={10} className={isDark ? 'text-gray-700' : 'text-gray-300'} />
                                                 <div className="text-right">
                                                     <div className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? isDark ? 'text-green-500' : 'text-green-600' : isDark ? 'text-gray-600' : 'text-gray-400'}`}>Customer</div>
                                                     <span className={`text-xs font-bold tabular-nums ${isSelected ? isDark ? 'text-green-400' : 'text-green-700' : isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        {parseFloat(mod.customer_price || 0).toLocaleString()} EGP
+                                                        {modCustomer.toLocaleString(undefined, { maximumFractionDigits: 2 })} EGP
                                                     </span>
                                                 </div>
                                             </div>
@@ -277,7 +317,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                 </div>
                                 <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
                                     <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}></div>
-                                    <span>+30% markup +10% fees</span>
+                                    <span>+40% markup{!isRenewal && isDairyLive ? ' • 50% DairyLive discount' : ''}</span>
                                     <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}></div>
                                 </div>
                                 <div className="flex items-center justify-between">

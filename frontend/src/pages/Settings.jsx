@@ -23,10 +23,12 @@ export default function Settings() {
     const { soundEnabled, setSoundEnabled, soundTone, setSoundTone, browserNotificationsEnabled, enableBrowserNotifications } = useNotifications();
     const queryClient = useQueryClient();
     const [newModule, setNewModule] = useState('');
-    const [newModulePrice, setNewModulePrice] = useState('');
+    const [newModulePurchasePrice, setNewModulePurchasePrice] = useState('');
+    const [newModuleRenewalPrice, setNewModuleRenewalPrice] = useState('');
     const [editingId, setEditingId] = useState(null);
     const [editingName, setEditingName] = useState('');
-    const [editingPrice, setEditingPrice] = useState('');
+    const [editingPurchasePrice, setEditingPurchasePrice] = useState('');
+    const [editingRenewalPrice, setEditingRenewalPrice] = useState('');
 
     // Backup / Import state
     const [isBackingUp, setIsBackingUp] = useState(false);
@@ -55,11 +57,11 @@ export default function Settings() {
     });
 
     const createMutation = useMutation({
-        mutationFn: async ({ name, price }) => {
+        mutationFn: async ({ name, purchase_price, renewal_price }) => {
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price: price || 0, is_active: true, order: modules.length }),
+                body: JSON.stringify({ name, purchase_price: purchase_price || 0, renewal_price: renewal_price || 0, is_active: true, order: modules.length }),
             });
             if (!res.ok) throw new Error('Failed to create module');
             return res.json();
@@ -67,7 +69,8 @@ export default function Settings() {
         onSuccess: () => {
             queryClient.invalidateQueries(['subscription-modules']);
             setNewModule('');
-            setNewModulePrice('');
+            setNewModulePurchasePrice('');
+            setNewModuleRenewalPrice('');
         },
     });
 
@@ -98,13 +101,13 @@ export default function Settings() {
     const handleAddModule = (e) => {
         e.preventDefault();
         if (newModule.trim()) {
-            createMutation.mutate({ name: newModule.trim(), price: parseFloat(newModulePrice) || 0 });
+            createMutation.mutate({ name: newModule.trim(), purchase_price: parseFloat(newModulePurchasePrice) || 0, renewal_price: parseFloat(newModuleRenewalPrice) || 0 });
         }
     };
 
     const handleSaveEdit = (id) => {
         if (editingName.trim()) {
-            updateMutation.mutate({ id, name: editingName.trim(), price: parseFloat(editingPrice) || 0 });
+            updateMutation.mutate({ id, name: editingName.trim(), purchase_price: parseFloat(editingPurchasePrice) || 0, renewal_price: parseFloat(editingRenewalPrice) || 0 });
         }
     };
 
@@ -662,13 +665,18 @@ export default function Settings() {
 
                 {/* Add New Module */}
                 {isAdmin && (
-                    <form onSubmit={handleAddModule} className="flex gap-3 mb-6">
+                    <form onSubmit={handleAddModule} className="flex flex-wrap gap-3 mb-6">
                         <input type="text" placeholder="Module name..." value={newModule} onChange={(e) => setNewModule(e.target.value)}
-                            className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none" />
+                            className="flex-1 min-w-[180px] px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none" />
                         <div className="relative">
-                            <input type="number" step="0.01" placeholder="Price" value={newModulePrice} onChange={(e) => setNewModulePrice(e.target.value)}
-                                className="w-28 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none pr-12" />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 font-medium">EGP</span>
+                            <input type="number" step="0.01" placeholder="Purchase Price" value={newModulePurchasePrice} onChange={(e) => setNewModulePurchasePrice(e.target.value)}
+                                className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none pr-12" />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">P EGP</span>
+                        </div>
+                        <div className="relative">
+                            <input type="number" step="0.01" placeholder="Renewal Price" value={newModuleRenewalPrice} onChange={(e) => setNewModuleRenewalPrice(e.target.value)}
+                                className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none pr-12" />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">R EGP</span>
                         </div>
                         <button type="submit" disabled={createMutation.isPending || !newModule.trim()}
                             className="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25 transition-all">
@@ -693,9 +701,16 @@ export default function Settings() {
                                         <input type="text" value={editingName} onChange={(e) => setEditingName(e.target.value)}
                                             className="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none" autoFocus />
                                         <div className="relative">
-                                            <input type="number" step="0.01" value={editingPrice} onChange={(e) => setEditingPrice(e.target.value)}
-                                                className="w-24 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 outline-none text-right pr-10" />
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-gray-400">EGP</span>
+                                            <input type="number" step="0.01" value={editingPurchasePrice} onChange={(e) => setEditingPurchasePrice(e.target.value)}
+                                                placeholder="Purchase"
+                                                className="w-24 px-3 py-1.5 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none text-right pr-8" />
+                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-blue-400 font-bold">P</span>
+                                        </div>
+                                        <div className="relative">
+                                            <input type="number" step="0.01" value={editingRenewalPrice} onChange={(e) => setEditingRenewalPrice(e.target.value)}
+                                                placeholder="Renewal"
+                                                className="w-24 px-3 py-1.5 border border-amber-300 dark:border-amber-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none text-right pr-8" />
+                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-amber-400 font-bold">R</span>
                                         </div>
                                         <button onClick={() => handleSaveEdit(mod.id)} disabled={updateMutation.isPending} className="text-green-600 hover:text-green-700 p-1.5"><Save size={18} /></button>
                                         <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1.5"><X size={18} /></button>
@@ -703,12 +718,15 @@ export default function Settings() {
                                 ) : (
                                     <>
                                         <span className="flex-1 font-medium text-gray-700 dark:text-gray-300">{mod.name}</span>
-                                        <span className={`text-sm font-bold tabular-nums ${parseFloat(mod.price) > 0 ? 'text-green-600 dark:text-green-400' : 'text-gray-400'}`}>
-                                            {parseFloat(mod.price || 0).toLocaleString()} EGP
+                                        <span className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-lg ${parseFloat(mod.purchase_price) > 0 ? 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
+                                            P: {parseFloat(mod.purchase_price || 0).toLocaleString()} EGP
+                                        </span>
+                                        <span className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-lg ${parseFloat(mod.renewal_price) > 0 ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'text-gray-400'}`}>
+                                            R: {parseFloat(mod.renewal_price || 0).toLocaleString()} EGP
                                         </span>
                                         {isAdmin && (
                                             <>
-                                                <button onClick={() => { setEditingId(mod.id); setEditingName(mod.name); setEditingPrice(mod.price || '0'); }}
+                                                <button onClick={() => { setEditingId(mod.id); setEditingName(mod.name); setEditingPurchasePrice(mod.purchase_price || '0'); setEditingRenewalPrice(mod.renewal_price || '0'); }}
                                                     className="text-gray-400 hover:text-blue-600 p-1.5 opacity-0 group-hover:opacity-100 transition-all"><Edit2 size={16} /></button>
                                                 <button onClick={() => { if (confirm(`Delete "${mod.name}"?`)) deleteMutation.mutate(mod.id); }}
                                                     disabled={deleteMutation.isPending}
