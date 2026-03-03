@@ -43,7 +43,7 @@ class GeneticsSerialSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = GeneticsSerial
-        fields = ['id', 'serial_number', 'client', 'client_name', 'product_type', 'is_active', 'assigned_date', 'notes', 'created_at']
+        fields = ['id', 'serial_number', 'client', 'client_name', 'product_type', 'role', 'modules', 'is_active', 'assigned_date', 'notes', 'created_at']
         read_only_fields = ['created_at']
 
 

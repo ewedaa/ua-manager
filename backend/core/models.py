@@ -224,16 +224,17 @@ class SubscriptionModule(models.Model):
 class GeneticsSerial(models.Model):
     """4Genetics serial number tracking."""
     PRODUCT_CHOICES = [
-        ('Milk Meter', 'Milk Meter'),
-        ('Activity Collar', 'Activity Collar'),
-        ('Rumination Tag', 'Rumination Tag'),
-        ('Heat Detection', 'Heat Detection'),
-        ('Other', 'Other'),
+        ('Dairy Cows', 'Dairy Cows'),
+        ('Dairy Buffalos', 'Dairy Buffalos'),
+        ('Fattening', 'Fattening'),
+        ('Sheep and Goat', 'Sheep and Goat'),
     ]
     
     serial_number = models.CharField(max_length=100, unique=True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True, related_name='genetics_serials')
     product_type = models.CharField(max_length=100, choices=PRODUCT_CHOICES)
+    role = models.CharField(max_length=255, blank=True, help_text="Role or position at the college")
+    modules = models.TextField(blank=True, help_text="Subscription modules for this college")
     is_active = models.BooleanField(default=True)
     assigned_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
