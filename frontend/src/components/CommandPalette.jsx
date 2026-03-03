@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import {
     Search, Home, Ticket, Users, Settings, Bot,
@@ -170,8 +171,8 @@ export default function CommandPalette({ isOpen, onClose }) {
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-start justify-center pt-[15vh] px-4">
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
@@ -253,6 +254,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNotifications } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { Link } from 'react-router-dom';
@@ -77,8 +78,8 @@ function NotificationDetailModal({ notification, onClose, onMarkRead, onDismiss 
         return () => window.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-    return (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" onClick={onClose}>
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <div
                 className="relative w-full max-w-lg bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
@@ -151,7 +152,8 @@ function NotificationDetailModal({ notification, onClose, onMarkRead, onDismiss 
                     )}
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 

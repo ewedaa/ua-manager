@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Save, Loader2, AlertCircle, Upload, FileText, Plus, Package, Check, TrendingUp, ArrowRight, DollarSign, Building2, Users, StickyNote, Receipt, ShoppingCart, RefreshCw, Sparkles, ChevronRight, CheckCircle } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
@@ -142,8 +143,8 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
 
     const currentType = invoiceTypes.find(t => t.value === formData.invoice_type);
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[10vh] pb-4 px-4 z-50 animate-in fade-in duration-200">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-start justify-center pt-[10vh] pb-4 px-4 z-[9999] animate-in fade-in duration-200">
             <div className={`rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-hidden flex flex-col ${isDark ? 'bg-gray-900/95 backdrop-blur-xl border border-white/[0.08]' : 'bg-white'}`}>
 
                 {/* ═══ HEADER ═══ */}
@@ -575,6 +576,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }

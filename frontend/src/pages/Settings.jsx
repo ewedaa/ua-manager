@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     Loader2, Plus, Trash2, Save, X, Edit2, GripVertical, Lock, Bell, Volume2, VolumeX,
@@ -368,278 +369,281 @@ export default function Settings() {
 
             {/* ═══════════ IMPORT MAPPING WIZARD MODAL ═══════════ */}
             {showImportWizard && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-200 dark:border-white/10 overflow-hidden max-h-[85vh] flex flex-col">
-                        {/* Header */}
-                        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/[0.06] shrink-0">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-                                    <FileSpreadsheet size={16} className="text-white" />
-                                </div>
-                                <div>
-                                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">Import Mapping Wizard</h2>
-                                    <div className="flex items-center gap-1 mt-1">
-                                        {[1, 2, 3, 4, 5].map(s => (
-                                            <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s <= wizardStep ? 'bg-blue-500 w-8' : 'bg-gray-200 dark:bg-gray-700 w-4'}`} />
-                                        ))}
-                                        <span className="text-[10px] text-gray-400 ml-2">
-                                            Step {wizardStep}/5
-                                        </span>
+                createPortal(
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-in fade-in duration-200">
+                        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-200 dark:border-white/10 overflow-hidden max-h-[85vh] flex flex-col">
+                            {/* Header */}
+                            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/[0.06] shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
+                                        <FileSpreadsheet size={16} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-bold text-gray-900 dark:text-white">Import Mapping Wizard</h2>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            {[1, 2, 3, 4, 5].map(s => (
+                                                <div key={s} className={`h-1 rounded-full transition-all duration-300 ${s <= wizardStep ? 'bg-blue-500 w-8' : 'bg-gray-200 dark:bg-gray-700 w-4'}`} />
+                                            ))}
+                                            <span className="text-[10px] text-gray-400 ml-2">
+                                                Step {wizardStep}/5
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+                                <button onClick={resetWizard} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                                    <X size={22} />
+                                </button>
                             </div>
-                            <button onClick={resetWizard} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
-                                <X size={22} />
-                            </button>
-                        </div>
 
-                        <div className="p-5 space-y-4 overflow-y-auto flex-1">
-                            {/* Step 1: Upload */}
-                            {wizardStep === 1 && (
-                                <>
-                                    <div onClick={() => fileInputRef.current?.click()}
-                                        className={`relative p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all ${selectedFile ? 'border-green-400 bg-green-50/50 dark:bg-green-500/5' : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 bg-gray-50/50 dark:bg-white/[0.02]'}`}>
-                                        <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden"
-                                            onChange={(e) => { setSelectedFile(e.target.files[0]); setImportError(null); }} />
-                                        {selectedFile ? (
-                                            <div className="space-y-2">
-                                                <FileSpreadsheet size={32} className="mx-auto text-green-500" />
-                                                <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{selectedFile.name}</p>
-                                                <p className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-2">
-                                                <Upload size={32} className="mx-auto text-gray-400" />
-                                                <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Click to select an Excel file</p>
-                                                <p className="text-xs text-gray-400">.xlsx or .xls</p>
+                            <div className="p-5 space-y-4 overflow-y-auto flex-1">
+                                {/* Step 1: Upload */}
+                                {wizardStep === 1 && (
+                                    <>
+                                        <div onClick={() => fileInputRef.current?.click()}
+                                            className={`relative p-8 border-2 border-dashed rounded-xl text-center cursor-pointer transition-all ${selectedFile ? 'border-green-400 bg-green-50/50 dark:bg-green-500/5' : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 bg-gray-50/50 dark:bg-white/[0.02]'}`}>
+                                            <input ref={fileInputRef} type="file" accept=".xlsx,.xls" className="hidden"
+                                                onChange={(e) => { setSelectedFile(e.target.files[0]); setImportError(null); }} />
+                                            {selectedFile ? (
+                                                <div className="space-y-2">
+                                                    <FileSpreadsheet size={32} className="mx-auto text-green-500" />
+                                                    <p className="text-sm font-bold text-gray-800 dark:text-gray-200">{selectedFile.name}</p>
+                                                    <p className="text-xs text-gray-500">{(selectedFile.size / 1024).toFixed(1)} KB</p>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-2">
+                                                    <Upload size={32} className="mx-auto text-gray-400" />
+                                                    <p className="text-sm font-medium text-gray-600 dark:text-gray-300">Click to select an Excel file</p>
+                                                    <p className="text-xs text-gray-400">.xlsx or .xls</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {importError && (
+                                            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3 flex items-start gap-2">
+                                                <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
+                                                <p className="text-xs text-red-700 dark:text-red-400">{importError}</p>
                                             </div>
                                         )}
-                                    </div>
 
-                                    {importError && (
-                                        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3 flex items-start gap-2">
-                                            <AlertCircle size={16} className="text-red-500 mt-0.5 shrink-0" />
-                                            <p className="text-xs text-red-700 dark:text-red-400">{importError}</p>
-                                        </div>
-                                    )}
-
-                                    <button onClick={handleFileUploadForPreview} disabled={!selectedFile || isPreviewing}
-                                        className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-                                        {isPreviewing ? <><Loader2 size={16} className="animate-spin" /> Analyzing...</> : <><ArrowRight size={16} /> Analyze File</>}
-                                    </button>
-                                </>
-                            )}
-
-                            {/* Step 2: Sheet Selection */}
-                            {wizardStep === 2 && previewData && (
-                                <>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300">Select which sheets to import and map to system categories:</p>
-                                    <div className="space-y-2">
-                                        {previewData.sheets.map(sheet => (
-                                            <div key={sheet.name} className={`p-4 rounded-xl border transition-all ${selectedSheets.includes(sheet.name) ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-500/5' : 'border-gray-200 dark:border-white/[0.06]'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <label className="flex items-center gap-3 cursor-pointer flex-1">
-                                                        <input type="checkbox" checked={selectedSheets.includes(sheet.name)}
-                                                            onChange={(e) => setSelectedSheets(prev => e.target.checked ? [...prev, sheet.name] : prev.filter(s => s !== sheet.name))}
-                                                            className="w-4 h-4 text-blue-500 rounded" />
-                                                        <div>
-                                                            <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{sheet.name}</span>
-                                                            <span className="text-xs text-gray-400 ml-2">{sheet.row_count} rows · {sheet.columns.length} columns</span>
-                                                        </div>
-                                                    </label>
-                                                    {selectedSheets.includes(sheet.name) && (
-                                                        <select value={targetCategory[sheet.name] || ''} onChange={(e) => setTargetCategory({ ...targetCategory, [sheet.name]: e.target.value })}
-                                                            className="text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300">
-                                                            {Object.keys(previewData.system_targets).map(cat => (
-                                                                <option key={cat} value={cat}>{cat}</option>
-                                                            ))}
-                                                        </select>
-                                                    )}
-                                                </div>
-                                                {selectedSheets.includes(sheet.name) && (
-                                                    <div className="mt-2 flex flex-wrap gap-1">
-                                                        {sheet.columns.slice(0, 8).map((col, i) => (
-                                                            <span key={i} className="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded-full text-gray-500">{col}</span>
-                                                        ))}
-                                                        {sheet.columns.length > 8 && <span className="text-[10px] text-gray-400">+{sheet.columns.length - 8} more</span>}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex gap-3">
-                                        <button onClick={() => setWizardStep(1)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
-                                        <button onClick={() => setWizardStep(3)} disabled={selectedSheets.length === 0}
-                                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-                                            <ArrowRight size={16} /> Map Columns
+                                        <button onClick={handleFileUploadForPreview} disabled={!selectedFile || isPreviewing}
+                                            className="w-full px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                                            {isPreviewing ? <><Loader2 size={16} className="animate-spin" /> Analyzing...</> : <><ArrowRight size={16} /> Analyze File</>}
                                         </button>
-                                    </div>
-                                </>
-                            )}
+                                    </>
+                                )}
 
-                            {/* Step 3: Column Mapping */}
-                            {wizardStep === 3 && previewData && (
-                                <>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Map each column from your file to a system field:</p>
-                                    {selectedSheets.map(sheetName => {
-                                        const sheet = previewData.sheets.find(s => s.name === sheetName);
-                                        if (!sheet) return null;
-                                        const cat = targetCategory[sheetName] || Object.keys(previewData.system_targets)[0];
-                                        const systemFields = previewData.system_targets[cat] || [];
-                                        const mapping = columnMappings[sheetName] || {};
-
-                                        return (
-                                            <div key={sheetName} className="p-4 rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02]">
-                                                <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
-                                                    <FileSpreadsheet size={14} className="text-blue-500" /> {sheetName}
-                                                    <span className="text-[10px] text-gray-400 font-normal">→ {cat}</span>
-                                                </h4>
-                                                <div className="space-y-2">
-                                                    {sheet.columns.map((col, idx) => (
-                                                        <div key={idx} className="flex items-center gap-3">
-                                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-32 truncate" title={col}>{col}</span>
-                                                            <ArrowRight size={12} className="text-gray-300 shrink-0" />
-                                                            <select value={mapping[idx] || ''} onChange={(e) => {
-                                                                const newMapping = { ...columnMappings };
-                                                                if (!newMapping[sheetName]) newMapping[sheetName] = {};
-                                                                if (e.target.value) newMapping[sheetName][idx] = e.target.value;
-                                                                else delete newMapping[sheetName][idx];
-                                                                setColumnMappings(newMapping);
-                                                            }}
-                                                                className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300">
-                                                                <option value="">— Skip —</option>
-                                                                {systemFields.map(f => (
-                                                                    <option key={f} value={f}>{f.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+                                {/* Step 2: Sheet Selection */}
+                                {wizardStep === 2 && previewData && (
+                                    <>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">Select which sheets to import and map to system categories:</p>
+                                        <div className="space-y-2">
+                                            {previewData.sheets.map(sheet => (
+                                                <div key={sheet.name} className={`p-4 rounded-xl border transition-all ${selectedSheets.includes(sheet.name) ? 'border-blue-400 bg-blue-50/50 dark:bg-blue-500/5' : 'border-gray-200 dark:border-white/[0.06]'}`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="flex items-center gap-3 cursor-pointer flex-1">
+                                                            <input type="checkbox" checked={selectedSheets.includes(sheet.name)}
+                                                                onChange={(e) => setSelectedSheets(prev => e.target.checked ? [...prev, sheet.name] : prev.filter(s => s !== sheet.name))}
+                                                                className="w-4 h-4 text-blue-500 rounded" />
+                                                            <div>
+                                                                <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{sheet.name}</span>
+                                                                <span className="text-xs text-gray-400 ml-2">{sheet.row_count} rows · {sheet.columns.length} columns</span>
+                                                            </div>
+                                                        </label>
+                                                        {selectedSheets.includes(sheet.name) && (
+                                                            <select value={targetCategory[sheet.name] || ''} onChange={(e) => setTargetCategory({ ...targetCategory, [sheet.name]: e.target.value })}
+                                                                className="text-xs px-2 py-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300">
+                                                                {Object.keys(previewData.system_targets).map(cat => (
+                                                                    <option key={cat} value={cat}>{cat}</option>
                                                                 ))}
                                                             </select>
+                                                        )}
+                                                    </div>
+                                                    {selectedSheets.includes(sheet.name) && (
+                                                        <div className="mt-2 flex flex-wrap gap-1">
+                                                            {sheet.columns.slice(0, 8).map((col, i) => (
+                                                                <span key={i} className="text-[10px] px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded-full text-gray-500">{col}</span>
+                                                            ))}
+                                                            {sheet.columns.length > 8 && <span className="text-[10px] text-gray-400">+{sheet.columns.length - 8} more</span>}
                                                         </div>
-                                                    ))}
+                                                    )}
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            ))}
+                                        </div>
 
-                                    <div className="flex gap-3">
-                                        <button onClick={() => setWizardStep(2)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
-                                        <button onClick={() => setWizardStep(4)}
-                                            className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2">
-                                            <Eye size={16} /> Preview Data
-                                        </button>
-                                    </div>
-                                </>
-                            )}
+                                        <div className="flex gap-3">
+                                            <button onClick={() => setWizardStep(1)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
+                                            <button onClick={() => setWizardStep(3)} disabled={selectedSheets.length === 0}
+                                                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                                                <ArrowRight size={16} /> Map Columns
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
 
-                            {/* Step 4: Preview */}
-                            {wizardStep === 4 && previewData && (
-                                <>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300">Preview of data to be imported:</p>
-                                    {selectedSheets.map(sheetName => {
-                                        const sheet = previewData.sheets.find(s => s.name === sheetName);
-                                        if (!sheet) return null;
-                                        const mapping = columnMappings[sheetName] || {};
-                                        const mappedCols = Object.entries(mapping).map(([idx, field]) => ({ idx: parseInt(idx), field, col: sheet.columns[parseInt(idx)] }));
+                                {/* Step 3: Column Mapping */}
+                                {wizardStep === 3 && previewData && (
+                                    <>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300 mb-2">Map each column from your file to a system field:</p>
+                                        {selectedSheets.map(sheetName => {
+                                            const sheet = previewData.sheets.find(s => s.name === sheetName);
+                                            if (!sheet) return null;
+                                            const cat = targetCategory[sheetName] || Object.keys(previewData.system_targets)[0];
+                                            const systemFields = previewData.system_targets[cat] || [];
+                                            const mapping = columnMappings[sheetName] || {};
 
-                                        return (
-                                            <div key={sheetName} className="rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden">
-                                                <div className="px-4 py-2 bg-gray-50 dark:bg-white/[0.03] border-b border-gray-100 dark:border-white/[0.06]">
-                                                    <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{sheetName}</span>
-                                                    <span className="text-xs text-gray-400 ml-2">{mappedCols.length} columns mapped</span>
-                                                </div>
-                                                {mappedCols.length > 0 ? (
-                                                    <div className="overflow-x-auto">
-                                                        <table className="w-full text-xs">
-                                                            <thead>
-                                                                <tr className="bg-blue-50 dark:bg-blue-500/10">
-                                                                    {mappedCols.map(mc => (
-                                                                        <th key={mc.idx} className="px-3 py-2 text-left font-bold text-blue-700 dark:text-blue-300 whitespace-nowrap">
-                                                                            {mc.field.replace(/_/g, ' ')}
-                                                                        </th>
+                                            return (
+                                                <div key={sheetName} className="p-4 rounded-xl border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02]">
+                                                    <h4 className="font-bold text-sm text-gray-800 dark:text-gray-200 mb-3 flex items-center gap-2">
+                                                        <FileSpreadsheet size={14} className="text-blue-500" /> {sheetName}
+                                                        <span className="text-[10px] text-gray-400 font-normal">→ {cat}</span>
+                                                    </h4>
+                                                    <div className="space-y-2">
+                                                        {sheet.columns.map((col, idx) => (
+                                                            <div key={idx} className="flex items-center gap-3">
+                                                                <span className="text-xs font-medium text-gray-600 dark:text-gray-400 w-32 truncate" title={col}>{col}</span>
+                                                                <ArrowRight size={12} className="text-gray-300 shrink-0" />
+                                                                <select value={mapping[idx] || ''} onChange={(e) => {
+                                                                    const newMapping = { ...columnMappings };
+                                                                    if (!newMapping[sheetName]) newMapping[sheetName] = {};
+                                                                    if (e.target.value) newMapping[sheetName][idx] = e.target.value;
+                                                                    else delete newMapping[sheetName][idx];
+                                                                    setColumnMappings(newMapping);
+                                                                }}
+                                                                    className="flex-1 text-xs px-2 py-1.5 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-white/5 text-gray-700 dark:text-gray-300">
+                                                                    <option value="">— Skip —</option>
+                                                                    {systemFields.map(f => (
+                                                                        <option key={f} value={f}>{f.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
                                                                     ))}
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {sheet.sample_rows.map((row, ri) => (
-                                                                    <tr key={ri} className={ri % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-white/[0.02]'}>
+                                                                </select>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+
+                                        <div className="flex gap-3">
+                                            <button onClick={() => setWizardStep(2)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
+                                            <button onClick={() => setWizardStep(4)}
+                                                className="flex-1 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2">
+                                                <Eye size={16} /> Preview Data
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Step 4: Preview */}
+                                {wizardStep === 4 && previewData && (
+                                    <>
+                                        <p className="text-sm text-gray-600 dark:text-gray-300">Preview of data to be imported:</p>
+                                        {selectedSheets.map(sheetName => {
+                                            const sheet = previewData.sheets.find(s => s.name === sheetName);
+                                            if (!sheet) return null;
+                                            const mapping = columnMappings[sheetName] || {};
+                                            const mappedCols = Object.entries(mapping).map(([idx, field]) => ({ idx: parseInt(idx), field, col: sheet.columns[parseInt(idx)] }));
+
+                                            return (
+                                                <div key={sheetName} className="rounded-xl border border-gray-100 dark:border-white/[0.06] overflow-hidden">
+                                                    <div className="px-4 py-2 bg-gray-50 dark:bg-white/[0.03] border-b border-gray-100 dark:border-white/[0.06]">
+                                                        <span className="font-bold text-sm text-gray-800 dark:text-gray-200">{sheetName}</span>
+                                                        <span className="text-xs text-gray-400 ml-2">{mappedCols.length} columns mapped</span>
+                                                    </div>
+                                                    {mappedCols.length > 0 ? (
+                                                        <div className="overflow-x-auto">
+                                                            <table className="w-full text-xs">
+                                                                <thead>
+                                                                    <tr className="bg-blue-50 dark:bg-blue-500/10">
                                                                         {mappedCols.map(mc => (
-                                                                            <td key={mc.idx} className="px-3 py-1.5 text-gray-700 dark:text-gray-300 whitespace-nowrap">
-                                                                                {row[mc.idx] || <span className="text-gray-300">—</span>}
-                                                                            </td>
+                                                                            <th key={mc.idx} className="px-3 py-2 text-left font-bold text-blue-700 dark:text-blue-300 whitespace-nowrap">
+                                                                                {mc.field.replace(/_/g, ' ')}
+                                                                            </th>
                                                                         ))}
                                                                     </tr>
-                                                                ))}
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                ) : (
-                                                    <p className="p-4 text-xs text-gray-400 italic">No columns mapped for this sheet</p>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
+                                                                </thead>
+                                                                <tbody>
+                                                                    {sheet.sample_rows.map((row, ri) => (
+                                                                        <tr key={ri} className={ri % 2 === 0 ? 'bg-white dark:bg-transparent' : 'bg-gray-50 dark:bg-white/[0.02]'}>
+                                                                            {mappedCols.map(mc => (
+                                                                                <td key={mc.idx} className="px-3 py-1.5 text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                                                                    {row[mc.idx] || <span className="text-gray-300">—</span>}
+                                                                                </td>
+                                                                            ))}
+                                                                        </tr>
+                                                                    ))}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+                                                    ) : (
+                                                        <p className="p-4 text-xs text-gray-400 italic">No columns mapped for this sheet</p>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
 
-                                    <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3 flex items-start gap-2">
-                                        <Shield size={16} className="text-amber-500 mt-0.5 shrink-0" />
-                                        <p className="text-xs text-amber-700 dark:text-amber-400">
-                                            <strong>Important:</strong> Records with matching IDs will be <strong>updated</strong>. New records will be <strong>created</strong>.
-                                        </p>
-                                    </div>
-
-                                    {importError && (
-                                        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3">
-                                            <p className="text-xs text-red-700 dark:text-red-400">{importError}</p>
+                                        <div className="bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-xl p-3 flex items-start gap-2">
+                                            <Shield size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                                            <p className="text-xs text-amber-700 dark:text-amber-400">
+                                                <strong>Important:</strong> Records with matching IDs will be <strong>updated</strong>. New records will be <strong>created</strong>.
+                                            </p>
                                         </div>
-                                    )}
 
-                                    <div className="flex gap-3">
-                                        <button onClick={() => setWizardStep(3)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
-                                        <button onClick={handleMappedImport} disabled={isImporting}
-                                            className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
-                                            {isImporting ? <><Loader2 size={16} className="animate-spin" /> Importing...</> : <><Upload size={16} /> Start Import</>}
-                                        </button>
-                                    </div>
-                                </>
-                            )}
+                                        {importError && (
+                                            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3">
+                                                <p className="text-xs text-red-700 dark:text-red-400">{importError}</p>
+                                            </div>
+                                        )}
 
-                            {/* Step 5: Results */}
-                            {wizardStep === 5 && importResults && (
-                                <div className="space-y-4 animate-in fade-in duration-300">
-                                    <div className="text-center mb-2">
-                                        <CheckCircle size={40} className="mx-auto text-green-500 mb-2" />
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white">Import Complete!</h3>
-                                    </div>
+                                        <div className="flex gap-3">
+                                            <button onClick={() => setWizardStep(3)} className="flex-1 px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl font-medium text-sm text-gray-600 dark:text-gray-300">Back</button>
+                                            <button onClick={handleMappedImport} disabled={isImporting}
+                                                className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-40">
+                                                {isImporting ? <><Loader2 size={16} className="animate-spin" /> Importing...</> : <><Upload size={16} /> Start Import</>}
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
 
-                                    <div className="max-h-60 overflow-y-auto space-y-2">
-                                        {Object.entries(importResults.results).map(([sheet, data]) => (
-                                            <div key={sheet} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.03] rounded-xl border border-gray-100 dark:border-white/[0.06]">
-                                                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{sheet}</span>
-                                                <div className="flex items-center gap-3 text-xs">
-                                                    {data.created > 0 && <span className="text-green-600 font-bold bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded-full">+{data.created} new</span>}
-                                                    {data.updated > 0 && <span className="text-blue-600 font-bold bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-full">↻{data.updated}</span>}
-                                                    {data.errors?.length > 0 && <span className="text-red-600 font-bold bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-full">⚠ {data.errors.length}</span>}
+                                {/* Step 5: Results */}
+                                {wizardStep === 5 && importResults && (
+                                    <div className="space-y-4 animate-in fade-in duration-300">
+                                        <div className="text-center mb-2">
+                                            <CheckCircle size={40} className="mx-auto text-green-500 mb-2" />
+                                            <h3 className="text-lg font-bold text-gray-900 dark:text-white">Import Complete!</h3>
+                                        </div>
+
+                                        <div className="max-h-60 overflow-y-auto space-y-2">
+                                            {Object.entries(importResults.results).map(([sheet, data]) => (
+                                                <div key={sheet} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/[0.03] rounded-xl border border-gray-100 dark:border-white/[0.06]">
+                                                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{sheet}</span>
+                                                    <div className="flex items-center gap-3 text-xs">
+                                                        {data.created > 0 && <span className="text-green-600 font-bold bg-green-50 dark:bg-green-500/10 px-2 py-0.5 rounded-full">+{data.created} new</span>}
+                                                        {data.updated > 0 && <span className="text-blue-600 font-bold bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 rounded-full">↻{data.updated}</span>}
+                                                        {data.errors?.length > 0 && <span className="text-red-600 font-bold bg-red-50 dark:bg-red-500/10 px-2 py-0.5 rounded-full">⚠ {data.errors.length}</span>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {importResults.total_errors > 0 && (
+                                            <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3">
+                                                <p className="text-xs font-bold text-red-600 mb-1">{importResults.total_errors} error(s):</p>
+                                                <div className="max-h-20 overflow-y-auto text-[10px] text-red-500 space-y-0.5">
+                                                    {importResults.errors.map((err, i) => <p key={i}>• {err}</p>)}
                                                 </div>
                                             </div>
-                                        ))}
+                                        )}
+
+                                        <button onClick={resetWizard}
+                                            className="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2">
+                                            <CheckCircle size={16} /> Done
+                                        </button>
                                     </div>
-
-                                    {importResults.total_errors > 0 && (
-                                        <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-xl p-3">
-                                            <p className="text-xs font-bold text-red-600 mb-1">{importResults.total_errors} error(s):</p>
-                                            <div className="max-h-20 overflow-y-auto text-[10px] text-red-500 space-y-0.5">
-                                                {importResults.errors.map((err, i) => <p key={i}>• {err}</p>)}
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <button onClick={resetWizard}
-                                        className="w-full px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 text-white rounded-xl font-medium text-sm flex items-center justify-center gap-2">
-                                        <CheckCircle size={16} /> Done
-                                    </button>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </div>,
+                    document.body
+                )
             )}
 
             {/* ═══════════ SUBSCRIPTION MODULES (with prices) ═══════════ */}

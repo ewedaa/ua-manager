@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Monitor, Plus, Trash2, Edit2, X, FolderKanban, Loader2, FileDown, Printer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -303,47 +304,53 @@ export default function ProjectsPage() {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
-                    <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editId ? 'Edit Project' : 'New Project'}</h3>
-                            <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400"><X size={18} /></button>
+                createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
+                        <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editId ? 'Edit Project' : 'New Project'}</h3>
+                                <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400"><X size={18} /></button>
+                            </div>
+                            <form onSubmit={handleSave} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
+                                    <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                                    <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none resize-none`} />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
+                                    <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none`}>
+                                        {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                                    </select>
+                                </div>
+                                <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform flex justify-center">
+                                    {createMutation.isPending || updateMutation.isPending ? <Loader2 className="animate-spin" /> : (editId ? 'Update' : 'Create')}
+                                </button>
+                            </form>
                         </div>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Project Name</label>
-                                <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
-                                <textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none resize-none`} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-                                <select value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none`}>
-                                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                            </div>
-                            <button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform flex justify-center">
-                                {createMutation.isPending || updateMutation.isPending ? <Loader2 className="animate-spin" /> : (editId ? 'Update' : 'Create')}
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                    </div>,
+                    document.body
+                )
             )}
 
             {/* Delete Confirmation */}
             {deleteConfirmId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setDeleteConfirmId(null)}>
-                    <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Project</h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Are you sure you want to delete this project? This action cannot be undone.</p>
-                        <div className="flex gap-3 justify-end">
-                            <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-medium transition-colors">Cancel</button>
-                            <button onClick={() => deleteMutation.mutate(deleteConfirmId)} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors">Delete</button>
+                createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setDeleteConfirmId(null)}>
+                        <div onClick={e => e.stopPropagation()} className={`w-full max-w-sm rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Delete Project</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mb-5">Are you sure you want to delete this project? This action cannot be undone.</p>
+                            <div className="flex gap-3 justify-end">
+                                <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl font-medium transition-colors">Cancel</button>
+                                <button onClick={() => deleteMutation.mutate(deleteConfirmId)} className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-xl font-medium transition-colors">Delete</button>
+                            </div>
                         </div>
-                    </div>
-                </div>
+                    </div>,
+                    document.body
+                )
             )}
 
             {/* Error Toast */}

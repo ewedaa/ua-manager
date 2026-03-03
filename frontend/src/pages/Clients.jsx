@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { Loader2, Plus, Search, X, Check, AlertCircle, FileDown, Printer, Users, LayoutGrid, List, Filter, ArrowUpDown } from 'lucide-react';
@@ -342,125 +343,128 @@ export default function Clients() {
             {/* Modal */}
             {
                 isModalOpen && (
-                    <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-                        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300 border border-gray-200 dark:border-white/10 my-auto max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Client</h2>
-                                <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 hover:rotate-90">
-                                    <X size={24} />
-                                </button>
+                    createPortal(
+                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999] backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300 border border-gray-200 dark:border-white/10 my-auto max-h-[90vh] overflow-y-auto">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Client</h2>
+                                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 hover:rotate-90">
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                {formError && (
+                                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm border border-transparent dark:border-red-500/20">
+                                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                                        <p className="break-words">{formError}</p>
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleSubmit} className="space-y-4">
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Farm Name</label>
+                                        <input
+                                            type="text"
+                                            name="farm_name"
+                                            className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.farm_name ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                            value={formData.farm_name}
+                                            onChange={handleInputChange}
+                                        />
+                                        {fieldErrors.farm_name && <p className="text-xs text-red-500 mt-1">{fieldErrors.farm_name}</p>}
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
+                                        <input
+                                            type="text"
+                                            name="serial_number"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                            value={formData.serial_number}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                                            <input
+                                                type="date"
+                                                name="subscription_start_date"
+                                                className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_start_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                                value={formData.subscription_start_date}
+                                                onChange={handleInputChange}
+                                            />
+                                            {fieldErrors.subscription_start_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_start_date}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                                            <input
+                                                type="date"
+                                                name="subscription_end_date"
+                                                className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_end_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                                value={formData.subscription_end_date}
+                                                onChange={handleInputChange}
+                                            />
+                                            {fieldErrors.subscription_end_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_end_date}</p>}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-300 dark:border-white/[0.08] bg-gray-50/50 dark:bg-gray-800/50">
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="is_demo"
+                                                checked={formData.is_demo}
+                                                onChange={(e) => setFormData(p => ({ ...p, is_demo: e.target.checked }))}
+                                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Is Demo Farm?</span>
+                                        </label>
+                                        <label className="flex items-center gap-2 cursor-pointer">
+                                            <input
+                                                type="checkbox"
+                                                name="is_4genetics_college"
+                                                checked={formData.is_4genetics_college}
+                                                onChange={(e) => setFormData(p => ({ ...p, is_4genetics_college: e.target.checked }))}
+                                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
+                                            />
+                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">4Genetics College?</span>
+                                        </label>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
+                                        <textarea
+                                            name="general_notes"
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none transition-all duration-200"
+                                            rows={2}
+                                            value={formData.general_notes}
+                                            onChange={handleInputChange}
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 mt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsModalOpen(false)}
+                                            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            disabled={mutation.isPending}
+                                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white rounded-xl font-medium flex items-center gap-2 transition-all duration-300 disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25"
+                                        >
+                                            {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                            Save Client
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
-
-                            {formError && (
-                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm border border-transparent dark:border-red-500/20">
-                                    <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                                    <p className="break-words">{formError}</p>
-                                </div>
-                            )}
-
-                            <form onSubmit={handleSubmit} className="space-y-4">
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Farm Name</label>
-                                    <input
-                                        type="text"
-                                        name="farm_name"
-                                        className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.farm_name ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                        value={formData.farm_name}
-                                        onChange={handleInputChange}
-                                    />
-                                    {fieldErrors.farm_name && <p className="text-xs text-red-500 mt-1">{fieldErrors.farm_name}</p>}
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
-                                    <input
-                                        type="text"
-                                        name="serial_number"
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
-                                        value={formData.serial_number}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
-                                        <input
-                                            type="date"
-                                            name="subscription_start_date"
-                                            className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_start_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                            value={formData.subscription_start_date}
-                                            onChange={handleInputChange}
-                                        />
-                                        {fieldErrors.subscription_start_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_start_date}</p>}
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
-                                        <input
-                                            type="date"
-                                            name="subscription_end_date"
-                                            className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_end_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                            value={formData.subscription_end_date}
-                                            onChange={handleInputChange}
-                                        />
-                                        {fieldErrors.subscription_end_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_end_date}</p>}
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-300 dark:border-white/[0.08] bg-gray-50/50 dark:bg-gray-800/50">
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="is_demo"
-                                            checked={formData.is_demo}
-                                            onChange={(e) => setFormData(p => ({ ...p, is_demo: e.target.checked }))}
-                                            className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Is Demo Farm?</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            name="is_4genetics_college"
-                                            checked={formData.is_4genetics_college}
-                                            onChange={(e) => setFormData(p => ({ ...p, is_4genetics_college: e.target.checked }))}
-                                            className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
-                                        />
-                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">4Genetics College?</span>
-                                    </label>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
-                                    <textarea
-                                        name="general_notes"
-                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none transition-all duration-200"
-                                        rows={2}
-                                        value={formData.general_notes}
-                                        onChange={handleInputChange}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 mt-6">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsModalOpen(false)}
-                                        className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={mutation.isPending}
-                                        className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white rounded-xl font-medium flex items-center gap-2 transition-all duration-300 disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25"
-                                    >
-                                        {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                        Save Client
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                        </div>,
+                        document.body
+                    )
                 )
             }
         </div >

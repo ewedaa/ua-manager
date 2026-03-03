@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     FileText, Plus, Search, Loader2, CheckCircle, AlertCircle,
@@ -133,8 +134,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
 
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    return createPortal(
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[9999] p-4">
             <div className={`rounded-2xl shadow-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto ${isDark ? 'bg-gray-900 border border-white/[0.08]' : 'bg-white'}`}>
                 <div className={`p-6 border-b flex justify-between items-center sticky top-0 z-10 ${isDark ? 'border-white/[0.06] bg-gray-900/98 backdrop-blur-xl' : 'border-gray-100 bg-white/98 backdrop-blur-xl'}`}>
                     <h2 className={`text-xl font-bold flex items-center gap-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
@@ -391,7 +392,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                     </div>
                 </form>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 

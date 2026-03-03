@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, ToggleRight, FileDown, Printer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -201,63 +202,66 @@ export default function SerialsPage() {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
-                    <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editingId ? 'Edit Serial' : 'Add Serial'}</h3>
-                            <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400"><X size={18} /></button>
-                        </div>
-                        <form onSubmit={e => {
-                            e.preventDefault();
-                            setFormError('');
-                            if (!form.serial_number.trim()) {
-                                setFormError('Serial number is required.');
-                                return;
-                            }
-                            const duplicate = serials.find(s => s.serial_number.toLowerCase() === form.serial_number.trim().toLowerCase() && s.id !== editingId);
-                            if (duplicate) {
-                                setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.client_name || 'unassigned'}).`);
-                                return;
-                            }
-                            saveMutation.mutate(form);
-                        }} className="space-y-4">
-                            {formError && (
-                                <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
-                                    {formError}
+                createPortal(
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
+                        <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                            <div className="flex items-center justify-between mb-5">
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editingId ? 'Edit Serial' : 'Add Serial'}</h3>
+                                <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400"><X size={18} /></button>
+                            </div>
+                            <form onSubmit={e => {
+                                e.preventDefault();
+                                setFormError('');
+                                if (!form.serial_number.trim()) {
+                                    setFormError('Serial number is required.');
+                                    return;
+                                }
+                                const duplicate = serials.find(s => s.serial_number.toLowerCase() === form.serial_number.trim().toLowerCase() && s.id !== editingId);
+                                if (duplicate) {
+                                    setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.client_name || 'unassigned'}).`);
+                                    return;
+                                }
+                                saveMutation.mutate(form);
+                            }} className="space-y-4">
+                                {formError && (
+                                    <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                                        {formError}
+                                    </div>
+                                )}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
+                                    <input required value={form.serial_number} onChange={e => {
+                                        let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                        val = val.match(/.{1,4}/g)?.join('-') || '';
+                                        val = val.substring(0, 24);
+                                        setForm(f => ({ ...f, serial_number: val }));
+                                    }} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
                                 </div>
-                            )}
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
-                                <input required value={form.serial_number} onChange={e => {
-                                    let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                                    val = val.match(/.{1,4}/g)?.join('-') || '';
-                                    val = val.substring(0, 24);
-                                    setForm(f => ({ ...f, serial_number: val }));
-                                }} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
-                                <select value={form.product_type} onChange={e => setForm(f => ({ ...f, product_type: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none`}>
-                                    {PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign to Client</label>
-                                <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none`}>
-                                    <option value="">Unassigned</option>
-                                    {clients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
-                                <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none resize-none`} />
-                            </div>
-                            <button type="submit" disabled={saveMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform disabled:opacity-50">
-                                {saveMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={18} /> : (editingId ? 'Update' : 'Create')}
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
+                                    <select value={form.product_type} onChange={e => setForm(f => ({ ...f, product_type: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none`}>
+                                        {PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Assign to Client</label>
+                                    <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none`}>
+                                        <option value="">Unassigned</option>
+                                        {clients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                                    <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200 text-gray-900'} outline-none resize-none`} />
+                                </div>
+                                <button type="submit" disabled={saveMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform disabled:opacity-50">
+                                    {saveMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={18} /> : (editingId ? 'Update' : 'Create')}
+                                </button>
+                            </form>
+                        </div>
+                    </div>,
+                    document.body
+                )
             )}
         </div>
     );
