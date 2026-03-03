@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import {
     Search, Loader2, CreditCard, FileDown, Plus, X, Check,
-    ChevronUp, ChevronDown, StickyNote, Edit2, Save
+    ChevronUp, ChevronDown, Edit2, Save, FileText
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
@@ -64,11 +65,13 @@ function StatusBadge({ value, onChange, editable = true }) {
 // ─── Main Page ────────────────────────────────────────────────────────
 export default function PaymentTracker() {
     const { isDark } = useTheme();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [sortCol, setSortCol] = useState('created_at');
     const [sortDir, setSortDir] = useState('desc');
-    const [editingNote, setEditingNote] = useState(null); // {id, text}
+    const [editingNote, setEditingNote] = useState(null);
+    const [pdfGenerating, setPdfGenerating] = useState(false);
 
     const { data: invoices = [], isLoading } = useQuery({
         queryKey: ['invoices'],
@@ -158,29 +161,80 @@ export default function PaymentTracker() {
                     </p>
                 </div>
 
-                {/* Export button */}
-                <button
-                    onClick={async () => {
-                        const XLSX = await import('xlsx');
-                        const data = rows.map(inv => ({
-                            'Invoice #': invoiceNumber(inv),
-                            'Date': new Date(inv.created_at).toLocaleDateString(),
-                            'Farm Name': inv.client_name,
-                            'Product/Service': productLabel(inv.invoice_type),
-                            'Amount to Uniform (€)': parseFloat(inv.cost_total || 0).toFixed(2),
-                            'Farm Paid?': parseToStatus(inv.status),
-                            'We Paid to Uniform?': inv.paid_to_uniform || 'Unknown',
-                            'Notes': inv.notes || '',
-                        }));
-                        const ws = XLSX.utils.json_to_sheet(data);
-                        const wb = XLSX.utils.book_new();
-                        XLSX.utils.book_append_sheet(wb, ws, 'Payment Tracker');
-                        XLSX.writeFile(wb, 'uniform_agri_payment_tracker.xlsx');
-                    }}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border text-sm transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-gray-300 hover:bg-white/[0.08]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
-                >
-                    <FileDown size={16} /> Export Excel
-                </button>
+                {/* Buttons */}
+                <div className="flex items-center gap-2 flex-wrap">
+
+                    {/* New Invoice */}
+                    <button
+                        onClick={() => navigate('/invoices')}
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all bg-green-600 hover:bg-green-500 text-white shadow-lg shadow-green-500/20"
+                    >
+                        <Plus size={16} /> New Invoice
+                    </button>
+
+                    {/* Export PDF */}
+                    <button
+                        disabled={pdfGenerating || rows.length === 0}
+                        onClick={async () => {
+                            setPdfGenerating(true);
+                            try {
+                                const now = new Date();
+                                const month = now.toLocaleString('default', { month: 'long' });
+                                const year = now.getFullYear();
+                                const tableRows = rows.map(inv => {
+                                    const farmPaid = inv.status === 'Paid to Us' || inv.status === 'Paid to Uniform' ? 'Yes' : inv.status === 'Due' ? 'No' : 'Unknown';
+                                    return `| ${invoiceNumber(inv)} | ${new Date(inv.created_at).toLocaleDateString()} | ${inv.client_name || ''} | ${productLabel(inv.invoice_type)} | €${parseFloat(inv.cost_total || 0).toFixed(2)} | ${farmPaid} | ${inv.paid_to_uniform || 'No'} | ${inv.notes || ''} |`;
+                                }).join('\n');
+                                const content = `# Payment Tracker — ${month} ${year}\n\n` +
+                                    `| Invoice # | Date | Farm Name | Product/Service | Amount → Uniform | Farm Paid? | We Paid to Uniform? | Notes |\n` +
+                                    `|---|---|---|---|---|---|---|---|\n` +
+                                    tableRows;
+                                const res = await fetch(`${API_BASE_URL}/custom-report/`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ title: `Payment Tracker — ${month} ${year}`, content }),
+                                });
+                                if (!res.ok) throw new Error('PDF failed');
+                                const data = await res.json();
+                                window.open(data.pdf_url.startsWith('http') ? data.pdf_url : `${new URL(API_BASE_URL).origin}${data.pdf_url}`, '_blank');
+                            } catch (e) {
+                                console.error(e);
+                                alert('Failed to generate PDF');
+                            } finally {
+                                setPdfGenerating(false);
+                            }
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border text-sm transition-all disabled:opacity-50 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-gray-300 hover:bg-white/[0.08]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                            }`}
+                    >
+                        {pdfGenerating ? <Loader2 size={16} className="animate-spin" /> : <FileText size={16} />}
+                        Export PDF
+                    </button>
+
+                    {/* Export Excel */}
+                    <button
+                        onClick={async () => {
+                            const XLSX = await import('xlsx');
+                            const data = rows.map(inv => ({
+                                'Invoice #': invoiceNumber(inv),
+                                'Date': new Date(inv.created_at).toLocaleDateString(),
+                                'Farm Name': inv.client_name,
+                                'Product/Service': productLabel(inv.invoice_type),
+                                'Amount to Uniform (€)': parseFloat(inv.cost_total || 0).toFixed(2),
+                                'Farm Paid?': parseToStatus(inv.status),
+                                'We Paid to Uniform?': inv.paid_to_uniform || 'Unknown',
+                                'Notes': inv.notes || '',
+                            }));
+                            const ws = XLSX.utils.json_to_sheet(data);
+                            const wb = XLSX.utils.book_new();
+                            XLSX.utils.book_append_sheet(wb, ws, 'Payment Tracker');
+                            XLSX.writeFile(wb, 'uniform_agri_payment_tracker.xlsx');
+                        }}
+                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-medium border text-sm transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-gray-300 hover:bg-white/[0.08]' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                    >
+                        <FileDown size={16} /> Export Excel
+                    </button>
+                </div>
             </div>
 
             {/* ── Summary chips ── */}
@@ -293,8 +347,8 @@ export default function PaymentTracker() {
                                             {/* Product / Service */}
                                             <td className="px-4 py-3">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${inv.invoice_type?.includes('Renewal')
-                                                        ? 'bg-blue-500/10 text-blue-400 dark:text-blue-300'
-                                                        : 'bg-purple-500/10 text-purple-400 dark:text-purple-300'
+                                                    ? 'bg-blue-500/10 text-blue-400 dark:text-blue-300'
+                                                    : 'bg-purple-500/10 text-purple-400 dark:text-purple-300'
                                                     }`}>
                                                     {productLabel(inv.invoice_type)}
                                                 </span>
