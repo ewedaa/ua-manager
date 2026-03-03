@@ -111,18 +111,18 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             {/* Animated Gradient Accent */}
             <div className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${colorClasses[color]} opacity-10 rounded-bl-full transform group-hover:scale-150 group-hover:opacity-20 transition-all duration-700`} />
 
-            {/* Info Button */}
+            {/* Info Button — bottom-right, appears on hover */}
             {info && (
                 <button
                     ref={infoBtnRef}
                     onClick={handleInfoClick}
-                    className={`absolute top-2 left-2 z-20 p-1 rounded-full transition-all duration-200 ${showInfo
-                            ? isDark ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
-                            : isDark ? 'bg-white/[0.06] text-gray-500 hover:bg-white/15 hover:text-gray-300' : 'bg-gray-100/80 text-gray-400 hover:bg-gray-200 hover:text-gray-600'
+                    className={`absolute bottom-2.5 right-2.5 md:bottom-3 md:right-3 z-20 p-1 rounded-md transition-all duration-300 ${showInfo
+                            ? isDark ? 'opacity-100 bg-white/15 text-white/80' : 'opacity-100 bg-black/[0.06] text-gray-600'
+                            : isDark ? 'opacity-0 group-hover:opacity-60 hover:!opacity-100 text-white/40 hover:text-white/70' : 'opacity-0 group-hover:opacity-50 hover:!opacity-100 text-gray-400 hover:text-gray-600'
                         }`}
                     title="What is this?"
                 >
-                    <Info size={13} />
+                    <Info size={12} strokeWidth={2.5} />
                 </button>
             )}
 
@@ -130,8 +130,8 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             {info && showInfo && createPortal(
                 <div
                     className={`fixed z-[9999] w-64 p-3.5 rounded-xl shadow-2xl border text-sm leading-relaxed animate-in fade-in zoom-in-95 duration-200 ${isDark
-                            ? 'bg-gray-800/95 backdrop-blur-xl border-white/10 text-gray-200 shadow-black/50'
-                            : 'bg-white border-gray-200 text-gray-700 shadow-gray-300/50'
+                        ? 'bg-gray-800/95 backdrop-blur-xl border-white/10 text-gray-200 shadow-black/50'
+                        : 'bg-white border-gray-200 text-gray-700 shadow-gray-300/50'
                         }`}
                     style={{ top: tooltipPos.top, left: tooltipPos.left }}
                     onClick={(e) => e.stopPropagation()}
