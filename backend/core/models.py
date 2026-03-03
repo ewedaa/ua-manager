@@ -106,6 +106,12 @@ class Invoice(models.Model):
         max_digits=10, decimal_places=4, null=True, blank=True,
         help_text="EUR→EGP exchange rate used at time of invoice creation"
     )
+    paid_to_uniform = models.CharField(
+        max_length=20,
+        choices=[('Yes', 'Yes'), ('No', 'No'), ('Cancelled', 'Cancelled'), ('Unknown', 'Unknown')],
+        default='No',
+        help_text="Have we paid Uniform Agri for this invoice?"
+    )
     pdf_file = models.FileField(upload_to='invoices/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
