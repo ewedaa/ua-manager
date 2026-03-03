@@ -68,8 +68,22 @@ export default function EditClientModal({ client, onClose }) {
             return;
         }
 
-        // Sync name to farm_name so the backend required field is satisfied
-        const payload = { ...formData, name: formData.farm_name };
+        // Only send writable fields to avoid issues with nested read-only objects
+        const payload = {
+            id: formData.id,
+            name: formData.farm_name,
+            farm_name: formData.farm_name,
+            phone: formData.phone,
+            serial_number: formData.serial_number,
+            subscription_modules: formData.subscription_modules,
+            general_notes: formData.general_notes,
+            subscription_start_date: formData.subscription_start_date || null,
+            subscription_end_date: formData.subscription_end_date || null,
+            is_demo: formData.is_demo || false,
+            demo_start_date: formData.demo_start_date || null,
+            demo_end_date: formData.demo_end_date || null,
+            is_4genetics_college: formData.is_4genetics_college || false,
+        };
         mutation.mutate(payload);
     };
 
