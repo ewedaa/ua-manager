@@ -80,7 +80,7 @@ export default defineConfig({
       manifest: {
         name: 'Uniform Agri Manager',
         short_name: 'UA Manager',
-        description: 'Professional Dairy Farm Management System by Uniform Agri',
+        description: 'Internal management system for tracking Uniform Agri licenses, subscriptions, and support tickets.',
         theme_color: '#16a34a',
         background_color: '#030712',
         display: 'standalone',
