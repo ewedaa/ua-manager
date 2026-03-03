@@ -120,7 +120,7 @@ export default function Dashboard() {
                     value={stats?.clients?.expiring_soon || 0}
                     subValue="Within 60 days"
                     color="orange"
-                    to="/clients?filter=expiring"
+                    to="/stats/expiring-soon"
                     delay={0}
                     info="Number of client subscriptions that will expire in the next 60 days. Follow up with these clients to renew their contracts."
                 />
@@ -130,9 +130,7 @@ export default function Dashboard() {
                     value={stats?.invoices?.due || 0}
                     subValue={`${stats?.invoices?.total || 0} total invoices`}
                     color="blue"
-                    to="/invoices"
-                    delay={100}
-                    info="Invoices that haven't been paid yet. Click to view and manage all outstanding payments from your clients."
+                    to="/stats/due-invoices"
                 />
                 <StatCard
                     icon={Ticket}
@@ -140,7 +138,7 @@ export default function Dashboard() {
                     value={stats?.tickets?.open || 0}
                     subValue={`+${stats?.tickets?.new_this_week || 0} this week`}
                     color="red"
-                    to="/tickets?filter=open"
+                    to="/stats/open-tickets"
                     delay={200}
                     info="Support tickets that are still open and waiting to be resolved. These need your attention to keep clients happy."
                 />
@@ -151,7 +149,7 @@ export default function Dashboard() {
                     subValue={`+${stats?.clients?.new_this_week || 0} this week`}
                     trend="up"
                     color="green"
-                    to="/clients"
+                    to="/stats/total-farms"
                     delay={300}
                     info="The total number of farms registered in your system. This includes all active, expired, and demo clients."
                 />
@@ -165,7 +163,7 @@ export default function Dashboard() {
                     value={`${stats?.kpis?.retention_rate || 0}%`}
                     subValue={`${stats?.clients?.active || 0} active farms`}
                     color={stats?.kpis?.retention_rate >= 80 ? 'green' : stats?.kpis?.retention_rate >= 60 ? 'orange' : 'red'}
-                    to="/clients?filter=active"
+                    to="/stats/retention-rate"
                     delay={0}
                     info="Percentage of clients who renewed their subscription. A high rate means clients are satisfied and staying with you."
                 />
@@ -175,7 +173,7 @@ export default function Dashboard() {
                     value={`${stats?.kpis?.collection_rate || 0}%`}
                     subValue="Paid vs invoiced"
                     color={stats?.kpis?.collection_rate >= 70 ? 'green' : stats?.kpis?.collection_rate >= 40 ? 'orange' : 'red'}
-                    to="/invoices"
+                    to="/stats/collection-rate"
                     delay={100}
                     info="How much money you've actually collected compared to what you've invoiced. Higher is better — it means clients are paying on time."
                 />
@@ -185,7 +183,7 @@ export default function Dashboard() {
                     value={`${stats?.kpis?.sla_adherence || 0}%`}
                     subValue="Resolved within 48h"
                     color={stats?.kpis?.sla_adherence >= 80 ? 'green' : stats?.kpis?.sla_adherence >= 50 ? 'orange' : 'red'}
-                    to="/tickets?filter=open"
+                    to="/stats/sla-adherence"
                     delay={200}
                     info="Percentage of support tickets resolved within 48 hours. This measures how fast your team responds to client issues."
                 />
@@ -195,7 +193,7 @@ export default function Dashboard() {
                     value={`${(stats?.kpis?.revenue_per_client || 0).toLocaleString()} EGP`}
                     subValue="Per active farm"
                     color="cyan"
-                    to="/invoices"
+                    to="/stats/revenue-per-client"
                     delay={300}
                     info="Average revenue earned from each active client. Helps you understand how much each farm is worth to your business."
                 />
@@ -209,7 +207,7 @@ export default function Dashboard() {
                     value={stats?.serials?.active || 0}
                     subValue={`${stats?.serials?.unassigned || 0} unassigned`}
                     color="cyan"
-                    to="/serials"
+                    to="/stats/serials"
                     delay={400}
                     info="Active 4Genetics serial numbers in your system. Serials are assigned to clients for software licensing."
                 />
@@ -219,7 +217,7 @@ export default function Dashboard() {
                     value={stats?.clients?.demo_farms || 0}
                     subValue={stats?.clients?.demo_expiring_soon > 0 ? `${stats.clients.demo_expiring_soon} expiring soon` : 'All active'}
                     color="purple"
-                    to="/clients?filter=demo"
+                    to="/stats/demo-farms"
                     delay={500}
                     info="Clients currently on a free trial/demo period. These are potential paying customers you should follow up with."
                 />
@@ -229,8 +227,7 @@ export default function Dashboard() {
                     value={stats?.tickets?.avg_resolution_hours ? `${stats.tickets.avg_resolution_hours}h` : 'N/A'}
                     subValue="Ticket resolution"
                     color="blue"
-                    to="/tickets?filter=open"
-                    delay={600}
+                    to="/stats/avg-response-time"
                     info="The average number of hours it takes to resolve a support ticket. Lower is better — aim for quick turnaround."
                 />
                 <StatCard
@@ -240,7 +237,7 @@ export default function Dashboard() {
                     subValue="Last 30 days"
                     trend="up"
                     color="green"
-                    to="/clients?filter=active"
+                    to="/stats/active-this-month"
                     delay={700}
                     info="Clients who had any activity (tickets, invoices, or interactions) in the last 30 days."
                 />
