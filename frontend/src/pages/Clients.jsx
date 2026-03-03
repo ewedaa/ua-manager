@@ -111,7 +111,7 @@ export default function Clients() {
             matchesFinance = !!hasDue;
         }
 
-        return matchesSearch && matchesStatus && matchesFinance;
+        return matchesSearch && matchesStatus && matchesFinance && !client.is_4genetics_college;
     }).sort((a, b) => {
         if (sortBy === 'name') return a.farm_name.localeCompare(b.farm_name);
 
