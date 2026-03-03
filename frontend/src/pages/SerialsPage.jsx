@@ -228,7 +228,12 @@ export default function SerialsPage() {
                             )}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
-                                <input required value={form.serial_number} onChange={e => setForm(f => ({ ...f, serial_number: e.target.value }))} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
+                                <input required value={form.serial_number} onChange={e => {
+                                    let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                    val = val.match(/.{1,4}/g)?.join('-') || '';
+                                    val = val.substring(0, 24);
+                                    setForm(f => ({ ...f, serial_number: val }));
+                                }} className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'bg-white border-gray-200'} outline-none focus:ring-2 focus:ring-green-500`} />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>

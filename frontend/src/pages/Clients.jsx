@@ -126,7 +126,13 @@ export default function Clients() {
     });
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+        if (name === 'serial_number') {
+            // Remove non-alphanumeric, convert to uppercase, and format XXXX-XXXX...
+            value = value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            value = value.match(/.{1,4}/g)?.join('-') || '';
+            value = value.substring(0, 24); // max 24 chars (5 groups of 4 + 4 dashes)
+        }
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
