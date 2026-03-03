@@ -423,7 +423,6 @@ export default function ClientDetailPage() {
                                         <div className="space-y-3">
                                             {[
                                                 { label: 'Farm', value: client.name },
-                                                { label: 'Phone', value: client.phone },
                                                 { label: 'Area', value: client.area || '—' },
                                             ].map((item, i) => (
                                                 <div key={i} className="flex items-center justify-between">
