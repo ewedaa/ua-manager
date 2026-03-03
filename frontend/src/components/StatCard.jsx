@@ -132,14 +132,14 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             <div className="relative flex items-start justify-between" style={{ transform: 'translateZ(30px)' }}>
                 <div className="min-w-0 flex-1">
                     <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 flex items-center gap-1">
-                        <span className="truncate">{label}</span>
+                        <span className="line-clamp-2 leading-tight min-w-0 pr-1">{label}</span>
                         {info && (
                             <span
                                 ref={infoBtnRef}
                                 onClick={handleInfoClick}
                                 className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help ${showInfo
-                                        ? isDark ? 'text-white/60' : 'text-gray-500'
-                                        : isDark ? 'text-transparent group-hover:text-white/20 hover:!text-white/50' : 'text-transparent group-hover:text-gray-300 hover:!text-gray-500'
+                                    ? isDark ? 'text-white/60' : 'text-gray-500'
+                                    : isDark ? 'text-transparent group-hover:text-white/20 hover:!text-white/50' : 'text-transparent group-hover:text-gray-300 hover:!text-gray-500'
                                     }`}
                             >
                                 <HelpCircle size={11} />
@@ -170,8 +170,8 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
                 <div
                     ref={tooltipRef}
                     className={`fixed z-[9999] w-64 rounded-xl shadow-2xl border overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${isDark
-                            ? 'bg-gray-900/95 backdrop-blur-xl border-white/[0.08] shadow-black/40'
-                            : 'bg-white/95 backdrop-blur-xl border-gray-200/80 shadow-gray-200/60'
+                        ? 'bg-gray-900/95 backdrop-blur-xl border-white/[0.08] shadow-black/40'
+                        : 'bg-white/95 backdrop-blur-xl border-gray-200/80 shadow-gray-200/60'
                         }`}
                     style={{ top: tooltipPos.top, left: tooltipPos.left }}
                     onClick={(e) => e.stopPropagation()}
