@@ -232,7 +232,7 @@ const TILE_CONFIG = {
         color: 'purple',
         description: 'Clients currently on a free trial or demo period. These are high-value prospects who have shown interest in the system. Follow up to convert them into paying customers before the demo expires.',
         tip: 'Demo clients who don\'t convert after 30 days of inactivity should be contacted directly.',
-        quickAction: { label: 'New Demo Farm', to: '/clients' },
+        quickAction: { label: 'New Demo Farm', modal: 'demo-farm' },
         fetchKey: 'clients',
         fetchUrl: `${API_BASE_URL}/clients/`,
         filter: (items) => items.filter(c => c.is_demo || c.status?.toLowerCase().includes('demo')),
@@ -458,6 +458,15 @@ export default function StatDetailPage() {
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState(null);
+    const [showDemoModal, setShowDemoModal] = useState(false);
+    const today = new Date().toISOString().split('T')[0];
+    const thirtyDaysLater = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+    const [demoForm, setDemoForm] = useState({
+        farm_name: '', name: '', phone: '',
+        demo_end_date: thirtyDaysLater, general_notes: ''
+    });
+    const [demoSaving, setDemoSaving] = useState(false);
+    const [demoError, setDemoError] = useState('');
 
     const config = TILE_CONFIG[tileId];
 
@@ -482,6 +491,42 @@ export default function StatDetailPage() {
             setDeleteConfirm(null);
         },
     });
+
+    const handleDemoSubmit = async (e) => {
+        e.preventDefault();
+        setDemoSaving(true);
+        setDemoError('');
+        try {
+            const payload = {
+                farm_name: demoForm.farm_name,
+                name: demoForm.name,
+                phone: demoForm.phone || '—',
+                is_demo: true,
+                demo_start_date: today,
+                demo_end_date: demoForm.demo_end_date,
+                subscription_start_date: today,
+                subscription_end_date: demoForm.demo_end_date,
+                general_notes: demoForm.general_notes,
+            };
+            const res = await fetch(`${API_BASE_URL}/clients/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(Object.values(err).flat().join(' ') || 'Failed to create');
+            }
+            queryClient.invalidateQueries(['clients']);
+            queryClient.invalidateQueries(['dashboardStats']);
+            setShowDemoModal(false);
+            setDemoForm({ farm_name: '', name: '', phone: '', demo_end_date: thirtyDaysLater, general_notes: '' });
+        } catch (err) {
+            setDemoError(err.message);
+        } finally {
+            setDemoSaving(false);
+        }
+    };
 
     if (!config) {
         return (
@@ -563,13 +608,23 @@ export default function StatDetailPage() {
                     <RefreshCw size={16} />
                 </button>
                 {config.quickAction && (
-                    <Link
-                        to={config.quickAction.to}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-green-600 hover:bg-green-500 text-white shadow-md shadow-green-500/20 transition-all whitespace-nowrap"
-                    >
-                        <Plus size={15} />
-                        {config.quickAction.label}
-                    </Link>
+                    config.quickAction.modal === 'demo-farm' ? (
+                        <button
+                            onClick={() => setShowDemoModal(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-purple-600 hover:bg-purple-500 text-white shadow-md shadow-purple-500/20 transition-all whitespace-nowrap"
+                        >
+                            <Plus size={15} />
+                            {config.quickAction.label}
+                        </button>
+                    ) : (
+                        <Link
+                            to={config.quickAction.to}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-green-600 hover:bg-green-500 text-white shadow-md shadow-green-500/20 transition-all whitespace-nowrap"
+                        >
+                            <Plus size={15} />
+                            {config.quickAction.label}
+                        </Link>
+                    )
                 )}
             </div>
 
@@ -695,6 +750,109 @@ export default function StatDetailPage() {
                                 Delete
                             </button>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* ── New Demo Farm Modal ── */}
+            {showDemoModal && (
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[999] p-4 animate-in fade-in duration-200">
+                    <div className={`rounded-2xl border w-full max-w-md shadow-2xl ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                        {/* Modal header */}
+                        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/5">
+                            <div className="flex items-center gap-3">
+                                <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center">
+                                    <Play size={18} className="text-purple-400" />
+                                </div>
+                                <div>
+                                    <h2 className={`font-bold text-base ${isDark ? 'text-white' : 'text-gray-900'}`}>New Demo Farm</h2>
+                                    <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm will be marked as Demo automatically</p>
+                                </div>
+                            </div>
+                            <button onClick={() => { setShowDemoModal(false); setDemoError(''); }}
+                                className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors">
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        {/* Form */}
+                        <form onSubmit={handleDemoSubmit} className="px-6 py-5 space-y-4">
+                            {demoError && (
+                                <div className="px-4 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                                    {demoError}
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Farm Name *</label>
+                                    <input
+                                        required
+                                        value={demoForm.farm_name}
+                                        onChange={e => setDemoForm(f => ({ ...f, farm_name: e.target.value }))}
+                                        placeholder="e.g. Al-Amar Farm"
+                                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Contact Name *</label>
+                                    <input
+                                        required
+                                        value={demoForm.name}
+                                        onChange={e => setDemoForm(f => ({ ...f, name: e.target.value }))}
+                                        placeholder="Owner or manager name"
+                                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Phone</label>
+                                    <input
+                                        value={demoForm.phone}
+                                        onChange={e => setDemoForm(f => ({ ...f, phone: e.target.value }))}
+                                        placeholder="e.g. +20 100 000 0000"
+                                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+                                    />
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Demo Expires On *</label>
+                                    <input
+                                        required
+                                        type="date"
+                                        value={demoForm.demo_end_date}
+                                        onChange={e => setDemoForm(f => ({ ...f, demo_end_date: e.target.value }))}
+                                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 ${isDark ? 'bg-white/[0.05] border-white/[0.10] text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Default: 30 days from today</p>
+                                </div>
+                                <div>
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Notes</label>
+                                    <textarea
+                                        rows={2}
+                                        value={demoForm.general_notes}
+                                        onChange={e => setDemoForm(f => ({ ...f, general_notes: e.target.value }))}
+                                        placeholder="Any additional notes..."
+                                        className={`w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-purple-500 resize-none ${isDark ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600' : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 pt-1">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowDemoModal(false); setDemoError(''); }}
+                                    className={`flex-1 py-2.5 rounded-xl border font-medium text-sm transition-colors ${isDark ? 'border-white/10 text-gray-300 hover:bg-white/5' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={demoSaving}
+                                    className="flex-1 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-sm transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {demoSaving ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+                                    {demoSaving ? 'Saving…' : 'Add Demo Farm'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
