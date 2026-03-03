@@ -4,6 +4,7 @@ from .views import (
     ClientViewSet, LivestockTypeViewSet, InvoiceViewSet,
     PaymentViewSet, TicketViewSet, AgentQueryView, SubscriptionModuleViewSet,
     GeneticsSerialViewSet, ClientFileViewSet, IssueCategoryViewSet,
+    ClientContactView,
     DashboardStatsView, ChartDataView, NotificationsView,
     MarkAllNotificationsReadView, DismissAllNotificationsView, EmailReportView,
     AISuggestionView, FileAnalysisView, InsightsView,
@@ -54,4 +55,6 @@ urlpatterns = [
     # Client files
     path('clients/<int:client_pk>/files/', ClientFileViewSet.as_view({'get': 'list', 'post': 'create'}), name='client-files'),
     path('clients/<int:client_pk>/files/<int:pk>/', ClientFileViewSet.as_view({'delete': 'destroy'}), name='client-file-detail'),
+    # Client contacts
+    path('clients/<int:client_pk>/contacts/', ClientContactView.as_view(), name='client-contacts'),
 ]

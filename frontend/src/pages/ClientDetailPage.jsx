@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/api';
 import EditClientModal from '../components/EditClientModal';
 import AddInvoiceModal from '../components/AddInvoiceModal';
+import AddContactModal from '../components/AddContactModal';
 import {
     ArrowLeft, Phone, Calendar, MessageSquare, Hash, FileText,
     Pencil, Receipt, Plus, CheckCircle, Clock, Users, DollarSign,
@@ -33,6 +34,7 @@ export default function ClientDetailPage() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [expandedTicket, setExpandedTicket] = useState(null);
     const [uploadModal, setUploadModal] = useState(null); // { file, category }
+    const [isAddContactOpen, setIsAddContactOpen] = useState(false);
 
     // Fetch all clients and find the one we need
     const { data: clients = [], isLoading } = useQuery({
@@ -542,7 +544,7 @@ export default function ClientDetailPage() {
                                     <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Additional Contacts ({contacts.length})</h3>
                                         {isAdmin && (
-                                            <button onClick={() => setIsEditModalOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
+                                            <button onClick={() => setIsAddContactOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
                                                 <Plus size={12} /> Add Contact
                                             </button>
                                         )}
@@ -815,6 +817,7 @@ export default function ClientDetailPage() {
             {/* ═══ MODALS ═══ */}
             {isEditModalOpen && <EditClientModal client={client} onClose={() => setIsEditModalOpen(false)} />}
             {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.farm_name} onClose={() => setIsAddInvoiceOpen(false)} />}
+            {isAddContactOpen && <AddContactModal clientId={client.id} clientName={client.name} onClose={() => setIsAddContactOpen(false)} />}
 
             {/* ═══ UPLOAD METADATA MODAL ═══ */}
             {

@@ -3,11 +3,11 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import EmailMessage
-from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile, IssueCategory
+from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile, IssueCategory, Contact
 from .serializers import (
     ClientSerializer, ClientDetailSerializer, LivestockTypeSerializer,
     InvoiceSerializer, PaymentSerializer, TicketSerializer, SubscriptionModuleSerializer,
-    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer
+    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer, ContactSerializer
 )
 from .report_generator import generate_pdf_report
 try:
@@ -332,6 +332,25 @@ class ClientFileViewSet(viewsets.ModelViewSet):
         # Remove file from disk then delete the DB record
         instance.file.delete(save=False)
         instance.delete()
+
+
+class ClientContactView(views.APIView):
+    """Create and list contacts for a client."""
+    def get(self, request, client_pk):
+        contacts = Contact.objects.filter(client_id=client_pk)
+        serializer = ContactSerializer(contacts, many=True)
+        return Response(serializer.data)
+
+    def post(self, request, client_pk):
+        try:
+            client = Client.objects.get(pk=client_pk)
+        except Client.DoesNotExist:
+            return Response({'detail': 'Client not found'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ContactSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(client=client)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 from rest_framework.views import APIView
