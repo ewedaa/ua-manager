@@ -94,12 +94,22 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def generate_pdf(self, request, pk=None):
-        """Generate PDF for this invoice."""
+        """Generate a customer-facing PDF for this invoice."""
         from django.core.files.base import ContentFile
-        
+        from decimal import Decimal
+
         invoice = self.get_object()
-        
-        # Build Markdown Content — customer-facing only (no cost info)
+        is_renewal = invoice.invoice_type == 'Renewal Invoice'
+        is_dairylive = getattr(invoice, 'is_dairylive', False)
+
+        def get_customer_price(mod):
+            if is_renewal:
+                return mod.renewal_customer_price
+            price = mod.purchase_customer_price
+            if is_dairylive:
+                price = (price * Decimal('0.5')).quantize(Decimal('0.01'))
+            return price
+
         doc_title = invoice.invoice_type or 'Invoice'
         lines = [
             f"# {doc_title.upper()} #{invoice.id}",
@@ -110,9 +120,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "## Details",
             f"- **Type:** {invoice.invoice_type}",
             f"- **Status:** {invoice.status}",
-            "",
         ]
-        
+
+        if is_dairylive and not is_renewal:
+            lines.append("- **Discount:** DairyLive Customer — 50% off")
+
+        lines.append("")
+
         # Add Selected Modules (customer price only)
         modules = invoice.selected_modules.all()
         if modules.exists():
@@ -122,9 +136,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 "|---|---|",
             ])
             for mod in modules:
-                lines.append(f"| {mod.name} | {mod.customer_price} EGP |")
+                lines.append(f"| {mod.name} | {get_customer_price(mod)} EGP |")
             lines.append("")
-        
+
         # Add Livestock Items
         livestock = invoice.livestock_selection.all()
         if livestock.exists():
@@ -136,51 +150,51 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             for item in livestock:
                 lines.append(f"| {item.name} | x{item.price_multiplier} |")
             lines.append("")
-            
+
         lines.extend([
             "## Total",
             f"# {invoice.customer_total or invoice.total_amount} EGP",
             "",
         ])
-        
+
         if invoice.notes:
-            lines.extend([
-                "## Notes",
-                invoice.notes,
-                "",
-            ])
-        
-        lines.extend([
-            "---",
-            "*Thank you for your business!*",
-            "**4Genetics**"
-        ])
-        
+            lines.extend(["## Notes", invoice.notes, ""])
+
+        lines.extend(["---", "*Thank you for your business!*", "**4Genetics**"])
+
         content = "\n".join(lines)
-        
+
         try:
-            # Generate PDF
             buffer = generate_pdf_report(content, title=f"{doc_title} #{invoice.id}")
-            
-            # Save to model
             filename = f"invoice_{invoice.id}.pdf"
-            # Delete old file if exists
             if invoice.pdf_file:
                 invoice.pdf_file.delete(save=False)
-                
             invoice.pdf_file.save(filename, ContentFile(buffer.getvalue()), save=True)
-            
             return Response({'pdf_url': invoice.pdf_file.url, 'message': 'PDF Generated Successfully'})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
 
     @action(detail=True, methods=['post'])
     def generate_internal_pdf(self, request, pk=None):
-        """Generate an INTERNAL PDF with full cost breakdown for 4Genetics."""
+        """Generate an INTERNAL PDF with full cost breakdown (what we owe Uniform) for 4Genetics."""
         from django.core.files.base import ContentFile
-        
+        from decimal import Decimal
+
         invoice = self.get_object()
-        
+        is_renewal = invoice.invoice_type == 'Renewal Invoice'
+        is_dairylive = getattr(invoice, 'is_dairylive', False)
+
+        def get_cost(mod):
+            return mod.renewal_price if is_renewal else mod.purchase_price
+
+        def get_customer_price(mod):
+            if is_renewal:
+                return mod.renewal_customer_price
+            price = mod.purchase_customer_price
+            if is_dairylive:
+                price = (price * Decimal('0.5')).quantize(Decimal('0.01'))
+            return price
+
         doc_title = invoice.invoice_type or 'Invoice'
         lines = [
             f"# INTERNAL {doc_title.upper()} #{invoice.id}",
@@ -191,22 +205,29 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             "## Details",
             f"- **Type:** {invoice.invoice_type}",
             f"- **Status:** {invoice.status}",
-            "",
+            f"- **Price Mode:** {'Renewal' if is_renewal else 'Purchase'}",
         ]
-        
-        # Modules with cost AND customer price
+
+        if is_dairylive and not is_renewal:
+            lines.append("- **DairyLive Discount:** YES — 50% off customer price")
+
+        lines.append("")
+
+        # Modules with cost AND customer price side-by-side
         modules = invoice.selected_modules.all()
         if modules.exists():
             lines.extend([
                 "## Modules Breakdown",
-                "| Module | Cost (UA) | Customer Price | Margin |",
+                "| Module | Cost (→ Uniform) | Customer Price (← Farm) | Margin |",
                 "|---|---|---|---|",
             ])
             for mod in modules:
-                margin = mod.customer_price - mod.price
-                lines.append(f"| {mod.name} | {mod.price} EGP | {mod.customer_price} EGP | +{margin} EGP |")
+                cost = get_cost(mod)
+                cust = get_customer_price(mod)
+                margin = cust - cost
+                lines.append(f"| {mod.name} | {cost} EGP | {cust} EGP | +{margin} EGP |")
             lines.append("")
-        
+
         # Livestock
         livestock = invoice.livestock_selection.all()
         if livestock.exists():
@@ -218,49 +239,39 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             for item in livestock:
                 lines.append(f"| {item.name} | x{item.price_multiplier} |")
             lines.append("")
-        
+
         # Full pricing breakdown
         cost = invoice.cost_total or 0
         customer = invoice.customer_total or invoice.total_amount
         profit = float(str(customer)) - float(str(cost))
-        
+
         lines.extend([
             "## Financial Summary",
-            f"- **Cost to Uniform Agri:** {cost} EGP",
-            f"- **Customer Total:** {customer} EGP",
-            f"- **Your Profit:** +{profit:.2f} EGP",
+            f"- **💸 Due to Uniform Agri (our cost):** {cost} EGP",
+            f"- **💰 Due from Farm (customer price):** {customer} EGP",
+            f"- **📈 Your Profit:** +{profit:.2f} EGP",
             "",
         ])
-        
+
         if invoice.notes:
-            lines.extend([
-                "## Notes",
-                invoice.notes,
-                "",
-            ])
-        
+            lines.extend(["## Notes", invoice.notes, ""])
+
         lines.extend([
             "---",
             "*Internal Document — Not for Customer Distribution*",
-            "**4Genetics**"
+            "**4Genetics**",
         ])
-        
+
         content = "\n".join(lines)
-        
+
         try:
             buffer = generate_pdf_report(content, title=f"Internal {doc_title} #{invoice.id}")
-            
-            # Save as separate file (don't overwrite the client PDF)
             filename = f"invoice_{invoice.id}_internal.pdf"
             from django.core.files.storage import default_storage
-            
-            # Delete old internal file if exists
             if default_storage.exists(f'invoices/{filename}'):
                 default_storage.delete(f'invoices/{filename}')
-            
             path = default_storage.save(f'invoices/{filename}', ContentFile(buffer.getvalue()))
             pdf_url = default_storage.url(path)
-            
             return Response({'pdf_url': pdf_url, 'message': 'Internal PDF Generated'})
         except Exception as e:
             return Response({'error': str(e)}, status=500)
