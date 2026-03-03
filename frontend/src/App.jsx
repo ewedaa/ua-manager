@@ -245,10 +245,10 @@ function AppContent() {
     <SleepModeContext.Provider value={{ isSleepMode, toggleSleepMode }}>
       <Router>
         <SyncManager />
-        <div className={`min-h-screen flex flex-col md:flex-row relative transition-colors duration-300 ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
+        <div className={`min-h-screen relative overflow-x-hidden transition-colors duration-300 ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
 
           {/* Mobile Header / Menu Button */}
-          <div className={`md:hidden sticky top-0 left-0 right-0 z-30 px-4 py-3 flex items-center justify-between border-b backdrop-blur-md transition-colors duration-300 ${isDark ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'}`}>
+          <div className={`md:hidden fixed top-0 left-0 right-0 z-30 px-4 py-3 flex items-center justify-between border-b backdrop-blur-md transition-colors duration-300 ${isDark ? 'bg-gray-900/80 border-gray-800' : 'bg-white/80 border-gray-200'}`}>
             <Link to="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="Logo" className="w-8 h-8 object-contain" />
               <span className={`font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>Uniform Agri</span>
@@ -276,35 +276,29 @@ function AppContent() {
             />
           )}
 
-          <main className={`flex-1 relative z-10 transition-all duration-300 w-full md:w-auto ${isCollapsed ? 'md:ml-20' : 'md:ml-64'} md:pt-0 min-h-screen flex flex-col`}>
-            {/* Topbar sticky header */}
-            <div className="sticky top-0 z-20 hidden md:block">
-              <TopBar />
-            </div>
-            {/* Main scrollable area */}
-            <div className="flex-1 p-4 md:p-6 lg:p-8">
-              <Suspense fallback={<PageLoader />}>
-                <div className="page-transition-enter h-full">
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/new-ticket" element={<NewTicket />} />
-                    <Route path="/tickets" element={<TicketsPage />} />
-                    <Route path="/projects" element={<ProjectsPage />} />
-                    <Route path="/clients" element={<Clients />} />
-                    <Route path="/clients/:id" element={<ClientDetailPage />} />
-                    <Route path="/invoices" element={<InvoiceMaker />} />
-                    <Route path="/serials" element={<SerialsPage />} />
-                    <Route path="/payments" element={<PaymentTracker />} />
-                    <Route path="/support" element={<SupportContacts />} />
-                    <Route path="/todo" element={<TodoPage />} />
-                    <Route path="/docs" element={<DocsPage />} />
-                    <Route path="/analytics" element={<Analytics />} />
-                    <Route path="/reports/writer" element={<ReportWriter />} />
-                    <Route path="/settings" element={<Settings />} />
-                  </Routes>
-                </div>
-              </Suspense>
-            </div>
+          <main className={`relative z-10 transition-all duration-300 ml-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'} pt-16 md:pt-0 min-h-screen overflow-x-hidden`}>
+            <TopBar />
+            <Suspense fallback={<PageLoader />}>
+              <div className="page-transition-enter">
+                <Routes>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/new-ticket" element={<NewTicket />} />
+                  <Route path="/tickets" element={<TicketsPage />} />
+                  <Route path="/projects" element={<ProjectsPage />} />
+                  <Route path="/clients" element={<Clients />} />
+                  <Route path="/clients/:id" element={<ClientDetailPage />} />
+                  <Route path="/invoices" element={<InvoiceMaker />} />
+                  <Route path="/serials" element={<SerialsPage />} />
+                  <Route path="/payments" element={<PaymentTracker />} />
+                  <Route path="/support" element={<SupportContacts />} />
+                  <Route path="/todo" element={<TodoPage />} />
+                  <Route path="/docs" element={<DocsPage />} />
+                  <Route path="/analytics" element={<Analytics />} />
+                  <Route path="/reports/writer" element={<ReportWriter />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </div>
+            </Suspense>
           </main>
         </div>
 
