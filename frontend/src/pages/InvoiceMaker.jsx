@@ -595,7 +595,7 @@ export default function InvoiceMaker() {
     }
 
     return (
-        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 space-y-4 animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 space-y-6 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col gap-4 mb-6 pt-2">
                 <div>

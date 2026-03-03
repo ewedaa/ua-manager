@@ -62,7 +62,7 @@ export default function SupportContacts() {
     });
 
     return (
-        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 space-y-4">
+        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 space-y-6">
             {/* Header */}
             <div>
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white flex items-center gap-3">

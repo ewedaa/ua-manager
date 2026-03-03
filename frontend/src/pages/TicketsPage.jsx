@@ -197,7 +197,7 @@ export default function TicketsPage() {
     };
 
     return (
-        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 animate-in fade-in duration-500">
             {/* Edit Modal */}
             {selectedTicket && (
                 <EditTicketModal

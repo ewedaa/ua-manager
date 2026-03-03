@@ -239,7 +239,7 @@ const MusicButton = () => {
 
 export default function TopBar() {
     return (
-        <div className="hidden md:flex sticky top-0 z-30 w-full justify-end items-center gap-2 md:gap-3 px-3 py-2 md:px-6 md:py-2 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 animate-in slide-in-from-top-4 fade-in duration-700">
+        <div className="hidden md:flex sticky top-0 z-30 w-full justify-end items-center gap-2 md:gap-3 px-3 py-2 md:px-8 md:py-4 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 animate-in slide-in-from-top-4 fade-in duration-700">
             <QuickActions />
             <NotificationCenter />
             <MusicButton />

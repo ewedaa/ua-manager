@@ -82,7 +82,7 @@ export default function SerialsPage() {
     };
 
     return (
-        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 space-y-4">
+        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 space-y-6">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>

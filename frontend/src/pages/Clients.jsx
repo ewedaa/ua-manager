@@ -202,9 +202,9 @@ export default function Clients() {
     }
 
     return (
-        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col gap-3 mb-5 pt-1">
+            <div className="flex flex-col gap-4 mb-8 pt-2">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Clients</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your farm subscribers</p>
