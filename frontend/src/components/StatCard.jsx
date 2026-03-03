@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, HelpCircle } from 'lucide-react';
+import { TrendingUp, Info } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const colorClasses = {
@@ -137,12 +137,12 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
                             <span
                                 ref={infoBtnRef}
                                 onClick={handleInfoClick}
-                                className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help ${showInfo
+                                className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help p-1 -m-1 ${showInfo
                                     ? isDark ? 'text-white/60' : 'text-gray-500'
-                                    : isDark ? 'text-transparent group-hover:text-white/20 hover:!text-white/50' : 'text-transparent group-hover:text-gray-300 hover:!text-gray-500'
+                                    : isDark ? 'text-white/20 hover:text-white/50 group-hover:text-white/50' : 'text-gray-300 hover:text-gray-500 group-hover:text-gray-500'
                                     }`}
                             >
-                                <HelpCircle size={11} />
+                                <Info size={12} strokeWidth={2.5} />
                             </span>
                         )}
                     </p>
