@@ -536,27 +536,6 @@ export default function ClientDetailPage() {
                         {/* ═══ CONTACTS SECTION ═══ */}
                         {activeSection === 'contacts' && (
                             <div className="space-y-4 animate-in fade-in duration-200">
-                                {/* Farm Owner Card */}
-                                <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
-                                    <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm Owner</h3>
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-bold text-sm bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>
-                                            {getInitials(client.name)}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{client.name}</p>
-                                            <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Owner • {client.farm_name}</p>
-                                            {client.phone && <p className={`text-xs font-mono mt-0.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{formatPhone(client.phone)}</p>}
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            {client.phone && (
-                                                <a href={getWhatsAppLink(client.phone)} target="_blank" rel="noopener noreferrer" className="p-2 rounded-lg bg-green-500/10 text-green-500 hover:bg-green-500/20 transition-colors" title="WhatsApp">
-                                                    <MessageSquare size={16} />
-                                                </a>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
 
                                 {/* Other Contacts */}
                                 <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
