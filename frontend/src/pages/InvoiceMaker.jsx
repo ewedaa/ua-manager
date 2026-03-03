@@ -11,6 +11,7 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import StatCard from '../components/StatCard';
 import { API_BASE_URL } from '../lib/api';
+import QuickAddClientModal from '../components/QuickAddClientModal';
 
 import { fetchInvoices, fetchLivestockTypes, fetchClients } from '../lib/fetchers';
 
@@ -39,6 +40,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const [rateLoading, setRateLoading] = useState(false);
     const [rateDate, setRateDate] = useState('');
     const [error, setError] = useState('');
+    const [showQuickAdd, setShowQuickAdd] = useState(false);
 
     // Fetch modules
     const { data: modules = [] } = useQuery({
@@ -223,9 +225,20 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
 
                     {/* Client Selection */}
                     <div>
-                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Client *
-                        </label>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Client *
+                            </label>
+                            {isAdmin && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowQuickAdd(true)}
+                                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors"
+                                >
+                                    <Plus size={12} /> New Farm
+                                </button>
+                            )}
+                        </div>
                         <select
                             value={formData.client}
                             onChange={(e) => setFormData({ ...formData, client: e.target.value })}
@@ -291,8 +304,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         {/* Live Rate Box (only when EGP selected) */}
                         {currency === 'EGP' && (
                             <div className={`mt-2 p-3 rounded-xl ${error === '__FALLBACK__'
-                                    ? isDark ? 'bg-amber-500/8 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
-                                    : isDark ? 'bg-blue-500/8 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'
+                                ? isDark ? 'bg-amber-500/8 border border-amber-500/20' : 'bg-amber-50 border border-amber-200'
+                                : isDark ? 'bg-blue-500/8 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'
                                 }`}>
                                 <div className="flex items-center gap-3">
                                     <Globe size={16} className={error === '__FALLBACK__' ? (isDark ? 'text-amber-400' : 'text-amber-600') : (isDark ? 'text-blue-400' : 'text-blue-600')} />
@@ -565,6 +578,17 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                     </div>
                 </form>
             </div>
+
+            {/* Quick Add Client Modal (stacked above local modal) */}
+            {showQuickAdd && (
+                <QuickAddClientModal
+                    onClose={() => setShowQuickAdd(false)}
+                    onCreated={(newClient) => {
+                        setFormData(prev => ({ ...prev, client: String(newClient.id) }));
+                        setShowQuickAdd(false);
+                    }}
+                />
+            )}
         </div>,
         document.body
     );
