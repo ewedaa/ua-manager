@@ -52,7 +52,7 @@ export default function AddContactModal({ clientId, clientName, onClose }) {
 
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-200" onClick={onClose}>
-            <div className={`rounded-xl shadow-2xl w-full max-w-md ${isDark ? 'bg-gray-900/95 backdrop-blur-xl border border-white/[0.08]' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
+            <div className={`rounded-xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto ${isDark ? 'bg-gray-900/95 backdrop-blur-xl border border-white/[0.08]' : 'bg-white'}`} onClick={e => e.stopPropagation()}>
 
                 {/* Header */}
                 <div className={`p-5 border-b flex items-center justify-between ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
