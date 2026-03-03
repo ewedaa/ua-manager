@@ -276,7 +276,7 @@ function AppContent() {
             />
           )}
 
-          <main className={`relative z-10 transition-all duration-300 ml-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'} pt-16 md:pt-0 min-h-screen overflow-x-hidden`}>
+          <main className={`relative z-10 transition-[margin-left] duration-300 ml-0 ${isCollapsed ? 'md:ml-20' : 'md:ml-64'} pt-16 md:pt-0 min-h-screen overflow-x-hidden`}>
             <TopBar />
             <Suspense fallback={<PageLoader />}>
               <div className="page-transition-enter">
