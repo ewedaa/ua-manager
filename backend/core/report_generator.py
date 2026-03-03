@@ -114,61 +114,75 @@ def _build_styles():
 
 
 def _build_header(story, title, styles):
-    """Build a branded header with dual logos and title."""
+    """Build a premium branded header with dark-banner design."""
+    from reportlab.platypus import Table as RLTable, TableStyle as RLTableStyle
+    from reportlab.lib.units import inch
+
+    now = datetime.now()
+    date_str = now.strftime("%B %d, %Y  •  %I:%M %p")
+
     # ── Left Logo (4Genetics) ──
     if os.path.exists(LOGO_PATH):
         left_logo = RLImage(LOGO_PATH)
-        target_h = 0.85 * inch
+        target_h = 0.70 * inch
         ratio = target_h / left_logo.drawHeight
         left_logo.drawHeight = target_h
         left_logo.drawWidth = left_logo.drawWidth * ratio
         left_cell = left_logo
     else:
-        left_cell = Paragraph('<b>4Genetics</b>', styles['ReportTitle'])
+        left_cell = Paragraph('<b>4Genetics</b>',
+            ParagraphStyle('LH', fontName='Helvetica-Bold', fontSize=14, textColor=WHITE))
 
     # ── Right Logo (Uniform Agri) ──
     if os.path.exists(LOGO_RIGHT_PATH):
         right_logo = RLImage(LOGO_RIGHT_PATH)
-        target_h = 0.85 * inch
+        target_h = 0.60 * inch
         ratio = target_h / right_logo.drawHeight
         right_logo.drawHeight = target_h
         right_logo.drawWidth = right_logo.drawWidth * ratio
         right_cell = right_logo
     else:
-        right_cell = Paragraph('<b>Uniform Agri</b>', styles['ReportTitle'])
+        right_cell = Paragraph('<b>Uniform Agri</b>',
+            ParagraphStyle('RH', fontName='Helvetica-Bold', fontSize=14, textColor=WHITE))
 
-    # ── Title + date (center) ──
-    now = datetime.now()
-    title_block = [
-        Paragraph(title, styles['ReportTitle']),
-        Paragraph(
-            f'Generated on {now.strftime("%B %d, %Y at %I:%M %p")}',
-            styles['ReportSubtitle']
-        ),
+    # ── Title block (center) ──
+    title_style = ParagraphStyle('BannerTitle', fontName='Helvetica-Bold', fontSize=20,
+                                  textColor=WHITE, leading=26, spaceAfter=2, alignment=TA_LEFT)
+    sub_style = ParagraphStyle('BannerSub', fontName='Helvetica', fontSize=8.5,
+                                textColor=colors.HexColor('#a3e635'), leading=12, alignment=TA_LEFT)
+    date_style = ParagraphStyle('BannerDate', fontName='Helvetica', fontSize=8,
+                                 textColor=colors.HexColor('#d1fae5'), leading=11, alignment=TA_LEFT)
+
+    center_block = [
+        Paragraph(title, title_style),
+        Paragraph('4Genetics × Uniform Agri  —  Business Intelligence Report', sub_style),
+        Spacer(1, 3),
+        Paragraph(f'Generated on {date_str}', date_style),
     ]
 
-    header_data = [[left_cell, title_block, right_cell]]
-
-    header_table = Table(header_data, colWidths=[1.4 * inch, 3.7 * inch, 1.4 * inch])
+    header_data = [[left_cell, center_block, right_cell]]
+    header_table = Table(header_data, colWidths=[1.1 * inch, 4.0 * inch, 1.4 * inch])
     header_table.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('ALIGN', (0, 0), (0, 0), 'LEFT'),
         ('ALIGN', (1, 0), (1, 0), 'LEFT'),
         ('ALIGN', (2, 0), (2, 0), 'RIGHT'),
-        ('LEFTPADDING', (0, 0), (0, 0), 0),
-        ('LEFTPADDING', (1, 0), (1, 0), 12),
-        ('RIGHTPADDING', (2, 0), (2, 0), 0),
-        ('TOPPADDING', (0, 0), (-1, -1), 0),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        # Dark green banner background
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#14532d')),
+        ('LEFTPADDING', (0, 0), (-1, -1), 14),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 14),
+        ('TOPPADDING', (0, 0), (-1, -1), 16),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 16),
+        ('ROUNDEDCORNERS', [6, 6, 6, 6]),
     ]))
 
     story.append(header_table)
-    story.append(Spacer(1, 6))
+    story.append(Spacer(1, 4))
 
-    # ── Green accent divider ──
+    # ── Thin accent divider below banner ──
     story.append(HRFlowable(
-        width="100%", thickness=3, color=BRAND_GREEN,
-        spaceAfter=16, spaceBefore=4
+        width="100%", thickness=2, color=BRAND_GREEN,
+        spaceAfter=14, spaceBefore=2
     ))
 
 

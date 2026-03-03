@@ -188,6 +188,20 @@ export default function ReportWriter() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [toast, setToast] = useState(null);
 
+    // Auto-generate a meaningful title from selected modules + current month
+    const autoTitle = useMemo(() => {
+        if (title) return title;
+        const now = new Date();
+        const month = now.toLocaleString('default', { month: 'long' });
+        const year = now.getFullYear();
+        if (selectedModules.length === 0) return `Business Report — ${month} ${year}`;
+        const labels = selectedModules.map(key => {
+            const mod = MODULES.find(m => m.key === key);
+            return mod ? mod.label : key;
+        });
+        return `${labels.join(', ')} Report — ${month} ${year}`;
+    }, [title, selectedModules]);
+
     const showToast = useCallback((msg, type = 'success') => {
         setToast({ msg, type });
         setTimeout(() => setToast(null), 3500);
@@ -248,7 +262,7 @@ export default function ReportWriter() {
             const res = await fetch(`${API_BASE_URL}/report-builder/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title || 'Custom Report', modules }),
+                body: JSON.stringify({ title: autoTitle, modules }),
             });
             if (!res.ok) throw new Error('Generation failed');
             const data = await res.json();
@@ -334,7 +348,7 @@ export default function ReportWriter() {
                             type="text"
                             value={title}
                             onChange={e => setTitle(e.target.value)}
-                            placeholder="e.g. Monthly Performance Report — February 2026"
+                            placeholder={`e.g. Monthly Performance Report — ${new Date().toLocaleString('default', { month: 'long' })} ${new Date().getFullYear()}`}
                             className={`w-full px-4 py-3 rounded-xl border text-base outline-none transition-all focus:ring-2 focus:ring-emerald-500/30 ${inputBase}`}
                         />
                     </div>

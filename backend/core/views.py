@@ -1060,7 +1060,10 @@ class CustomReportView(views.APIView):
     Returns the URL to the generated PDF.
     """
     def post(self, request):
-        title = request.data.get('title', 'Custom Report')
+        from datetime import datetime as _dt
+        _now = _dt.now()
+        _default_title = f'Custom Report — {_now.strftime("%B %Y")}'
+        title = request.data.get('title', _default_title)
         content = request.data.get('content')
         
         if not content:
@@ -1106,7 +1109,12 @@ class ReportBuilderView(views.APIView):
         from django.utils import timezone
         from datetime import datetime
 
-        title = request.data.get('title', 'Custom Report')
+        from datetime import datetime as _dt
+        _now = _dt.now()
+        _mods = request.data.get('modules', [])
+        _mod_names = [m.get('key', '').replace('_', ' ').title() for m in _mods]
+        _default_title = (', '.join(_mod_names) + f' Report — {_now.strftime("%B %Y")}') if _mod_names else f'Business Report — {_now.strftime("%B %Y")}'
+        title = request.data.get('title') or _default_title
         modules = request.data.get('modules', [])
 
         if not modules:
