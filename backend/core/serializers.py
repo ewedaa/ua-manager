@@ -108,7 +108,7 @@ class ClientSerializer(serializers.ModelSerializer):
             'id', 'name', 'farm_name', 'phone', 'serial_number', 
             'subscription_modules', 'general_notes', 'contacts', 'whatsapp_link',
             'subscription_start_date', 'subscription_end_date',
-            'is_demo', 'demo_start_date', 'demo_end_date',
+            'is_demo', 'demo_start_date', 'demo_end_date', 'is_4genetics_college',
             'is_expiring_soon', 'alert_status', 'status', 'tickets', 'invoices', 'files', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at', 'whatsapp_link', 'is_expiring_soon', 'alert_status', 'status']

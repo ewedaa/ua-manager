@@ -171,8 +171,8 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
             {/* Content Container */}
             <div className="relative z-10 flex flex-col h-full overflow-y-auto no-scrollbar overflow-x-hidden">
                 {/* Logo Area */}
-                <div className={`flex flex-col items-center w-full transition-all duration-300 ${isCollapsed ? 'px-2 pt-4 pb-2' : 'p-5 pb-3'}`}>
-                    <Link to="/" className="relative block group mb-4 cursor-pointer flex justify-center">
+                <div className={`flex flex-col items-center w-full transition-all duration-300 ${isCollapsed ? 'px-2 pt-3 pb-1' : 'p-3 pb-2'}`}>
+                    <Link to="/" className="relative block group mb-2 cursor-pointer flex justify-center">
                         {isCollapsed ? (
                             <img src="/logo.png" alt="UA" className="w-10 h-10 object-contain" />
                         ) : (
@@ -232,7 +232,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
                                     if (window.innerWidth < 768) onClose();
                                 }}
                                 className={({ isActive }) =>
-                                    `group flex items-center gap-3 px-3 py-2 rounded-xl transition-colors duration-150 relative overflow-hidden ${isActive
+                                    `group flex items-center gap-3 px-3 py-1.5 rounded-xl transition-colors duration-150 relative overflow-hidden ${isActive
                                         ? 'text-white'
                                         : isDark
                                             ? 'text-gray-400 hover:text-gray-100'
@@ -306,7 +306,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
                 </nav>
 
                 {/* Footer */}
-                <div className={`p-3 border-t space-y-2 ${isDark ? 'border-white/[0.05]' : 'border-gray-100'}`}>
+                <div className={`p-2 border-t space-y-1 ${isDark ? 'border-white/[0.05]' : 'border-gray-100'}`}>
                     {/* User Info */}
                     <div className={`rounded-xl p-2.5 transition-all duration-300 ${!isCollapsed
                         ? isDark ? 'bg-white/[0.03]' : 'bg-gray-50/80'

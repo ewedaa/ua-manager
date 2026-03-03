@@ -59,7 +59,9 @@ export default function Clients() {
         subscription_end_date: '',
         serial_number: '',
         subscription_modules: '',
-        general_notes: ''
+        general_notes: '',
+        is_demo: false,
+        is_4genetics_college: false
     });
     const [formError, setFormError] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
@@ -200,9 +202,9 @@ export default function Clients() {
     }
 
     return (
-        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 max-w-7xl mx-auto animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 animate-in fade-in duration-500">
             {/* Header */}
-            <div className="flex flex-col gap-4 mb-8 pt-2">
+            <div className="flex flex-col gap-3 mb-5 pt-1">
                 <div>
                     <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Clients</h1>
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your farm subscribers</p>
@@ -403,6 +405,29 @@ export default function Clients() {
                                         />
                                         {fieldErrors.subscription_end_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_end_date}</p>}
                                     </div>
+                                </div>
+
+                                <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-300 dark:border-white/[0.08] bg-gray-50/50 dark:bg-gray-800/50">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="is_demo"
+                                            checked={formData.is_demo}
+                                            onChange={(e) => setFormData(p => ({ ...p, is_demo: e.target.checked }))}
+                                            className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Is Demo Farm?</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            name="is_4genetics_college"
+                                            checked={formData.is_4genetics_college}
+                                            onChange={(e) => setFormData(p => ({ ...p, is_4genetics_college: e.target.checked }))}
+                                            className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
+                                        />
+                                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">4Genetics College?</span>
+                                    </label>
                                 </div>
 
                                 <div>

@@ -252,7 +252,7 @@ export default function Settings() {
     const statusColor = (s) => s === 'ok' ? 'text-green-600 dark:text-green-400' : s === 'warning' ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400';
 
     return (
-        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 max-w-4xl mx-auto animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 max-w-4xl mx-auto animate-in fade-in duration-500">
             <div className="mb-8">
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white">Settings</h1>
                 <p className="text-gray-500 dark:text-gray-400 mt-1">Manage your application configuration</p>

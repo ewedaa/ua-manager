@@ -16,6 +16,7 @@ class Client(models.Model):
     is_demo = models.BooleanField(default=False, help_text="Is this farm in demo/trial mode?")
     demo_start_date = models.DateField(null=True, blank=True)
     demo_end_date = models.DateField(null=True, blank=True)
+    is_4genetics_college = models.BooleanField(default=False, help_text="Is this a 4Genetics College?")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

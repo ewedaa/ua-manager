@@ -43,6 +43,15 @@ class ClientViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         instance = serializer.save()
         ActivityLog.log('client_created', f'Client "{instance.farm_name}" was created', 'client', instance.id)
+        
+        if instance.is_4genetics_college:
+            GeneticsSerial.objects.create(
+                client=instance,
+                serial_number=f"4GEN-{instance.id}-{uuid.uuid4().hex[:6].upper()}",
+                product_type='Other',
+                is_active=True,
+                notes="Auto-created from 4Genetics College designation"
+            )
 
     def perform_update(self, serializer):
         instance = serializer.save()

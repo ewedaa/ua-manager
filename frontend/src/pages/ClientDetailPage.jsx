@@ -218,7 +218,7 @@ export default function ClientDetailPage() {
         <div className={`min-h-screen ${isDark ? 'bg-gray-950' : 'bg-gray-50'}`}>
             {/* ═══ TOP BAR ═══ */}
             <div className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isDark ? 'bg-gray-950/80 border-white/[0.06]' : 'bg-white/80 border-gray-200'}`}>
-                <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+                <div className="px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <button onClick={() => navigate('/clients')} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/[0.06] text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
                             <ArrowLeft size={20} />
@@ -249,7 +249,7 @@ export default function ClientDetailPage() {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 py-6">
+            <div className="px-6 py-6">
                 <div className="flex gap-6">
                     {/* ═══ LEFT SIDEBAR ═══ */}
                     <div className="w-72 shrink-0 hidden lg:block">

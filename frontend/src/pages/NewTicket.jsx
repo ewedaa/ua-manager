@@ -151,7 +151,7 @@ export default function NewTicket() {
     // Viewer mode - show restricted notice
     if (!isAdmin) {
         return (
-            <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 max-w-2xl mx-auto">
+            <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 max-w-2xl mx-auto">
                 <h1 className="text-3xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-8">Create New Ticket</h1>
 
                 <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/20 rounded-xl p-8 text-center">
@@ -168,7 +168,7 @@ export default function NewTicket() {
     }
 
     return (
-        <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 max-w-2xl mx-auto animate-in fade-in duration-500">
+        <div className="px-4 pb-4 pt-1 md:px-6 md:pb-6 md:pt-3 max-w-2xl mx-auto animate-in fade-in duration-500">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Create New Ticket</h1>
 
             {notification && (
