@@ -20,6 +20,7 @@ PythonAnywhere Scheduled Task:
 import os
 import urllib.parse
 import urllib.request
+import urllib.error
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand
@@ -188,15 +189,18 @@ class Command(BaseCommand):
 
     def send_whatsapp(self, phone, apikey, message):
         """Send a WhatsApp message via CallMeBot API."""
-        encoded_msg = urllib.parse.quote_plus(message)
+        encoded_msg = urllib.parse.quote(message, safe='')
         url = f"https://api.callmebot.com/whatsapp.php?phone={phone}&text={encoded_msg}&apikey={apikey}"
 
         try:
             req = urllib.request.Request(url)
             with urllib.request.urlopen(req, timeout=30) as response:
-                result = response.read().decode('utf-8')
-                self.stdout.write(f'API response: {result}')
+                result = response.read().decode('utf-8', errors='replace')
+                self.stdout.write('API response received')
                 return response.status == 200
+        except urllib.error.HTTPError as e:
+            self.stderr.write(f'HTTP Error {e.code}: {e.reason}')
+            return False
         except Exception as e:
-            self.stderr.write(f'Error sending WhatsApp: {e}')
+            self.stderr.write(f'Error sending WhatsApp: {str(e).encode("ascii", "replace").decode()}')
             return False
