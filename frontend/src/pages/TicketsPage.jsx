@@ -21,6 +21,7 @@ export default function TicketsPage() {
     const [categoryFilter, setCategoryFilter] = useState('');
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [draftingId, setDraftingId] = useState(null);
+    const [selectedIds, setSelectedIds] = useState(new Set());
 
     // Handle filter from dashboard tiles
     useEffect(() => {
@@ -64,6 +65,45 @@ export default function TicketsPage() {
         if (!response.ok) throw new Error('Failed to update');
         queryClient.invalidateQueries(['tickets']);
         return response.json();
+    };
+
+    // Bulk update status
+    const handleBulkUpdateStatus = async (newStatus) => {
+        if (!isAdmin || selectedIds.size === 0) return;
+        try {
+            await Promise.all(
+                Array.from(selectedIds).map(id =>
+                    fetch(`${API_BASE_URL}/tickets/${id}/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: newStatus }),
+                    })
+                )
+            );
+            queryClient.invalidateQueries(['tickets']);
+            setSelectedIds(new Set());
+        } catch (err) {
+            console.error('Failed to update tickets', err);
+        }
+    };
+
+    // Bulk delete tickets
+    const handleBulkDelete = async () => {
+        if (!isAdmin || selectedIds.size === 0) return;
+        if (!window.confirm(`Are you sure you want to delete ${selectedIds.size} tickets? This action cannot be undone.`)) return;
+        try {
+            await Promise.all(
+                Array.from(selectedIds).map(id =>
+                    fetch(`${API_BASE_URL}/tickets/${id}/`, {
+                        method: 'DELETE',
+                    })
+                )
+            );
+            queryClient.invalidateQueries(['tickets']);
+            setSelectedIds(new Set());
+        } catch (err) {
+            console.error('Failed to delete tickets', err);
+        }
     };
 
     const filteredTickets = tickets.filter(ticket => {
@@ -138,6 +178,23 @@ export default function TicketsPage() {
             </div>
         );
     }
+
+    const isAllSelected = filteredTickets.length > 0 && selectedIds.size === filteredTickets.length;
+
+    const toggleSelectAll = () => {
+        if (isAllSelected) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredTickets.map(t => t.id)));
+        }
+    };
+
+    const toggleSelect = (id) => {
+        const newSet = new Set(selectedIds);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setSelectedIds(newSet);
+    };
 
     return (
         <div className="px-4 pb-4 pt-2 md:px-8 md:pb-8 md:pt-6 max-w-7xl mx-auto animate-in fade-in duration-500">
@@ -251,6 +308,39 @@ export default function TicketsPage() {
                 />
             </div>
 
+            {/* Bulk Action Bar */}
+            {selectedIds.size > 0 && isAdmin && (
+                <div className="mb-4 p-4 bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/30 rounded-2xl flex items-center justify-between animate-in fade-in slide-in-from-top-2">
+                    <span className="font-medium text-green-800 dark:text-green-400">
+                        {selectedIds.size} ticket{selectedIds.size > 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex gap-2">
+                        <select
+                            className="px-3 py-1.5 rounded-lg border border-green-200 dark:border-green-800/50 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200 outline-none focus:ring-2 focus:ring-green-500"
+                            onChange={(e) => {
+                                if (e.target.value) {
+                                    handleBulkUpdateStatus(e.target.value);
+                                    e.target.value = ''; // Reset dropdown
+                                }
+                            }}
+                            defaultValue=""
+                        >
+                            <option value="" disabled>Change Status...</option>
+                            <option value="Open">Set Open</option>
+                            <option value="In Progress">Set In Progress</option>
+                            <option value="Resolved">Set Resolved</option>
+                            <option value="Closed">Set Closed</option>
+                        </select>
+                        <button
+                            onClick={handleBulkDelete}
+                            className="px-3 py-1.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium transition-colors border border-red-200 dark:border-red-800/30"
+                        >
+                            Delete Selected
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Tickets Table */}
             {filteredTickets.length > 0 ? (
                 <div className="bg-white dark:bg-gray-800/80 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700/50 overflow-hidden backdrop-blur-sm">
@@ -258,6 +348,16 @@ export default function TicketsPage() {
                         <table className="w-full text-left min-w-[700px]">
                             <thead className="bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
                                 <tr>
+                                    {isAdmin && (
+                                        <th className="px-6 py-4 w-12 text-center">
+                                            <input
+                                                type="checkbox"
+                                                className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                                                checked={isAllSelected}
+                                                onChange={toggleSelectAll}
+                                            />
+                                        </th>
+                                    )}
                                     <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-200">Ticket ID</th>
                                     <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-200">Subject / Category</th>
                                     <th className="px-6 py-4 font-semibold text-gray-900 dark:text-gray-200">Client</th>
@@ -269,7 +369,17 @@ export default function TicketsPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-gray-700/50">
                                 {filteredTickets.map((ticket) => (
-                                    <tr key={ticket.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-200">
+                                    <tr key={ticket.id} className={`${selectedIds.has(ticket.id) ? 'bg-green-50/50 dark:bg-green-900/5' : 'hover:bg-gray-50 dark:hover:bg-gray-700/30'} transition-colors duration-200`}>
+                                        {isAdmin && (
+                                            <td className="px-6 py-4 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                                                    checked={selectedIds.has(ticket.id)}
+                                                    onChange={() => toggleSelect(ticket.id)}
+                                                />
+                                            </td>
+                                        )}
                                         <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">#{ticket.id}</td>
                                         <td className="px-6 py-4">
                                             <p className="font-medium text-gray-900 dark:text-white">{ticket.category}</p>
