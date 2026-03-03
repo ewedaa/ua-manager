@@ -250,7 +250,7 @@ export default function Dashboard() {
                     label="Hot Leads"
                     value={stats?.clients?.hot_leads || 0}
                     color="orange"
-                    to="/clients?filter=expiring"
+                    to="/stats/hot-leads"
                     delay={800}
                     info="Clients whose subscriptions are about to expire and need urgent follow-up. These are your best renewal opportunities."
                 />
@@ -259,7 +259,7 @@ export default function Dashboard() {
                     label="Expired Subscriptions"
                     value={stats?.clients?.expired || 0}
                     color="red"
-                    to="/clients?filter=expired"
+                    to="/stats/expired-subscriptions"
                     delay={900}
                     info="Clients whose subscriptions have already expired. Reach out to re-engage them and offer renewal deals."
                 />
@@ -268,7 +268,7 @@ export default function Dashboard() {
                     label="Resolved Tickets"
                     value={stats?.tickets?.resolved || 0}
                     color="green"
-                    to="/tickets?filter=resolved"
+                    to="/stats/resolved-tickets"
                     delay={1000}
                     info="Total number of support tickets that have been successfully resolved. A high count shows good customer support."
                 />
@@ -277,7 +277,7 @@ export default function Dashboard() {
                     label="In Progress"
                     value={stats?.tickets?.in_progress || 0}
                     color="orange"
-                    to="/tickets?filter=in_progress"
+                    to="/stats/in-progress"
                     delay={1100}
                     info="Support tickets currently being worked on by the team. These are actively being addressed."
                 />
@@ -287,7 +287,7 @@ export default function Dashboard() {
                     value={`${(stats?.invoices?.total_revenue || 0).toLocaleString()} EGP`}
                     subValue="Paid invoices"
                     color="cyan"
-                    to="/invoices"
+                    to="/stats/total-revenue"
                     delay={1100}
                     info="Total money collected from all paid invoices. This is your actual received revenue, not including unpaid invoices."
                 />

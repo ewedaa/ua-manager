@@ -5,7 +5,7 @@ import {
     ArrowLeft, Loader2, AlertCircle, Trash2, Edit2, ExternalLink,
     AlertTriangle, FileText, Ticket, Users, Shield, Target, Gauge,
     DollarSign, Barcode, Play, Timer, Zap, Info, CheckCircle, Clock,
-    RefreshCw
+    RefreshCw, Flame, XCircle
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
@@ -295,6 +295,133 @@ const TILE_CONFIG = {
         }),
         resourceName: 'client',
         editRoute: (id) => `/clients/${id}`,
+    },
+    'hot-leads': {
+        label: 'Hot Leads',
+        icon: Flame,
+        color: 'orange',
+        description: 'Clients whose subscriptions are imminently expiring — your hottest renewal opportunities. These farms need urgent outreach before their access lapses. A personal call or email at this stage dramatically improves conversion.',
+        tip: 'Prepare a renewal quote in advance so you can send it immediately when you contact them.',
+        fetchKey: 'clients',
+        fetchUrl: `${API_BASE_URL}/clients/`,
+        filter: (items) => items.filter(c => {
+            if (!c.subscription_end) return false;
+            const diff = (new Date(c.subscription_end) - new Date()) / (1000 * 60 * 60 * 24);
+            return diff >= 0 && diff <= 30;
+        }),
+        columns: ['Farm Name', 'Contact', 'Expires In', 'Subscription End'],
+        getRow: (c) => {
+            const diff = c.subscription_end
+                ? Math.ceil((new Date(c.subscription_end) - new Date()) / (1000 * 60 * 60 * 24))
+                : null;
+            return {
+                id: c.id,
+                cells: [
+                    c.farm_name,
+                    c.name,
+                    diff !== null ? `${diff} days` : 'N/A',
+                    c.subscription_end || 'N/A',
+                ],
+                link: `/clients/${c.id}`,
+                deleteUrl: `${API_BASE_URL}/clients/${c.id}/`,
+            };
+        },
+        resourceName: 'client',
+        editRoute: (id) => `/clients/${id}`,
+    },
+    'expired-subscriptions': {
+        label: 'Expired Subscriptions',
+        icon: XCircle,
+        color: 'red',
+        description: 'Clients whose subscriptions have already lapsed. They no longer have active access to the system. These are re-engagement opportunities — reach out with a discount or renewal offer to win them back.',
+        tip: 'Clients expired within the last 90 days are much easier to re-engage than older ones.',
+        fetchKey: 'clients',
+        fetchUrl: `${API_BASE_URL}/clients/`,
+        filter: (items) => items.filter(c => {
+            if (!c.subscription_end) return false;
+            return new Date(c.subscription_end) < new Date();
+        }),
+        columns: ['Farm Name', 'Contact', 'Expired On', 'Status'],
+        getRow: (c) => ({
+            id: c.id,
+            cells: [c.farm_name, c.name, c.subscription_end || 'N/A', c.status || 'Expired'],
+            link: `/clients/${c.id}`,
+            deleteUrl: `${API_BASE_URL}/clients/${c.id}/`,
+        }),
+        resourceName: 'client',
+        editRoute: (id) => `/clients/${id}`,
+    },
+    'resolved-tickets': {
+        label: 'Resolved Tickets',
+        icon: CheckCircle,
+        color: 'green',
+        description: 'Support tickets that have been successfully closed and resolved. A high resolved count shows your team is handling client issues effectively. Use this list to identify common problems and improve your documentation.',
+        tip: 'Review resolved tickets regularly to spot recurring issues and build a knowledge base.',
+        fetchKey: 'tickets',
+        fetchUrl: `${API_BASE_URL}/tickets/`,
+        filter: (items) => items.filter(t => t.status === 'Closed'),
+        columns: ['Title', 'Client', 'Resolved On', 'Priority'],
+        getRow: (t) => ({
+            id: t.id,
+            cells: [
+                t.title || t.description?.slice(0, 40) + '...' || 'Untitled',
+                t.client_name || `Client #${t.client}`,
+                t.resolved_at ? new Date(t.resolved_at).toLocaleDateString() : new Date(t.updated_at).toLocaleDateString(),
+                t.priority || 'Normal',
+            ],
+            link: '/tickets',
+            deleteUrl: `${API_BASE_URL}/tickets/${t.id}/`,
+        }),
+        resourceName: 'ticket',
+        editRoute: null,
+    },
+    'in-progress': {
+        label: 'In Progress',
+        icon: Clock,
+        color: 'orange',
+        description: 'Support tickets that are currently being worked on by your team. These are active investigations or fixes in progress. Make sure each ticket has an owner and a target resolution time to avoid delays.',
+        tip: 'Update ticket status regularly so clients know their issue is being handled.',
+        fetchKey: 'tickets',
+        fetchUrl: `${API_BASE_URL}/tickets/`,
+        filter: (items) => items.filter(t => t.status === 'In Progress'),
+        columns: ['Title', 'Client', 'Opened', 'Priority'],
+        getRow: (t) => ({
+            id: t.id,
+            cells: [
+                t.title || t.description?.slice(0, 40) + '...' || 'Untitled',
+                t.client_name || `Client #${t.client}`,
+                new Date(t.created_at).toLocaleDateString(),
+                t.priority || 'Normal',
+            ],
+            link: '/tickets',
+            deleteUrl: `${API_BASE_URL}/tickets/${t.id}/`,
+        }),
+        resourceName: 'ticket',
+        editRoute: null,
+    },
+    'total-revenue': {
+        label: 'Total Revenue',
+        icon: DollarSign,
+        color: 'cyan',
+        description: 'Total money actually collected from all paid invoices. This is your real income — it only counts invoices marked as "Paid to Us". Use this to track your business performance over time and plan for expansion.',
+        tip: 'Compare this against your Uniform Agri costs to understand your net profit margin.',
+        fetchKey: 'invoices',
+        fetchUrl: `${API_BASE_URL}/invoices/`,
+        filter: (items) => items.filter(i => i.status === 'Paid to Us' || i.status === 'Paid to Uniform'),
+        columns: ['Client', 'Type', 'Revenue', 'Paid On'],
+        getRow: (inv) => ({
+            id: inv.id,
+            cells: [
+                inv.client_name || `Client #${inv.client}`,
+                inv.invoice_type,
+                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || 'EGP'}`,
+                new Date(inv.updated_at || inv.created_at).toLocaleDateString(),
+            ],
+            link: '/invoices',
+            deleteUrl: `${API_BASE_URL}/invoices/${inv.id}/`,
+        }),
+        resourceName: 'invoice',
+        editRoute: null,
     },
 };
 
