@@ -815,7 +815,7 @@ export default function ClientDetailPage() {
 
             {/* ═══ MODALS ═══ */}
             {isEditModalOpen && <EditClientModal client={client} onClose={() => setIsEditModalOpen(false)} />}
-            {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.farm_name} onClose={() => setIsAddInvoiceOpen(false)} />}
+            {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.name} onClose={() => setIsAddInvoiceOpen(false)} />}
             {isAddContactOpen && <AddContactModal clientId={client.id} clientName={client.name} onClose={() => setIsAddContactOpen(false)} />}
 
             {/* ═══ UPLOAD METADATA MODAL ═══ */}
