@@ -561,6 +561,20 @@ def generate_formal_invoice_pdf(invoice):
         valid_dt = issue_dt + timedelta(days=7)
         valid_until = valid_dt.strftime('%B %d, %Y')
 
+    # ── Currency & exchange rate ──
+    inv_currency = getattr(invoice, 'currency', 'EUR')
+    rate = getattr(invoice, 'exchange_rate', None)
+    use_egp = inv_currency == 'EGP' and rate
+
+    def to_display(eur_amount):
+        """Convert EUR amount to display string in the invoice currency."""
+        if use_egp:
+            converted = (eur_amount * rate).quantize(Decimal('0.01'))
+            return f'{converted} EGP'
+        return f'\u20ac{eur_amount}'
+
+    curr_label = 'EGP (Egyptian Pound)' if use_egp else 'EUR (Euro \u20ac)'
+
     # ── Pricing helpers ──
     is_renewal = invoice.invoice_type == 'Renewal Invoice'
     is_dairylive = getattr(invoice, 'is_dairylive', False)
@@ -644,7 +658,7 @@ def generate_formal_invoice_pdf(invoice):
         table_data.append([
             Paragraph(f'<b>{mod.name}</b>', cell_bold),
             make_description(mod),
-            Paragraph(f'<b>{cust} EGP</b>', price_cell),
+            Paragraph(f'<b>{to_display(cust)}</b>', price_cell),
         ])
 
     # If DairyLive discount, note it
@@ -695,7 +709,7 @@ def generate_formal_invoice_pdf(invoice):
                                  textColor=BRAND_GRAY, alignment=TA_RIGHT)
     total_data = [[
         Paragraph('Total Amount:', label_style),
-        Paragraph(f'<b>{total} EGP</b>', total_style),
+        Paragraph(f'<b>{to_display(total)}</b>', total_style),
     ]]
     total_table = Table(total_data, colWidths=[page_w - 2 * inch, 2 * inch])
     total_table.setStyle(TableStyle([
@@ -707,6 +721,14 @@ def generate_formal_invoice_pdf(invoice):
         ('LINEABOVE', (0, 0), (-1, 0), 1.5, BRAND_GREEN),
     ]))
     story.append(total_table)
+    # Exchange rate footnote (EGP only)
+    if use_egp:
+        rate_note_style = ParagraphStyle('RateNote', fontName='Helvetica', fontSize=7.5,
+                                         textColor=BRAND_GRAY_MEDIUM, alignment=TA_RIGHT)
+        story.append(Paragraph(
+            f'* Exchange rate used: 1 € = {rate} EGP (as of {invoice.created_at.strftime("%Y-%m-%d")})',
+            rate_note_style
+        ))
     story.append(Spacer(1, 18))
 
     # ── Terms & Conditions ──
@@ -722,7 +744,7 @@ def generate_formal_invoice_pdf(invoice):
                                textColor=BRAND_GRAY, leading=14,
                                leftIndent=14, spaceAfter=3)
 
-    story.append(Paragraph('<b>Currency:</b> Prices are quoted in Egyptian Pounds (EGP).', tc_body))
+    story.append(Paragraph(f'<b>Currency:</b> Prices are quoted in {curr_label}.', tc_body))
     story.append(Spacer(1, 4))
 
     if invoice.invoice_type == 'Purchase Quotation':
@@ -732,12 +754,13 @@ def generate_formal_invoice_pdf(invoice):
         ))
         story.append(Spacer(1, 4))
 
-    story.append(Paragraph(
-        '<b>Local Payment:</b> If payment is made in Egyptian Pounds (EGP), an additional '
-        '10% will be added to the official bank exchange rate on the day of payment.',
-        tc_body
-    ))
-    story.append(Spacer(1, 6))
+    if not use_egp:
+        story.append(Paragraph(
+            '<b>Local Payment:</b> If payment is made in Egyptian Pounds (EGP), an additional '
+            '10% will be added to the official bank exchange rate on the day of payment.',
+            tc_body
+        ))
+        story.append(Spacer(1, 6))
 
     story.append(Paragraph('<b>Inclusions:</b> The quoted price includes:', tc_body))
     story.append(Spacer(1, 4))

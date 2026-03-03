@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     FileText, Plus, Search, Loader2, CheckCircle, AlertCircle,
     Download, Trash2, Edit2, User, DollarSign, X,
-    FileDown, Printer, Package, Check, ArrowRight, Building2, Users, TrendingUp, StickyNote
+    FileDown, Printer, Package, Check, ArrowRight, Building2, Users, TrendingUp, StickyNote,
+    RefreshCw, Globe
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -33,6 +34,10 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         editInvoice?.selected_modules?.map(m => m.id) || []
     );
     const [isDairyLive, setIsDairyLive] = useState(editInvoice?.is_dairylive || false);
+    const [currency, setCurrency] = useState(editInvoice?.currency || 'EUR');
+    const [exchangeRate, setExchangeRate] = useState(editInvoice?.exchange_rate ? parseFloat(editInvoice.exchange_rate) : null);
+    const [rateLoading, setRateLoading] = useState(false);
+    const [rateDate, setRateDate] = useState('');
     const [error, setError] = useState('');
 
     // Fetch modules
@@ -48,6 +53,41 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const activeModules = modules.filter(m => m.is_active);
     const isRenewal = formData.invoice_type === 'Renewal Invoice';
 
+    // Fetch live EUR→EGP rate
+    const fetchRate = useCallback(async () => {
+        setRateLoading(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/invoices/live_exchange_rate/`);
+            const data = await res.json();
+            if (data.rate) {
+                setExchangeRate(data.rate);
+                setRateDate(data.date);
+            } else {
+                setError('Could not fetch exchange rate. Please try again.');
+            }
+        } catch {
+            setError('Failed to reach rate server.');
+        } finally {
+            setRateLoading(false);
+        }
+    }, []);
+
+    // Auto-fetch rate when EGP is selected
+    useEffect(() => {
+        if (currency === 'EGP' && !exchangeRate) {
+            fetchRate();
+        }
+    }, [currency]);
+
+    // Price conversion helper
+    const toDisplay = (eurAmount) => {
+        if (currency === 'EGP' && exchangeRate) {
+            return (eurAmount * exchangeRate).toFixed(2);
+        }
+        return eurAmount.toFixed(2);
+    };
+    const currSymbol = currency === 'EGP' ? 'EGP' : '€';
+
     // Per-module price helpers (based on invoice type)
     const getModuleCost = (mod) => parseFloat(isRenewal ? (mod.renewal_price || 0) : (mod.purchase_price || 0));
     const getModuleCustomerPrice = (mod) => {
@@ -55,7 +95,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         return (!isRenewal && isDairyLive) ? base * 0.5 : base;
     };
 
-    // Calculate totals
+    // Calculate totals (always in EUR base, convert for display)
     const costTotal = selectedModuleIds.reduce((sum, id) => {
         const mod = modules.find(m => m.id === id);
         return sum + (mod ? getModuleCost(mod) : 0);
@@ -128,10 +168,13 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         mutation.mutate({
             ...formData,
             selected_module_ids: selectedModuleIds,
-            total_amount: customerTotal.toFixed(2),
-            cost_total: costTotal.toFixed(2),
-            customer_total: customerTotal.toFixed(2),
+            // Store totals in the selected display currency
+            total_amount: parseFloat(toDisplay(customerTotal)).toFixed(2),
+            cost_total: parseFloat(toDisplay(costTotal)).toFixed(2),
+            customer_total: parseFloat(toDisplay(customerTotal)).toFixed(2),
             is_dairylive: isDairyLive,
+            currency,
+            exchange_rate: currency === 'EGP' && exchangeRate ? exchangeRate : null,
         });
     };
 
@@ -210,6 +253,62 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         </div>
                     </div>
 
+                    {/* Currency Selector */}
+                    <div>
+                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <Globe size={12} className="inline mr-1.5 -mt-0.5" />
+                            Currency
+                        </label>
+                        <div className="flex gap-2">
+                            {[
+                                { code: 'EUR', label: 'Euro (€)', icon: '€' },
+                                { code: 'EGP', label: 'Egyptian Pound (EGP)', icon: '£' },
+                            ].map(c => (
+                                <button
+                                    key={c.code}
+                                    type="button"
+                                    onClick={() => isAdmin && setCurrency(c.code)}
+                                    className={`flex-1 py-2.5 px-4 rounded-xl font-medium text-sm transition-all ${currency === c.code
+                                        ? isDark ? 'bg-blue-500/15 border border-blue-500/30 text-blue-400' : 'bg-blue-50 border border-blue-500 text-blue-700'
+                                        : isDark ? 'bg-white/[0.04] border border-white/[0.08] text-gray-400 hover:border-white/[0.12]' : 'bg-gray-50 border border-gray-200 text-gray-600 hover:border-gray-300'
+                                        } ${!isAdmin && 'opacity-50 cursor-not-allowed'}`}
+                                >
+                                    {c.icon} {c.code}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Live Rate Box (only when EGP selected) */}
+                        {currency === 'EGP' && (
+                            <div className={`mt-2 p-3 rounded-xl flex items-center gap-3 ${isDark ? 'bg-blue-500/8 border border-blue-500/20' : 'bg-blue-50 border border-blue-200'}`}>
+                                <Globe size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+                                <div className="flex-1 min-w-0">
+                                    {rateLoading ? (
+                                        <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            <Loader2 size={11} className="inline animate-spin mr-1" />Fetching live rate...
+                                        </span>
+                                    ) : exchangeRate ? (
+                                        <span className={`text-xs font-medium ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                                            <b>1 € = {exchangeRate} EGP</b>
+                                            {rateDate && <span className={`ml-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>(as of {rateDate})</span>}
+                                        </span>
+                                    ) : (
+                                        <span className={`text-xs ${isDark ? 'text-red-400' : 'text-red-600'}`}>Rate unavailable</span>
+                                    )}
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={fetchRate}
+                                    disabled={rateLoading || !isAdmin}
+                                    className={`p-1.5 rounded-lg transition-colors ${isDark ? 'hover:bg-white/10 text-blue-400' : 'hover:bg-blue-100 text-blue-600'} disabled:opacity-40`}
+                                    title="Refresh rate"
+                                >
+                                    <RefreshCw size={13} className={rateLoading ? 'animate-spin' : ''} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
                     {/* DairyLive Checkbox (purchase only) */}
                     {!isRenewal && (
                         <div>
@@ -279,14 +378,14 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                                 <div className="text-right">
                                                     <div className={`text-[10px] uppercase font-bold tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Cost</div>
                                                     <span className={`text-xs font-semibold tabular-nums ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        {modCost.toLocaleString()} EGP
+                                                        {toDisplay(modCost)} {currSymbol}
                                                     </span>
                                                 </div>
                                                 <ArrowRight size={10} className={isDark ? 'text-gray-700' : 'text-gray-300'} />
                                                 <div className="text-right">
                                                     <div className={`text-[10px] uppercase font-bold tracking-wider ${isSelected ? isDark ? 'text-green-500' : 'text-green-600' : isDark ? 'text-gray-600' : 'text-gray-400'}`}>Customer</div>
                                                     <span className={`text-xs font-bold tabular-nums ${isSelected ? isDark ? 'text-green-400' : 'text-green-700' : isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        {modCustomer.toLocaleString(undefined, { maximumFractionDigits: 2 })} EGP
+                                                        {toDisplay(modCustomer)} {currSymbol}
                                                     </span>
                                                 </div>
                                             </div>
@@ -312,7 +411,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                         <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Cost to Uniform Agri</span>
                                     </div>
                                     <span className={`text-base font-bold tabular-nums ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                        {costTotal.toLocaleString()} EGP
+                                        {toDisplay(costTotal)} {currSymbol}
                                     </span>
                                 </div>
                                 <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
@@ -328,7 +427,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                         <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Customer Price</span>
                                     </div>
                                     <span className={`text-base font-bold tabular-nums ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                                        {customerTotal.toLocaleString()} EGP
+                                        {toDisplay(customerTotal)} {currSymbol}
                                     </span>
                                 </div>
                                 <div className={`mt-1 pt-3 border-t flex items-center justify-between ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
@@ -339,7 +438,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                         <span className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>Your Profit</span>
                                     </div>
                                     <span className={`text-lg font-extrabold tabular-nums ${isDark ? 'text-green-400' : 'text-green-600'}`}>
-                                        +{profit.toLocaleString()} EGP
+                                        +{toDisplay(profit)} {currSymbol}
                                     </span>
                                 </div>
                             </div>

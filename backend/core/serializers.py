@@ -177,7 +177,8 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'livestock_selection', 'livestock_ids',
             'selected_modules', 'selected_module_ids',
             'total_amount', 'cost_total', 'customer_total', 'notes',
-            'status', 'is_dairylive', 'pdf_file', 'payments', 'created_at', 'updated_at'
+            'status', 'is_dairylive', 'currency', 'exchange_rate',
+            'pdf_file', 'payments', 'created_at', 'updated_at'
         ]
         read_only_fields = ['created_at', 'updated_at']
 

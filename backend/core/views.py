@@ -92,6 +92,31 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         if instance.status == 'Paid to Us':
             ActivityLog.log('invoice_paid', f'Invoice #{instance.id} marked as paid', 'invoice', instance.id)
 
+    @action(detail=False, methods=['get'])
+    def live_exchange_rate(self, request):
+        """Fetch the live EUR→EGP exchange rate from frankfurter.app (free, no key needed)."""
+        import requests as http_requests
+        from decimal import Decimal
+        try:
+            resp = http_requests.get(
+                'https://api.frankfurter.app/latest?from=EUR&to=EGP',
+                timeout=8
+            )
+            data = resp.json()
+            rate = Decimal(str(data['rates']['EGP'])).quantize(Decimal('0.0001'))
+            return Response({
+                'rate': float(rate),
+                'from': 'EUR',
+                'to': 'EGP',
+                'date': data.get('date', ''),
+            })
+        except Exception as e:
+            # Fallback rate if internet is unavailable
+            return Response({
+                'rate': None,
+                'error': f'Could not fetch live rate: {str(e)}',
+            }, status=503)
+
     @action(detail=True, methods=['post'])
     def generate_pdf(self, request, pk=None):
         """Generate a formal, professional customer-facing PDF for this invoice."""

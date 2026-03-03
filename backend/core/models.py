@@ -78,6 +78,11 @@ class Invoice(models.Model):
         ('Due', 'Due'),
     ]
 
+    CURRENCY_CHOICES = [
+        ('EUR', 'Euro (€)'),
+        ('EGP', 'Egyptian Pound (EGP)'),
+    ]
+
     client = models.ForeignKey(Client, on_delete=models.CASCADE, related_name='invoices')
     invoice_type = models.CharField(max_length=30, choices=INVOICE_TYPE_CHOICES)
     livestock_selection = models.ManyToManyField(LivestockType, related_name='invoices')
@@ -92,6 +97,14 @@ class Invoice(models.Model):
     is_dairylive = models.BooleanField(
         default=False,
         help_text="DairyLive customer? Gives 50% discount on purchase customer price"
+    )
+    currency = models.CharField(
+        max_length=3, choices=CURRENCY_CHOICES, default='EUR',
+        help_text="Currency for this invoice (EUR = base price, EGP = converted at exchange rate)"
+    )
+    exchange_rate = models.DecimalField(
+        max_digits=10, decimal_places=4, null=True, blank=True,
+        help_text="EUR→EGP exchange rate used at time of invoice creation"
     )
     pdf_file = models.FileField(upload_to='invoices/', null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
