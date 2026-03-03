@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Info } from 'lucide-react';
+import { TrendingUp, HelpCircle } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 
 const colorClasses = {
@@ -30,6 +30,7 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
     const navigate = useNavigate();
     const cardRef = useRef(null);
     const infoBtnRef = useRef(null);
+    const tooltipRef = useRef(null);
     const [tilt, setTilt] = useState({ x: 0, y: 0 });
     const [isHovered, setIsHovered] = useState(false);
     const [showInfo, setShowInfo] = useState(false);
@@ -62,9 +63,12 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
         e.stopPropagation();
         if (infoBtnRef.current) {
             const rect = infoBtnRef.current.getBoundingClientRect();
+            const tooltipW = 256;
+            let left = rect.left + rect.width / 2 - tooltipW / 2;
+            left = Math.max(12, Math.min(left, window.innerWidth - tooltipW - 12));
             setTooltipPos({
                 top: rect.bottom + 8,
-                left: Math.max(12, Math.min(rect.left, window.innerWidth - 280)),
+                left,
             });
         }
         setShowInfo(!showInfo);
@@ -74,7 +78,10 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
     useEffect(() => {
         if (!showInfo) return;
         const handleClickOutside = (e) => {
-            if (infoBtnRef.current && !infoBtnRef.current.contains(e.target)) {
+            if (
+                infoBtnRef.current && !infoBtnRef.current.contains(e.target) &&
+                tooltipRef.current && !tooltipRef.current.contains(e.target)
+            ) {
                 setShowInfo(false);
             }
         };
@@ -111,44 +118,6 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             {/* Animated Gradient Accent */}
             <div className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${colorClasses[color]} opacity-10 rounded-bl-full transform group-hover:scale-150 group-hover:opacity-20 transition-all duration-700`} />
 
-            {/* Info Button — bottom-right, appears on hover */}
-            {info && (
-                <button
-                    ref={infoBtnRef}
-                    onClick={handleInfoClick}
-                    className={`absolute bottom-2.5 right-2.5 md:bottom-3 md:right-3 z-20 p-1 rounded-md transition-all duration-300 ${showInfo
-                            ? isDark ? 'opacity-100 bg-white/15 text-white/80' : 'opacity-100 bg-black/[0.06] text-gray-600'
-                            : isDark ? 'opacity-0 group-hover:opacity-60 hover:!opacity-100 text-white/40 hover:text-white/70' : 'opacity-0 group-hover:opacity-50 hover:!opacity-100 text-gray-400 hover:text-gray-600'
-                        }`}
-                    title="What is this?"
-                >
-                    <Info size={12} strokeWidth={2.5} />
-                </button>
-            )}
-
-            {/* Info Tooltip Portal */}
-            {info && showInfo && createPortal(
-                <div
-                    className={`fixed z-[9999] w-64 p-3.5 rounded-xl shadow-2xl border text-sm leading-relaxed animate-in fade-in zoom-in-95 duration-200 ${isDark
-                        ? 'bg-gray-800/95 backdrop-blur-xl border-white/10 text-gray-200 shadow-black/50'
-                        : 'bg-white border-gray-200 text-gray-700 shadow-gray-300/50'
-                        }`}
-                    style={{ top: tooltipPos.top, left: tooltipPos.left }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="flex items-start gap-2.5">
-                        <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 bg-gradient-to-br ${colorClasses[color]}`}>
-                            <Info size={12} className="text-white" />
-                        </div>
-                        <div>
-                            <p className={`text-xs font-bold mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</p>
-                            <p className={`text-xs leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{info}</p>
-                        </div>
-                    </div>
-                </div>,
-                document.body
-            )}
-
             {/* Premium Shimmer effect on hover */}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out" />
 
@@ -162,7 +131,21 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
 
             <div className="relative flex items-start justify-between" style={{ transform: 'translateZ(30px)' }}>
                 <div className="min-w-0 flex-1">
-                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 truncate">{label}</p>
+                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 flex items-center gap-1">
+                        <span className="truncate">{label}</span>
+                        {info && (
+                            <span
+                                ref={infoBtnRef}
+                                onClick={handleInfoClick}
+                                className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help ${showInfo
+                                        ? isDark ? 'text-white/60' : 'text-gray-500'
+                                        : isDark ? 'text-transparent group-hover:text-white/20 hover:!text-white/50' : 'text-transparent group-hover:text-gray-300 hover:!text-gray-500'
+                                    }`}
+                            >
+                                <HelpCircle size={11} />
+                            </span>
+                        )}
+                    </p>
                     <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
                     {subValue && (
                         <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-500 mt-0.5 md:mt-1 flex items-center gap-1 truncate">
@@ -181,7 +164,27 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
                     <Icon className="text-white w-4 h-4 md:w-6 md:h-6" />
                 </div>
             </div>
+
+            {/* Info Tooltip Portal */}
+            {info && showInfo && createPortal(
+                <div
+                    ref={tooltipRef}
+                    className={`fixed z-[9999] w-64 rounded-xl shadow-2xl border overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 ${isDark
+                            ? 'bg-gray-900/95 backdrop-blur-xl border-white/[0.08] shadow-black/40'
+                            : 'bg-white/95 backdrop-blur-xl border-gray-200/80 shadow-gray-200/60'
+                        }`}
+                    style={{ top: tooltipPos.top, left: tooltipPos.left }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <div className={`px-3.5 py-2 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                        <p className={`text-[11px] font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{label}</p>
+                    </div>
+                    <div className="px-3.5 py-2.5">
+                        <p className={`text-[11px] leading-relaxed ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{info}</p>
+                    </div>
+                </div>,
+                document.body
+            )}
         </div>
     );
 }
-
