@@ -85,7 +85,7 @@ export default function AddContactModal({ clientId, clientName, onClose }) {
                             type="text"
                             value={form.name}
                             onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
-                            placeholder="e.g. Ahmed Hassan"
+                            placeholder="e.g. Mohamed Sanad"
                             className={inputClass}
                             autoFocus
                         />
