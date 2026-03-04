@@ -23,7 +23,29 @@ const createClient = async (newClient) => {
         const errorData = await response.json();
         throw new Error(JSON.stringify(errorData) || 'Failed to create client');
     }
-    return response.json();
+    const clientData = await response.json();
+
+    // Automatically enroll in 4Genetics if checked
+    if (newClient.is_4genetics_college) {
+        try {
+            await fetch(`${API_BASE_URL}/genetics-serials/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    serial_number: newClient.serial_number || `4G-${Date.now()}`,
+                    client: clientData.id,
+                    product_type: clientData.livestock_type || 'Dairy Cows',
+                    role: newClient.role || '',
+                    modules: newClient.subscription_modules || '',
+                    notes: 'Auto-enrolled from client wizard',
+                    is_active: true
+                })
+            });
+        } catch (e) {
+            console.error('Failed to create genetics serial', e);
+        }
+    }
+    return clientData;
 };
 
 export default function Clients() {
@@ -62,7 +84,9 @@ export default function Clients() {
         subscription_modules: '',
         general_notes: '',
         is_demo: false,
-        is_4genetics_college: false
+        is_4genetics_college: false,
+        livestock_type: 'Dairy Cows',
+        role: ''
     });
     const [formError, setFormError] = useState(null);
     const [fieldErrors, setFieldErrors] = useState({});
@@ -85,7 +109,11 @@ export default function Clients() {
                 subscription_end_date: '',
                 serial_number: '',
                 subscription_modules: '',
-                general_notes: ''
+                general_notes: '',
+                is_demo: false,
+                is_4genetics_college: false,
+                livestock_type: 'Dairy Cows',
+                role: ''
             });
             setFormError(null);
         },
@@ -384,6 +412,20 @@ export default function Clients() {
                                             onChange={handleInputChange}
                                         />
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Livestock Type *</label>
+                                        <select
+                                            name="livestock_type"
+                                            value={formData.livestock_type}
+                                            onChange={handleInputChange}
+                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                        >
+                                            <option value="Dairy Cows">Dairy Cows</option>
+                                            <option value="Dairy Buffalos">Dairy Buffalos</option>
+                                            <option value="Fattening">Fattening</option>
+                                            <option value="Sheep and Goat">Sheep and Goat</option>
+                                        </select>
+                                    </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
@@ -431,6 +473,22 @@ export default function Clients() {
                                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">4Genetics College?</span>
                                         </label>
                                     </div>
+
+                                    {formData.is_4genetics_college && (
+                                        <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-300 border-l-2 border-green-500 pl-3 ml-2">
+                                            <div>
+                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Role</label>
+                                                <input
+                                                    type="text"
+                                                    name="role"
+                                                    placeholder="e.g. Professor, Lab Manager"
+                                                    value={formData.role}
+                                                    onChange={handleInputChange}
+                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>

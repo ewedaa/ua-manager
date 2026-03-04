@@ -71,10 +71,10 @@ export default function EditClientModal({ client, onClose }) {
         // Only send writable fields to avoid issues with nested read-only objects
         const payload = {
             id: formData.id,
-            name: formData.farm_name,
             farm_name: formData.farm_name,
             phone: formData.phone,
             serial_number: formData.serial_number,
+            livestock_type: formData.livestock_type || 'Dairy Cows',
             subscription_modules: formData.subscription_modules,
             general_notes: formData.general_notes,
             subscription_start_date: formData.subscription_start_date || null,
@@ -118,16 +118,34 @@ export default function EditClientModal({ client, onClose }) {
                         />
                     </div>
 
-                    {/* Serial Number */}
-                    <div>
-                        <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial Number</label>
-                        <input
-                            type="text"
-                            name="serial_number"
-                            value={formData.serial_number || ''}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
-                        />
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Serial Number */}
+                        <div>
+                            <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Serial Number</label>
+                            <input
+                                type="text"
+                                name="serial_number"
+                                value={formData.serial_number || ''}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                            />
+                        </div>
+
+                        {/* Livestock Type */}
+                        <div>
+                            <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Livestock Type *</label>
+                            <select
+                                name="livestock_type"
+                                value={formData.livestock_type || 'Dairy Cows'}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                            >
+                                <option value="Dairy Cows">Dairy Cows</option>
+                                <option value="Dairy Buffalos">Dairy Buffalos</option>
+                                <option value="Fattening">Fattening</option>
+                                <option value="Sheep and Goat">Sheep and Goat</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Subscription Modules (Multi-select from API) */}

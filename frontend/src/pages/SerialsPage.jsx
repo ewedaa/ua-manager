@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, ToggleRight, FileDown, Printer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
@@ -26,6 +27,7 @@ const badgeColor = {
 
 export default function SerialsPage() {
     const { isDark } = useTheme();
+    const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('');
@@ -62,6 +64,7 @@ export default function SerialsPage() {
             }).then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); });
         },
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['serials'] }); closeModal(); },
+        onError: (err) => setFormError(err.message),
     });
 
     const deleteMutation = useMutation({
@@ -187,14 +190,30 @@ export default function SerialsPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-white/[0.04]">
                                 {filtered.map(s => (
-                                    <tr key={s.id} className={`transition-colors duration-100 ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50'}`}>
+                                    <tr
+                                        key={s.id}
+                                        className={`transition-colors duration-100 cursor-pointer ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50'}`}
+                                        onClick={(e) => {
+                                            // Prevent navigation if they click actions / buttons
+                                            if (e.target.closest('button')) return;
+                                            if (s.client) window.open(`/clients/${s.client}`, '_blank', 'noopener,noreferrer');
+                                        }}
+                                    >
                                         <td className="px-5 py-3.5 font-mono text-sm text-gray-900 dark:text-gray-200">{s.serial_number}</td>
                                         <td className="px-5 py-3.5">
                                             <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-medium border ${badgeColor[s.product_type] || 'bg-gray-500/15 text-gray-400'}`}>
                                                 {s.product_type}
                                             </span>
                                         </td>
-                                        <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400">{s.client_name || <span className="opacity-40">Unassigned</span>}</td>
+                                        <td className="px-5 py-3.5 text-sm">
+                                            {s.client ? (
+                                                <Link to={`/clients/${s.client}`} className={`font-semibold hover:underline ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
+                                                    {s.client_name}
+                                                </Link>
+                                            ) : (
+                                                <span className="opacity-40 text-gray-600 dark:text-gray-400">Unassigned</span>
+                                            )}
+                                        </td>
                                         <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400">{s.role || <span className="opacity-30">—</span>}</td>
                                         <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">{s.modules || <span className="opacity-30">—</span>}</td>
                                         <td className="px-5 py-3.5">
@@ -251,9 +270,7 @@ export default function SerialsPage() {
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
                                     <input required value={form.serial_number} onChange={e => {
-                                        let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-                                        val = val.match(/.{1,4}/g)?.join('-') || '';
-                                        val = val.substring(0, 24);
+                                        let val = e.target.value.toUpperCase();
                                         setForm(f => ({ ...f, serial_number: val }));
                                     }} className={inputClass} />
                                 </div>
@@ -267,10 +284,15 @@ export default function SerialsPage() {
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Name</label>
                                     <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={inputClass}>
                                         <option value="">Unassigned</option>
-                                        {collegeClients.length > 0 ? (
-                                            collegeClients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)
-                                        ) : (
-                                            clients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)
+                                        {collegeClients.length > 0 && (
+                                            <optgroup label="4Genetics Colleges">
+                                                {collegeClients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
+                                            </optgroup>
+                                        )}
+                                        {clients.filter(c => !c.is_4genetics_college).length > 0 && (
+                                            <optgroup label="Other Clients">
+                                                {clients.filter(c => !c.is_4genetics_college).map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
+                                            </optgroup>
                                         )}
                                     </select>
                                 </div>

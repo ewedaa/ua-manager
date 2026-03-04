@@ -26,6 +26,15 @@ const MODULES = [
                     { value: 'expiring', label: 'Expiring Soon (60 days)' },
                 ]
             },
+            {
+                id: 'livestock_type', label: 'Livestock Type', type: 'select', options: [
+                    { value: '', label: 'All' },
+                    { value: 'Dairy Cows', label: 'Dairy Cows' },
+                    { value: 'Dairy Buffalos', label: 'Dairy Buffalos' },
+                    { value: 'Fattening', label: 'Fattening' },
+                    { value: 'Sheep and Goat', label: 'Sheep and Goat' },
+                ]
+            },
             { id: 'demo_only', label: 'Demo Farms Only', type: 'checkbox' },
         ],
     },

@@ -115,7 +115,7 @@ class ClientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Client
         fields = [
-            'id', 'name', 'farm_name', 'phone', 'serial_number', 
+            'id', 'name', 'farm_name', 'phone', 'serial_number', 'livestock_type',
             'subscription_modules', 'general_notes', 'contacts', 'whatsapp_link',
             'subscription_start_date', 'subscription_end_date',
             'is_demo', 'demo_start_date', 'demo_end_date', 'is_4genetics_college',

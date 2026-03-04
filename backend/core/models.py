@@ -5,9 +5,17 @@ from datetime import timedelta
 
 class Client(models.Model):
     """Client model representing a dairy farm subscriber."""
+    LIVESTOCK_CHOICES = [
+        ('Dairy Cows', 'Dairy Cows'),
+        ('Dairy Buffalos', 'Dairy Buffalos'),
+        ('Fattening', 'Fattening'),
+        ('Sheep and Goat', 'Sheep and Goat'),
+    ]
+    
     name = models.CharField(max_length=255, db_index=True)
     farm_name = models.CharField(max_length=255, db_index=True)
     phone = models.CharField(max_length=20)
+    livestock_type = models.CharField(max_length=100, choices=LIVESTOCK_CHOICES, default='Dairy Cows')
     serial_number = models.CharField(max_length=100, blank=True)
     subscription_modules = models.TextField(blank=True, help_text="Details of subscription modules")
     general_notes = models.TextField(blank=True, help_text="Additional notes/contacts")

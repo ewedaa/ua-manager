@@ -25,7 +25,11 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
         subscription_start_date: today,
         subscription_end_date: oneYear,
         is_demo: false,
+        is_4genetics_college: false,
         general_notes: '',
+        serial_number: '',
+        livestock_type: 'Dairy Cows',
+        role: ''
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -52,6 +56,26 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                 throw new Error(Object.values(err).flat().join(' ') || 'Failed to create client');
             }
             const newClient = await res.json();
+
+            if (form.is_4genetics_college) {
+                try {
+                    await fetch(`${API_BASE_URL}/genetics-serials/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            serial_number: form.serial_number || `4G-${Date.now()}`,
+                            client: newClient.id,
+                            product_type: form.livestock_type || 'Dairy Cows',
+                            role: form.role || '',
+                            is_active: true,
+                            notes: 'Auto-enrolled from quick add modal'
+                        })
+                    });
+                } catch (e) {
+                    console.error('Failed to create genetics serial', e);
+                }
+            }
+
             queryClient.invalidateQueries(['clients']);
             queryClient.invalidateQueries(['dashboardStats']);
             onCreated(newClient);
@@ -63,8 +87,8 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
     };
 
     const inp = `w-full px-3 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-green-500 ${isDark
-            ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600'
-            : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
+        ? 'bg-white/[0.05] border-white/[0.10] text-white placeholder:text-gray-600'
+        : 'bg-gray-50 border-gray-200 text-gray-900 placeholder:text-gray-400'
         }`;
 
     return (
@@ -107,6 +131,15 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                             <input value={form.phone} onChange={e => field('phone', e.target.value)} placeholder="+20 100 000 0000" className={inp} />
                         </div>
                         <div>
+                            <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Livestock Type *</label>
+                            <select value={form.livestock_type} onChange={e => field('livestock_type', e.target.value)} className={inp}>
+                                <option value="Dairy Cows">Dairy Cows</option>
+                                <option value="Dairy Buffalos">Dairy Buffalos</option>
+                                <option value="Fattening">Fattening</option>
+                                <option value="Sheep and Goat">Sheep and Goat</option>
+                            </select>
+                        </div>
+                        <div>
                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Status</label>
                             <div className="flex gap-2 mt-1">
                                 <button type="button" onClick={() => field('is_demo', false)}
@@ -114,11 +147,39 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                                     Active
                                 </button>
                                 <button type="button" onClick={() => field('is_demo', true)}
-                                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${form.is_demo ? 'bg-purple-600 border-purple-500 text-white' : isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
+                                    className={`flex-1 py-2 rounded-xl text-xs font-semibold border transition-all ${form.is_demo ? 'bg-amber-500 border-amber-400 text-white' : isDark ? 'bg-white/5 border-white/10 text-gray-400' : 'bg-gray-50 border-gray-200 text-gray-500'}`}>
                                     Demo
                                 </button>
                             </div>
                         </div>
+
+                        <div className="col-span-2 flex items-center gap-2 mt-1 px-1">
+                            <label className="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    checked={form.is_4genetics_college}
+                                    onChange={(e) => field('is_4genetics_college', e.target.checked)}
+                                    className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                                />
+                                <span className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>
+                                    This is a 4Genetics College
+                                </span>
+                            </label>
+                        </div>
+
+                        {form.is_4genetics_college && (
+                            <div className="col-span-2 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300 border-l-2 border-green-500 pl-3 ml-1 mb-1 relative">
+                                <div className="col-span-2">
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>College Serial Number</label>
+                                    <input value={form.serial_number} onChange={e => field('serial_number', e.target.value)} placeholder="Auto-generated if empty" className={inp} />
+                                </div>
+                                <div className="col-span-2">
+                                    <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>College Role</label>
+                                    <input value={form.role} onChange={e => field('role', e.target.value)} placeholder="e.g. Professor, Lab Manager" className={inp} />
+                                </div>
+                            </div>
+                        )}
+
                         <div>
                             <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Start Date *</label>
                             <input required type="date" value={form.subscription_start_date} onChange={e => field('subscription_start_date', e.target.value)} className={inp} />

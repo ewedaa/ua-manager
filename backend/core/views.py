@@ -1175,16 +1175,18 @@ class ReportBuilderView(views.APIView):
                     )
                 if filters.get('demo_only'):
                     qs = qs.filter(is_demo=True)
+                if filters.get('livestock_type'):
+                    qs = qs.filter(livestock_type=filters['livestock_type'])
 
                 rows = []
                 for c in qs:
                     end = c.subscription_end_date
                     stat = 'Active' if end and end >= today else 'Expired'
-                    rows.append([c.name, c.farm_name, c.phone or '-', str(end) if end else '-', stat])
+                    rows.append([c.name, c.farm_name, c.phone or '-', str(end) if end else '-', stat, getattr(c, 'livestock_type', '-')])
 
                 summary_stats['Total Clients'] = len(rows)
-                header = '| Name | Farm | Phone | Subscription End | Status |\n|---|---|---|---|---|\n'
-                body = '\n'.join([f'| {" | ".join(r)} |' for r in rows]) if rows else '| No data | | | | |'
+                header = '| Name | Farm | Phone | Subscription End | Status | Livestock |\n|---|---|---|---|---|---|\n'
+                body = '\n'.join([f'| {" | ".join(map(str, r))} |' for r in rows]) if rows else '| No data | | | | | |'
                 sections.append(f'## Clients\n\n{header}{body}\n')
 
             elif key == 'invoices':

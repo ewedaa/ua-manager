@@ -91,6 +91,11 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                 <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${status.bg} ${status.text}`}>
                                     <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />{status.label}
                                 </span>
+                                {client.livestock_type && (
+                                    <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
+                                        {client.livestock_type}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -158,10 +163,17 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                             <h3 className={`text-base font-extrabold leading-tight tracking-tight truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {client.farm_name}
                             </h3>
-                            <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest mt-1.5 ${status.bg} ${status.text}`}>
-                                <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
-                                {status.label}
-                            </span>
+                            <div className="flex flex-wrap gap-2 mt-1.5">
+                                <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${status.bg} ${status.text}`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                                    {status.label}
+                                </span>
+                                {client.livestock_type && (
+                                    <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${isDark ? 'bg-blue-500/10 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>
+                                        {client.livestock_type}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
 
