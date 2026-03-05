@@ -126,7 +126,8 @@ class Invoice(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"Invoice #{self.id} - {self.client.name} ({self.status})"
+        client_name = self.client.name if self.client else "No Client"
+        return f"Invoice #{self.id} - {client_name} ({self.status})"
 
     class Meta:
         ordering = ['-created_at']

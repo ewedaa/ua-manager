@@ -12,6 +12,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
         client: '',
+        new_farm_name: '',
         invoice_type: 'Purchase Quotation',
         currency: 'EUR',
         livestock_ids: [],
@@ -119,6 +120,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
             if (clientId) {
                 form.append('client', clientId);
             } else if (formData.new_farm_name) {
+                form.append('client', ''); // Ensure backend sees empty client
                 form.append('new_farm_name', formData.new_farm_name);
             }
             form.append('total_amount', customerTotal.toFixed(2));

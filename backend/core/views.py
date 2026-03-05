@@ -84,12 +84,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        from .models import Client
+        from .models import Client, ActivityLog
         from django.utils import timezone
         from datetime import timedelta
         
-        new_farm_name = self.request.data.get('new_farm_name')
-        if new_farm_name and self.request.data.get('invoice_type') == 'Purchase Quotation':
+        data = self.request.data
+        new_farm_name = data.get('new_farm_name')
+        inv_type = data.get('invoice_type')
+        
+        if new_farm_name and inv_type == 'Purchase Quotation':
             # Create a quoted farm
             client = Client.objects.create(
                 name=new_farm_name,
@@ -103,7 +106,20 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         else:
             instance = serializer.save()
             
-        ActivityLog.log('invoice_created', f'Invoice #{instance.id} created for "{instance.client.farm_name}"', 'invoice', instance.id)
+        # Safer activity logging
+        try:
+            target_name = "Unknown Farm"
+            if instance.client:
+                target_name = instance.client.farm_name or instance.client.name
+            
+            ActivityLog.log(
+                action='invoice_created',
+                description=f'Invoice #{instance.id} created for "{target_name}"',
+                entity_type='invoice',
+                entity_id=instance.id
+            )
+        except Exception as e:
+            print(f"Failed to log activity: {e}")
 
     def perform_update(self, serializer):
         instance = serializer.save()
