@@ -623,10 +623,38 @@ export default function StatDetailPage() {
                             <h1 className={`text-2xl font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-gray-900'}`}>
                                 {config.label}
                             </h1>
-                            <span className={`text-3xl font-extrabold tabular-nums ${colors.text}`}>
-                                {isLoading ? '…' : totalCount}
-                            </span>
+                            {tileId !== 'due-invoices' && (
+                                <span className={`text-3xl font-extrabold tabular-nums ${colors.text}`}>
+                                    {isLoading ? '…' : totalCount}
+                                </span>
+                            )}
                         </div>
+                        {tileId === 'due-invoices' && !isLoading && (
+                            <div className="flex flex-wrap items-center gap-3 mt-3 mb-4">
+                                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl py-2 px-4 border border-blue-200 dark:border-blue-500/20 shadow-sm flex items-center gap-3">
+                                    <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                                        <DollarSign size={16} className="text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Due to 4Genetics</div>
+                                        <div className="text-xl font-extrabold text-blue-700 dark:text-blue-400">
+                                            {rawData.filter(i => i.status === 'Due').reduce((acc, i) => acc + parseFloat(i.customer_total || i.total_amount || 0), 0).toLocaleString()} <span className="text-sm font-semibold">€</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl py-2 px-4 border border-violet-200 dark:border-violet-500/20 shadow-sm flex items-center gap-3">
+                                    <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-500/20">
+                                        <DollarSign size={16} className="text-violet-600 dark:text-violet-400" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Due to Uniform Agri</div>
+                                        <div className="text-xl font-extrabold text-violet-700 dark:text-violet-400">
+                                            {rawData.filter(i => i.status === 'Due' || i.status === 'Paid to Us').reduce((acc, i) => acc + parseFloat(i.cost_total || 0), 0).toLocaleString()} <span className="text-sm font-semibold">€</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                             {config.description}
                         </p>
