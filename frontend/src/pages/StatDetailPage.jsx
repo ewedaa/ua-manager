@@ -516,6 +516,7 @@ export default function StatDetailPage() {
     });
     const [demoSaving, setDemoSaving] = useState(false);
     const [demoError, setDemoError] = useState('');
+    const [activeFilter, setActiveFilter] = useState('all'); // 'all', '4genetics', 'uniform'
 
     const config = TILE_CONFIG[tileId];
 
@@ -593,6 +594,11 @@ export default function StatDetailPage() {
         if (!search) return true;
         const row = config.getRow(item);
         return row.cells.some(c => String(c).toLowerCase().includes(search.toLowerCase()));
+    }).filter(item => {
+        if (tileId !== 'due-invoices' || activeFilter === 'all') return true;
+        if (activeFilter === '4genetics') return item.status === 'Due';
+        if (activeFilter === 'uniform') return item.status === 'Due' || item.status === 'Paid to Us';
+        return true;
     });
 
     const totalCount = config.filter(rawData).length;
@@ -631,7 +637,13 @@ export default function StatDetailPage() {
                         </div>
                         {tileId === 'due-invoices' && !isLoading && (
                             <div className="flex flex-wrap items-center gap-3 mt-3 mb-4">
-                                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl py-2 px-4 border border-blue-200 dark:border-blue-500/20 shadow-sm flex items-center gap-3">
+                                <button
+                                    onClick={() => setActiveFilter(prev => prev === '4genetics' ? 'all' : '4genetics')}
+                                    className={`text-left rounded-xl py-2 px-4 border shadow-sm flex items-center gap-3 transition-colors ${activeFilter === '4genetics'
+                                            ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-400 dark:border-blue-500'
+                                            : 'bg-white/60 dark:bg-slate-800/60 border-blue-200 dark:border-blue-500/20 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 hover:border-blue-300'
+                                        }`}
+                                >
                                     <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
                                         <DollarSign size={16} className="text-blue-600 dark:text-blue-400" />
                                     </div>
@@ -641,8 +653,14 @@ export default function StatDetailPage() {
                                             {rawData.filter(i => i.status === 'Due').reduce((acc, i) => acc + parseFloat(i.customer_total || i.total_amount || 0), 0).toLocaleString()} <span className="text-sm font-semibold">€</span>
                                         </div>
                                     </div>
-                                </div>
-                                <div className="bg-white/60 dark:bg-slate-800/60 rounded-xl py-2 px-4 border border-violet-200 dark:border-violet-500/20 shadow-sm flex items-center gap-3">
+                                </button>
+                                <button
+                                    onClick={() => setActiveFilter(prev => prev === 'uniform' ? 'all' : 'uniform')}
+                                    className={`text-left rounded-xl py-2 px-4 border shadow-sm flex items-center gap-3 transition-colors ${activeFilter === 'uniform'
+                                            ? 'bg-violet-50 dark:bg-violet-500/20 border-violet-400 dark:border-violet-500'
+                                            : 'bg-white/60 dark:bg-slate-800/60 border-violet-200 dark:border-violet-500/20 hover:bg-violet-50/50 dark:hover:bg-violet-900/20 hover:border-violet-300'
+                                        }`}
+                                >
                                     <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-500/20">
                                         <DollarSign size={16} className="text-violet-600 dark:text-violet-400" />
                                     </div>
@@ -652,7 +670,7 @@ export default function StatDetailPage() {
                                             {rawData.filter(i => i.status === 'Due' || i.status === 'Paid to Us').reduce((acc, i) => acc + parseFloat(i.cost_total || 0), 0).toLocaleString()} <span className="text-sm font-semibold">€</span>
                                         </div>
                                     </div>
-                                </div>
+                                </button>
                             </div>
                         )}
                         <p className={`text-sm leading-relaxed ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>

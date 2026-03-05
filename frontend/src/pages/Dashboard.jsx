@@ -114,7 +114,7 @@ export default function Dashboard() {
             </div>
 
             {/* KPI Row (Elevated to top for prominence) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 md:gap-y-6">
                 <StatCard
                     icon={AlertTriangle}
                     label="Expiring Soon"
@@ -126,12 +126,22 @@ export default function Dashboard() {
                     info="Number of client subscriptions that will expire in the next 60 days. Follow up with these clients to renew their contracts."
                 />
                 <StatCard
-                    icon={FileText}
-                    label="Due Invoices"
-                    value={stats?.invoices?.due || 0}
-                    subValue={`${stats?.invoices?.total || 0} total invoices`}
+                    icon={DollarSign}
+                    label="Due to 4Genetics"
+                    value={`${(stats?.invoices?.due_to_4genetics_amount || 0).toLocaleString()} €`}
+                    subValue={`${stats?.invoices?.due || 0} unpaid invoices`}
                     color="blue"
                     to="/stats/due-invoices"
+                    delay={100}
+                />
+                <StatCard
+                    icon={DollarSign}
+                    label="Due to Uniform"
+                    value={`${(stats?.invoices?.due_to_uniform_amount || 0).toLocaleString()} €`}
+                    subValue="Pending payment to UA"
+                    color="violet"
+                    to="/stats/due-invoices"
+                    delay={150}
                 />
                 <StatCard
                     icon={Ticket}

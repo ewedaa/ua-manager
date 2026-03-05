@@ -407,6 +407,16 @@ class DashboardStatsView(APIView):
         paid_to_us = Invoice.objects.filter(status='Paid to Us').count()
         paid_to_uniform = Invoice.objects.filter(status='Paid to Uniform').count()
         
+        # Calculate monetary amounts for due invoices
+        from django.db.models.functions import Coalesce
+        due_to_4genetics_amount = Invoice.objects.filter(status='Due').aggregate(
+            total=Coalesce(Sum('customer_total'), Sum('total_amount'), 0.0)
+        )['total']
+        
+        due_to_uniform_amount = Invoice.objects.filter(status__in=['Due', 'Paid to Us']).aggregate(
+            total=Coalesce(Sum('cost_total'), 0.0)
+        )['total']
+        
         # Total revenue
         total_revenue = Invoice.objects.filter(status='Paid to Us').aggregate(
             total=Sum('total_amount')
@@ -521,6 +531,8 @@ class DashboardStatsView(APIView):
                 'due': due_invoices,
                 'paid_to_us': paid_to_us,
                 'paid_to_uniform': paid_to_uniform,
+                'due_to_4genetics_amount': float(due_to_4genetics_amount),
+                'due_to_uniform_amount': float(due_to_uniform_amount),
                 'total_revenue': float(total_revenue)
             },
             'tickets': {
