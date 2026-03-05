@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useNotifications } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
 const API_URL = `${API_BASE_URL}/subscription-modules/`;
@@ -20,6 +21,7 @@ const fetchModules = async () => {
 
 export default function Settings() {
     const { isAdmin } = useAuth();
+    const { isDark } = useTheme();
     const { soundEnabled, setSoundEnabled, soundTone, setSoundTone, browserNotificationsEnabled, enableBrowserNotifications } = useNotifications();
     const queryClient = useQueryClient();
     const [newModule, setNewModule] = useState('');
