@@ -10,7 +10,7 @@ import {
     Search, Loader2, Users, AlertTriangle, FileText, Ticket,
     TrendingUp, Clock, CheckCircle, XCircle, ArrowRight, Calendar,
     DollarSign, Activity, Sparkles, AlertCircle, Moon, Barcode, Play, Timer, Zap, Sun,
-    Shield, Target, Gauge, Flame
+    Shield, Target, Gauge, Flame, Wallet, Landmark
 } from 'lucide-react';
 import { useSleepMode } from '../App';
 import { useTheme } from '../context/ThemeContext';
@@ -114,7 +114,7 @@ export default function Dashboard() {
             </div>
 
             {/* KPI Row (Elevated to top for prominence) */}
-            <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 md:gap-4 md:gap-y-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 md:gap-y-6">
                 <StatCard
                     icon={AlertTriangle}
                     label="Expiring Soon"
@@ -126,7 +126,7 @@ export default function Dashboard() {
                     info="Number of client subscriptions that will expire in the next 60 days. Follow up with these clients to renew their contracts."
                 />
                 <StatCard
-                    icon={DollarSign}
+                    icon={Wallet}
                     label="Due to 4Genetics"
                     value={`${(stats?.invoices?.due_to_4genetics_amount || 0).toLocaleString()} €`}
                     subValue={`${stats?.invoices?.due || 0} unpaid invoices`}
@@ -135,11 +135,11 @@ export default function Dashboard() {
                     delay={100}
                 />
                 <StatCard
-                    icon={DollarSign}
+                    icon={Landmark}
                     label="Due to Uniform"
                     value={`${(stats?.invoices?.due_to_uniform_amount || 0).toLocaleString()} €`}
                     subValue="Pending payment to UA"
-                    color="violet"
+                    color="purple"
                     to="/stats/due-invoices"
                     delay={150}
                 />
