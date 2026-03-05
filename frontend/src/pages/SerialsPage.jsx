@@ -293,7 +293,7 @@ export default function SerialsPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                                        <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="e.g. Professor, Student, Lab Manager" className={inputClass} />
+                                        <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="vet / breeder / consultant / Millitary farm" className={inputClass} />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modules</label>
