@@ -402,26 +402,27 @@ class DashboardStatsView(APIView):
         active_this_month = Client.objects.filter(updated_at__gte=month_ago).count()
         
         # Invoice statistics
-        total_invoices = Invoice.objects.count()
-        due_invoices = Invoice.objects.filter(status='Due').count()
-        paid_to_us = Invoice.objects.filter(status='Paid to Us').count()
-        paid_to_uniform = Invoice.objects.filter(status='Paid to Uniform').count()
+        real_invoices = Invoice.objects.exclude(invoice_type='Purchase Quotation')
+        total_invoices = real_invoices.count()
+        due_invoices = real_invoices.filter(status='Due').count()
+        paid_to_us = real_invoices.filter(status='Paid to Us').count()
+        paid_to_uniform = real_invoices.filter(status='Paid to Uniform').count()
         
         # Calculate monetary amounts for due invoices
-        due_to_4genetics_amount = Invoice.objects.filter(status='Due').aggregate(
+        due_to_4genetics_amount = real_invoices.filter(status='Due').aggregate(
             total=Sum('customer_total')
         )['total']
         if due_to_4genetics_amount is None:
-            due_to_4genetics_amount = Invoice.objects.filter(status='Due').aggregate(
+            due_to_4genetics_amount = real_invoices.filter(status='Due').aggregate(
                 total=Sum('total_amount')
             )['total'] or 0.0
         
-        due_to_uniform_amount = Invoice.objects.filter(status__in=['Due', 'Paid to Us']).aggregate(
+        due_to_uniform_amount = real_invoices.filter(status__in=['Due', 'Paid to Us']).aggregate(
             total=Sum('cost_total')
         )['total'] or 0.0
         
         # Total revenue
-        total_revenue = Invoice.objects.filter(status='Paid to Us').aggregate(
+        total_revenue = real_invoices.filter(status='Paid to Us').aggregate(
             total=Sum('total_amount')
         )['total'] or 0
         
@@ -484,7 +485,7 @@ class DashboardStatsView(APIView):
         retention_rate = round((active_clients / total_clients * 100), 1) if total_clients > 0 else 0
         
         # 2. Collection Rate = (paid_to_us_amount / total_invoiced_amount) × 100
-        total_invoiced_amount = Invoice.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+        total_invoiced_amount = real_invoices.aggregate(total=Sum('total_amount'))['total'] or 0
         collection_rate = round((float(total_revenue) / float(total_invoiced_amount) * 100), 1) if total_invoiced_amount > 0 else 0
         
         # 3. SLA Adherence = (resolved within 48h / total resolved) × 100
@@ -601,7 +602,8 @@ class ChartDataView(APIView):
         ))
         
         # Invoice trends by month
-        invoices_by_month = Invoice.objects.filter(
+        real_invoices = Invoice.objects.exclude(invoice_type='Purchase Quotation')
+        invoices_by_month = real_invoices.filter(
             created_at__gte=six_months_ago
         ).annotate(
             month=TruncMonth('created_at')
@@ -612,7 +614,7 @@ class ChartDataView(APIView):
         invoice_trend = []
         for inv in invoices_by_month:
             # Get revenue for this month
-            month_revenue = Invoice.objects.filter(
+            month_revenue = real_invoices.filter(
                 created_at__year=inv['month'].year,
                 created_at__month=inv['month'].month,
                 status='Paid to Us'
@@ -625,7 +627,7 @@ class ChartDataView(APIView):
             })
         
         # Invoice status distribution
-        invoice_status = list(Invoice.objects.values('status').annotate(
+        invoice_status = list(real_invoices.values('status').annotate(
             count=Count('id')
         ))
         
@@ -648,7 +650,7 @@ class ChartDataView(APIView):
         for q in range(1, 5):
             # Calculate sum of dues for each quarter
             # We assume 'Due' and 'Paid to Us' status implies money flows involved that are relevant
-            dues = Invoice.objects.filter(
+            dues = real_invoices.filter(
                 created_at__year=current_year,
                 status__in=['Due', 'Paid to Us']
             ).annotate(

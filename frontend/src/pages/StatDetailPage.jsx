@@ -90,7 +90,7 @@ const TILE_CONFIG = {
         quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
-        filter: (items) => items.filter(i => i.status === 'Due'),
+        filter: (items) => items.filter(i => i.status === 'Due' && i.invoice_type !== 'Purchase Quotation'),
         columns: ['Client', 'Type', 'Amount', 'Created'],
         getRow: (inv) => ({
             id: inv.id,
@@ -640,8 +640,8 @@ export default function StatDetailPage() {
                                 <button
                                     onClick={() => setActiveFilter(prev => prev === '4genetics' ? 'all' : '4genetics')}
                                     className={`text-left rounded-xl py-2 px-4 border shadow-sm flex items-center gap-3 transition-colors ${activeFilter === '4genetics'
-                                            ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-400 dark:border-blue-500'
-                                            : 'bg-white/60 dark:bg-slate-800/60 border-blue-200 dark:border-blue-500/20 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 hover:border-blue-300'
+                                        ? 'bg-blue-50 dark:bg-blue-500/20 border-blue-400 dark:border-blue-500'
+                                        : 'bg-white/60 dark:bg-slate-800/60 border-blue-200 dark:border-blue-500/20 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 hover:border-blue-300'
                                         }`}
                                 >
                                     <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
@@ -657,8 +657,8 @@ export default function StatDetailPage() {
                                 <button
                                     onClick={() => setActiveFilter(prev => prev === 'uniform' ? 'all' : 'uniform')}
                                     className={`text-left rounded-xl py-2 px-4 border shadow-sm flex items-center gap-3 transition-colors ${activeFilter === 'uniform'
-                                            ? 'bg-violet-50 dark:bg-violet-500/20 border-violet-400 dark:border-violet-500'
-                                            : 'bg-white/60 dark:bg-slate-800/60 border-violet-200 dark:border-violet-500/20 hover:bg-violet-50/50 dark:hover:bg-violet-900/20 hover:border-violet-300'
+                                        ? 'bg-violet-50 dark:bg-violet-500/20 border-violet-400 dark:border-violet-500'
+                                        : 'bg-white/60 dark:bg-slate-800/60 border-violet-200 dark:border-violet-500/20 hover:bg-violet-50/50 dark:hover:bg-violet-900/20 hover:border-violet-300'
                                         }`}
                                 >
                                     <div className="p-1.5 rounded-lg bg-violet-100 dark:bg-violet-500/20">
