@@ -245,98 +245,102 @@ export default function SerialsPage() {
             {showModal && (
                 createPortal(
                     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={closeModal}>
-                        <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border p-6 shadow-2xl max-h-[90vh] overflow-y-auto ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
-                            <div className="flex items-center justify-between mb-5">
+                        <div onClick={e => e.stopPropagation()} className={`w-full max-w-md rounded-2xl border shadow-2xl max-h-[90vh] flex flex-col ${isDark ? 'bg-gray-900 border-white/10' : 'bg-white border-gray-200'}`}>
+                            {/* Header */}
+                            <div className={`flex items-center justify-between px-6 py-4 border-b shrink-0 ${isDark ? 'border-white/[0.06] bg-gray-900/95 backdrop-blur-sm' : 'border-gray-100 bg-white/95 backdrop-blur-sm'}`}>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{editingId ? 'Edit Serial' : 'Add Serial'}</h3>
                                 <button onClick={closeModal} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400"><X size={18} /></button>
                             </div>
-                            <form onSubmit={e => {
-                                e.preventDefault();
-                                setFormError('');
-                                if (!form.serial_number.trim()) {
-                                    setFormError('Serial number is required.');
-                                    return;
-                                }
-                                const duplicate = serials.find(s => s.serial_number.toLowerCase() === form.serial_number.trim().toLowerCase() && s.id !== editingId);
-                                if (duplicate) {
-                                    setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.client_name || 'unassigned'}).`);
-                                    return;
-                                }
-                                saveMutation.mutate(form);
-                            }} className="space-y-4">
-                                {formError && (
-                                    <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
-                                        {formError}
+                            {/* Body */}
+                            <div className="overflow-y-auto p-6 pt-5">
+                                <form onSubmit={e => {
+                                    e.preventDefault();
+                                    setFormError('');
+                                    if (!form.serial_number.trim()) {
+                                        setFormError('Serial number is required.');
+                                        return;
+                                    }
+                                    const duplicate = serials.find(s => s.serial_number.toLowerCase() === form.serial_number.trim().toLowerCase() && s.id !== editingId);
+                                    if (duplicate) {
+                                        setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.client_name || 'unassigned'}).`);
+                                        return;
+                                    }
+                                    saveMutation.mutate(form);
+                                }} className="space-y-4">
+                                    {formError && (
+                                        <div className="p-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 rounded-lg text-red-600 dark:text-red-400 text-sm">
+                                            {formError}
+                                        </div>
+                                    )}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
+                                        <input required value={form.serial_number} onChange={e => {
+                                            let val = e.target.value.toUpperCase();
+                                            setForm(f => ({ ...f, serial_number: val }));
+                                        }} className={inputClass} />
                                     </div>
-                                )}
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
-                                    <input required value={form.serial_number} onChange={e => {
-                                        let val = e.target.value.toUpperCase();
-                                        setForm(f => ({ ...f, serial_number: val }));
-                                    }} className={inputClass} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
-                                    <select value={form.product_type} onChange={e => setForm(f => ({ ...f, product_type: e.target.value }))} className={inputClass}>
-                                        {PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Name</label>
-                                    <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={inputClass}>
-                                        <option value="">Unassigned</option>
-                                        {collegeClients.length > 0 && (
-                                            <optgroup label="4Genetics Colleges">
-                                                {collegeClients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
-                                            </optgroup>
-                                        )}
-                                        {clients.filter(c => !c.is_4genetics_college).length > 0 && (
-                                            <optgroup label="Other Clients">
-                                                {clients.filter(c => !c.is_4genetics_college).map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
-                                            </optgroup>
-                                        )}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                                    <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="e.g. Professor, Student, Lab Manager" className={inputClass} />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modules</label>
-                                    <div className={`grid grid-cols-2 gap-2 p-3 rounded-xl border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
-                                        {availableModules.length > 0 ? availableModules.map((mod) => (
-                                            <label key={mod.id} className={`flex items-center space-x-2 text-sm cursor-pointer p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/[0.06]' : 'text-gray-700 hover:bg-gray-100'}`}>
-                                                <input
-                                                    type="checkbox"
-                                                    checked={(form.modules || '').includes(mod.name)}
-                                                    onChange={(e) => {
-                                                        const current = (form.modules || '').split(',').map(s => s.trim()).filter(Boolean);
-                                                        let updated;
-                                                        if (e.target.checked) {
-                                                            updated = [...current, mod.name];
-                                                        } else {
-                                                            updated = current.filter(m => m !== mod.name);
-                                                        }
-                                                        setForm(f => ({ ...f, modules: updated.join(', ') }));
-                                                    }}
-                                                    className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
-                                                />
-                                                <span>{mod.name}</span>
-                                            </label>
-                                        )) : (
-                                            <p className="col-span-2 text-xs text-gray-400 italic">No modules configured. Add them in Settings.</p>
-                                        )}
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
+                                        <select value={form.product_type} onChange={e => setForm(f => ({ ...f, product_type: e.target.value }))} className={inputClass}>
+                                            {PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                                        </select>
                                     </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
-                                    <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={`${inputClass} resize-none`} />
-                                </div>
-                                <button type="submit" disabled={saveMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform disabled:opacity-50">
-                                    {saveMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={18} /> : (editingId ? 'Update' : 'Create')}
-                                </button>
-                            </form>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Name</label>
+                                        <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={inputClass}>
+                                            <option value="">Unassigned</option>
+                                            {collegeClients.length > 0 && (
+                                                <optgroup label="4Genetics Colleges">
+                                                    {collegeClients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
+                                                </optgroup>
+                                            )}
+                                            {clients.filter(c => !c.is_4genetics_college).length > 0 && (
+                                                <optgroup label="Other Clients">
+                                                    {clients.filter(c => !c.is_4genetics_college).map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
+                                                </optgroup>
+                                            )}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                                        <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="e.g. Professor, Student, Lab Manager" className={inputClass} />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modules</label>
+                                        <div className={`grid grid-cols-2 gap-2 p-3 rounded-xl border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
+                                            {availableModules.length > 0 ? availableModules.map((mod) => (
+                                                <label key={mod.id} className={`flex items-center space-x-2 text-sm cursor-pointer p-1.5 rounded-lg transition-colors ${isDark ? 'text-gray-300 hover:bg-white/[0.06]' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={(form.modules || '').includes(mod.name)}
+                                                        onChange={(e) => {
+                                                            const current = (form.modules || '').split(',').map(s => s.trim()).filter(Boolean);
+                                                            let updated;
+                                                            if (e.target.checked) {
+                                                                updated = [...current, mod.name];
+                                                            } else {
+                                                                updated = current.filter(m => m !== mod.name);
+                                                            }
+                                                            setForm(f => ({ ...f, modules: updated.join(', ') }));
+                                                        }}
+                                                        className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
+                                                    />
+                                                    <span>{mod.name}</span>
+                                                </label>
+                                            )) : (
+                                                <p className="col-span-2 text-xs text-gray-400 italic">No modules configured. Add them in Settings.</p>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
+                                        <textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} rows={2} className={`${inputClass} resize-none`} />
+                                    </div>
+                                    <button type="submit" disabled={saveMutation.isPending} className="w-full py-2.5 rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium hover:scale-[1.02] transition-transform disabled:opacity-50">
+                                        {saveMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={18} /> : (editingId ? 'Update' : 'Create')}
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>,
                     document.body
