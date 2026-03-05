@@ -624,25 +624,25 @@ def generate_formal_invoice_pdf(invoice):
 
     # ── Section: Software Details ──
     section_style = ParagraphStyle(
-        'FormalSection', fontName='Helvetica-Bold', fontSize=11,
-        textColor=BRAND_GREEN, leading=16, spaceBefore=8, spaceAfter=6,
+        'FormalSection', fontName='Helvetica-Bold', fontSize=13,
+        textColor=BRAND_GREEN_DARK, leading=18, spaceBefore=12, spaceAfter=8,
     )
     story.append(Paragraph('Software Details', section_style))
-    story.append(HRFlowable(width='100%', thickness=1, color=BRAND_GREEN_LIGHT,
-                             spaceAfter=6, spaceBefore=0))
+    story.append(HRFlowable(width='100%', thickness=1.5, color=BRAND_GREEN,
+                             spaceAfter=12, spaceBefore=0))
 
     # ── Modules table: Product/Service | Description | Price ──
     modules = invoice.selected_modules.all()
 
-    cell_style = ParagraphStyle('TC', fontName='Helvetica', fontSize=9,
-                                textColor=BRAND_GRAY, leading=13)
-    cell_bold = ParagraphStyle('TCB', fontName='Helvetica-Bold', fontSize=9,
-                               textColor=BRAND_GRAY, leading=13)
-    header_cell = ParagraphStyle('TH', fontName='Helvetica-Bold', fontSize=9,
-                                 textColor=WHITE, leading=12,
+    cell_style = ParagraphStyle('TC', fontName='Helvetica', fontSize=10,
+                                textColor=BRAND_GRAY, leading=14)
+    cell_bold = ParagraphStyle('TCB', fontName='Helvetica-Bold', fontSize=10,
+                               textColor=BRAND_GRAY, leading=14)
+    header_cell = ParagraphStyle('TH', fontName='Helvetica-Bold', fontSize=10,
+                                 textColor=WHITE, leading=14,
                                  alignment=TA_CENTER)
-    price_cell = ParagraphStyle('Price', fontName='Helvetica-Bold', fontSize=10,
-                                textColor=BRAND_GRAY, leading=13,
+    price_cell = ParagraphStyle('Price', fontName='Helvetica-Bold', fontSize=11,
+                                textColor=BRAND_GRAY, leading=14,
                                 alignment=TA_CENTER)
 
     # Build description bullet content for each module
@@ -688,13 +688,13 @@ def generate_formal_invoice_pdf(invoice):
                       repeatRows=1)
     mod_table.setStyle(TableStyle([
         # Header row
-        ('BACKGROUND', (0, 0), (-1, 0), BRAND_GREEN),
+        ('BACKGROUND', (0, 0), (-1, 0), BRAND_GREEN_DARK),
         ('TEXTCOLOR', (0, 0), (-1, 0), WHITE),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('TOPPADDING', (0, 0), (-1, 0), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 9),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, 0), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
         # Body
         ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
         ('TOPPADDING', (0, 1), (-1, -1), 8),
@@ -717,9 +717,9 @@ def generate_formal_invoice_pdf(invoice):
     story.append(Spacer(1, 10))
 
     # ── Total row ──
-    total_style = ParagraphStyle('TotalRight', fontName='Helvetica-Bold', fontSize=12,
-                                 textColor=BRAND_GREEN, alignment=TA_RIGHT)
-    label_style = ParagraphStyle('TotalLabel', fontName='Helvetica-Bold', fontSize=10,
+    total_style = ParagraphStyle('TotalRight', fontName='Helvetica-Bold', fontSize=14,
+                                 textColor=BRAND_GREEN_DARK, alignment=TA_RIGHT)
+    label_style = ParagraphStyle('TotalLabel', fontName='Helvetica-Bold', fontSize=12,
                                  textColor=BRAND_GRAY, alignment=TA_RIGHT)
     total_data = [[
         Paragraph('Total Amount:', label_style),
@@ -728,11 +728,13 @@ def generate_formal_invoice_pdf(invoice):
     total_table = Table(total_data, colWidths=[page_w - 2 * inch, 2 * inch])
     total_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
-        ('TOPPADDING', (0, 0), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor('#f0fdf4')), # very light green highlight
         ('LEFTPADDING', (0, 0), (-1, -1), 0),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-        ('LINEABOVE', (0, 0), (-1, 0), 1.5, BRAND_GREEN),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ('LINEABOVE', (0, 0), (-1, 0), 2, BRAND_GREEN_DARK),
+        ('LINEBELOW', (0, 0), (-1, 0), 2, BRAND_GREEN_DARK),
     ]))
     story.append(total_table)
     # Exchange rate footnote (EGP only)

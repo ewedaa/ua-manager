@@ -100,7 +100,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const currSymbol = currency === 'EGP' ? 'EGP' : '€';
 
     // Per-module price helpers (based on invoice type)
-    const getModuleCost = (mod) => parseFloat(isRenewal ? (mod.renewal_price || 0) : (mod.purchase_price || 0));
+    const getModuleCost = (mod) => parseFloat(isRenewal ? (mod.renewal_our_price || 0) : (mod.purchase_our_price || 0));
     const getModuleCustomerPrice = (mod) => {
         const base = parseFloat(isRenewal ? (mod.renewal_customer_price || 0) : (mod.purchase_customer_price || 0));
         return (!isRenewal && isDairyLive) ? base * 0.5 : base;

@@ -32,6 +32,8 @@ class SubscriptionModuleSerializer(serializers.ModelSerializer):
     """Serializer for SubscriptionModule model."""
     purchase_customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     renewal_customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    purchase_our_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    renewal_our_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     # Backward-compat aliases
     price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     customer_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
@@ -42,6 +44,7 @@ class SubscriptionModuleSerializer(serializers.ModelSerializer):
             'id', 'name', 'description',
             'purchase_price', 'renewal_price',
             'purchase_customer_price', 'renewal_customer_price',
+            'purchase_our_price', 'renewal_our_price',
             'price', 'customer_price',
             'is_active', 'order',
         ]

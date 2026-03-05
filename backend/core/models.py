@@ -239,28 +239,40 @@ class SubscriptionModule(models.Model):
     # Dual pricing: purchase vs renewal
     purchase_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=0,
-        help_text="Cost for NEW PURCHASE (what we pay Uniform Agri)"
+        help_text="Base List Price for NEW PURCHASE"
     )
     renewal_price = models.DecimalField(
         max_digits=10, decimal_places=2, default=0,
-        help_text="Cost for RENEWAL (what we pay Uniform Agri)"
+        help_text="Base List Price for RENEWAL"
     )
 
     is_active = models.BooleanField(default=True)
     order = models.PositiveIntegerField(default=0)
 
-    # ── Computed customer prices (40% markup) ──────────────────────
+    # ── Computed Prices ──────────────────────
     @property
     def purchase_customer_price(self):
-        """Purchase cost × 1.40 = what the farm pays us for a new purchase."""
+        """Base + 10%"""
         from decimal import Decimal, ROUND_HALF_UP
-        return (self.purchase_price * Decimal('1.40')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return (self.purchase_price * Decimal('1.10')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
     @property
     def renewal_customer_price(self):
-        """Renewal cost × 1.40 = what the farm pays us at renewal."""
+        """Base + 10%"""
         from decimal import Decimal, ROUND_HALF_UP
-        return (self.renewal_price * Decimal('1.40')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        return (self.renewal_price * Decimal('1.10')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    @property
+    def purchase_our_price(self):
+        """Base - 50%"""
+        from decimal import Decimal, ROUND_HALF_UP
+        return (self.purchase_price * Decimal('0.50')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+
+    @property
+    def renewal_our_price(self):
+        """Base - 30%"""
+        from decimal import Decimal, ROUND_HALF_UP
+        return (self.renewal_price * Decimal('0.70')).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
     # ── Backward-compat aliases ────────────────────────────────────
     @property
