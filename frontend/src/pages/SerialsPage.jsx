@@ -310,12 +310,14 @@ export default function SerialsPage() {
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role Type</label>
                                         <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inputClass}>
                                             <option value="">Select a role type...</option>
-                                            <option value="4Genetics Employee">4Genetics Employee</option>
-                                            <option value="Military Farm">Military Farm</option>
-                                            <option value="Vet">Vet</option>
-                                            <option value="Breeder">Breeder</option>
-                                            <option value="Consultant">Consultant</option>
-                                            <option value="Other">Other</option>
+                                            <option value="4GENETICS EMPLOYEE">4GENETICS EMPLOYEE</option>
+                                            <option value="MILITARY FARM">MILITARY FARM</option>
+                                            <option value="VET">VET</option>
+                                            <option value="BREEDER">BREEDER</option>
+                                            <option value="CONSULTANT">CONSULTANT</option>
+                                            <option value="OWNER">OWNER</option>
+                                            <option value="UNIFOR AGRI TECHNICAL SUPPORT">UNIFOR AGRI TECHNICAL SUPPORT</option>
+                                            <option value="OTHER">OTHER</option>
                                         </select>
                                     </div>
                                     <div>
