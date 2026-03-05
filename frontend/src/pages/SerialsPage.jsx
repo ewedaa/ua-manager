@@ -315,9 +315,6 @@ export default function SerialsPage() {
                                             <option value="Vet">Vet</option>
                                             <option value="Breeder">Breeder</option>
                                             <option value="Consultant">Consultant</option>
-                                            <option value="Professor">Professor</option>
-                                            <option value="Student">Student</option>
-                                            <option value="Lab Manager">Lab Manager</option>
                                             <option value="Other">Other</option>
                                         </select>
                                     </div>
