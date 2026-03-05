@@ -16,8 +16,9 @@ import {
     ChevronRight, Building2, Mail, MapPin, Tag, X, AlertTriangle
 } from 'lucide-react';
 
-export default function ClientDetailPage() {
-    const { id } = useParams();
+export default function ClientDetailPage({ embeddedClientId, onClose }) {
+    const { id: paramId } = useParams();
+    const id = embeddedClientId || paramId;
     const navigate = useNavigate();
     const { isDark } = useTheme();
     const { isAdmin } = useAuth();
@@ -221,8 +222,8 @@ export default function ClientDetailPage() {
             <div className={`sticky top-0 z-30 backdrop-blur-xl border-b ${isDark ? 'bg-gray-950/80 border-white/[0.06]' : 'bg-white/80 border-gray-200'}`}>
                 <div className="px-6 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-4">
-                        <button onClick={() => navigate('/clients')} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/[0.06] text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
-                            <ArrowLeft size={20} />
+                        <button onClick={onClose ? onClose : () => navigate('/clients')} className={`p-2 rounded-xl transition-colors ${isDark ? 'hover:bg-white/[0.06] text-gray-400' : 'hover:bg-gray-100 text-gray-500'}`}>
+                            {onClose ? <X size={20} /> : <ArrowLeft size={20} />}
                         </button>
                         <div className="flex items-center gap-3">
                             <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs bg-gradient-to-br ${status.gradient} text-white shadow-lg`}>

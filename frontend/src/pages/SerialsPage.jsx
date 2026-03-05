@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
 import { fetchSerials, fetchClients } from '../lib/fetchers';
+import ClientDetailPage from './ClientDetailPage';
 
 const fetchModules = async () => {
     const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
@@ -35,6 +36,7 @@ export default function SerialsPage() {
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', client: '', role: '', modules: '', notes: '', is_active: true });
     const [formError, setFormError] = useState('');
+    const [selectedClientForDetails, setSelectedClientForDetails] = useState(null);
 
     const { data: serials = [], isLoading } = useQuery({
         queryKey: ['serials'],
@@ -196,7 +198,7 @@ export default function SerialsPage() {
                                         onClick={(e) => {
                                             // Prevent navigation if they click actions / buttons
                                             if (e.target.closest('button')) return;
-                                            if (s.client) window.open(`/clients/${s.client}`, '_blank', 'noopener,noreferrer');
+                                            if (s.client) setSelectedClientForDetails(s.client);
                                         }}
                                     >
                                         <td className="px-5 py-3.5 font-mono text-sm text-gray-900 dark:text-gray-200">{s.serial_number}</td>
@@ -335,6 +337,21 @@ export default function SerialsPage() {
                                     {saveMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={18} /> : (editingId ? 'Update' : 'Create')}
                                 </button>
                             </form>
+                        </div>
+                    </div>,
+                    document.body
+                )
+            )}
+
+            {/* Embedded Client Details Overlay */}
+            {selectedClientForDetails && (
+                createPortal(
+                    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm overflow-hidden flex flex-col">
+                        <div className="w-full h-full bg-white dark:bg-gray-950 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300 relative">
+                            <ClientDetailPage
+                                embeddedClientId={selectedClientForDetails}
+                                onClose={() => setSelectedClientForDetails(null)}
+                            />
                         </div>
                     </div>,
                     document.body
