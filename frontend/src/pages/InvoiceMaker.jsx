@@ -212,6 +212,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         }
         mutation.mutate({
             ...formData,
+            client: formData.client || null,
             selected_module_ids: selectedModuleIds,
             new_farm_name: formData.invoice_type === 'Purchase Quotation' ? newFarmName : null,
             // Store totals in the selected display currency
