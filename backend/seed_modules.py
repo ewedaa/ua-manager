@@ -11,32 +11,32 @@ from core.models import SubscriptionModule
 
 modules_data = [
     {
-        "name": "UNIFORM - Global Professional",
-        "desc": "till 250 Milk Cows\nincludes Network installation\nincludes Manual entered milk overviews (on request)\nincludes Economy",
+        "name": "UNIFORM - Global Professional (till 250 Milk. Cows)* incl. App",
+        "desc": "includes Network installation and Manual entered milk overviews but only on request\nincludes Economy",
         "purchase": 1200,
         "renewal": 676
     },
     {
-        "name": "Country specific links",
-        "desc": "FR, DU, DK, Fin, NO, Rus, etc.",
+        "name": "Country specific links (FR, DU, DK, Fin, NO, Rus, etc.)",
+        "desc": "",
         "purchase": 395,
         "renewal": 172
     },
     {
-        "name": "Link process computer (Lely Horizon / GEA)",
-        "desc": "Lely Horizon/T4C | GEA DairyNet",
+        "name": "Link process computer Lely Horizon/T4C | GEA DairyNet",
+        "desc": "",
         "purchase": 495,
         "renewal": 303
     },
     {
-        "name": "Link process computer (milking parlour)",
-        "desc": "milking parlour/robot, activity, feeding, sorting",
+        "name": "Link process computer (milking parlour/robot, activity, feeding, sorting)",
+        "desc": "",
         "purchase": 495,
         "renewal": 172
     },
     {
-        "name": "Multiherd / Animal exchange",
-        "desc": "with data exchange, incl. extra database",
+        "name": "Multiherd / Animal exchange (with data exchange, incl. extra database)",
+        "desc": "",
         "purchase": 240,
         "renewal": 107
     },
@@ -47,13 +47,37 @@ modules_data = [
         "renewal": 82
     },
     {
-        "name": "Big farm module (250 - 999 Cows)",
+        "name": "Big farm module: 250 - 499 Milking Cows",
         "desc": "per batch, Young stock free",
         "purchase": 250,
         "renewal": 186
     },
     {
-        "name": "Big farm module (> 1000 Cows)",
+        "name": "Big farm module: 500 - 749 Milking Cows",
+        "desc": "per batch, Young stock free",
+        "purchase": 250,
+        "renewal": 186
+    },
+    {
+        "name": "Big farm module: 750 - 999 Milking Cows",
+        "desc": "per batch, Young stock free",
+        "purchase": 250,
+        "renewal": 186
+    },
+    {
+        "name": "Big farm module: 1000 - 1999 Milking Cows",
+        "desc": "per batch, Young stock free",
+        "purchase": 250,
+        "renewal": 186
+    },
+    {
+        "name": "Big farm module: 2000 - 2999 Milking Cows",
+        "desc": "per batch, Young stock free",
+        "purchase": 250,
+        "renewal": 186
+    },
+    {
+        "name": "Big farm module: > 3000 Milking Cows",
         "desc": "per batch, Young stock free",
         "purchase": 250,
         "renewal": 186
@@ -61,6 +85,15 @@ modules_data = [
 ]
 
 def seed():
+    new_names = [m['name'] for m in modules_data]
+    
+    # Optional: Delete old modules that don't match the new explicit list
+    # This ensures a clean slate like the image
+    old_modules = SubscriptionModule.objects.exclude(name__in=new_names)
+    for old in old_modules:
+        print(f"Deleting outdated module: {old.name}")
+        old.delete()
+
     for m in modules_data:
         mod, created = SubscriptionModule.objects.update_or_create(
             name=m['name'],
