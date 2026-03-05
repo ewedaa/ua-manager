@@ -95,8 +95,8 @@ export default function SerialsPage() {
     const stats = {
         total: serials.length,
         active: serials.filter(s => s.is_active).length,
-        assigned: serials.filter(s => s.college_name && s.college_name.trim() !== '').length,
-        unassigned: serials.filter(s => (!s.college_name || s.college_name.trim() === '') && s.is_active).length,
+        employees: serials.filter(s => s.role?.toLowerCase().includes('employee') || s.college_name?.toLowerCase().includes('4genetics')).length,
+        military: serials.filter(s => s.role?.toLowerCase().includes('military') || s.college_name?.toLowerCase().includes('military')).length,
     };
 
     const inputClass = `w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 focus:ring-green-500`;
@@ -146,8 +146,8 @@ export default function SerialsPage() {
                 {[
                     { label: 'Total', value: stats.total, color: 'text-blue-400' },
                     { label: 'Active', value: stats.active, color: 'text-green-400' },
-                    { label: 'Assigned', value: stats.assigned, color: 'text-purple-400' },
-                    { label: 'Unassigned', value: stats.unassigned, color: 'text-amber-400' },
+                    { label: '4Genetics Employee', value: stats.employees, color: 'text-purple-400' },
+                    { label: 'Military Farms', value: stats.military, color: 'text-amber-400' },
                 ].map(s => (
                     <div key={s.label} className={`rounded-xl p-4 border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-gray-100'}`}>
                         <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{s.label}</p>
