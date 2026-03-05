@@ -84,47 +84,42 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        from rest_framework.exceptions import ValidationError
+        from .models import Client, ActivityLog
+        from django.utils import timezone
+        from datetime import timedelta
+        
+        data = self.request.data
+        new_farm_name = data.get('new_farm_name')
+        inv_type = data.get('invoice_type')
+        
+        if new_farm_name and inv_type == 'Purchase Quotation':
+            # Create a quoted farm
+            client = Client.objects.create(
+                name=new_farm_name,
+                farm_name=new_farm_name,
+                is_quoted=True,
+                subscription_start_date=timezone.now().date(),
+                subscription_end_date=timezone.now().date() + timedelta(days=365),
+                phone='N/A'
+            )
+            instance = serializer.save(client=client)
+        else:
+            instance = serializer.save()
+            
+        # Safer activity logging
         try:
-            from .models import Client, ActivityLog
-            from django.utils import timezone
-            from datetime import timedelta
+            target_name = "Unknown Farm"
+            if instance.client:
+                target_name = instance.client.farm_name or instance.client.name
             
-            data = self.request.data
-            new_farm_name = data.get('new_farm_name')
-            inv_type = data.get('invoice_type')
-            
-            if new_farm_name and inv_type == 'Purchase Quotation':
-                # Create a quoted farm
-                client = Client.objects.create(
-                    name=new_farm_name,
-                    farm_name=new_farm_name,
-                    is_quoted=True,
-                    subscription_start_date=timezone.now().date(),
-                    subscription_end_date=timezone.now().date() + timedelta(days=365),
-                    phone='N/A'
-                )
-                instance = serializer.save(client=client)
-            else:
-                instance = serializer.save()
-                
-            # Safer activity logging
-            try:
-                target_name = "Unknown Farm"
-                if instance.client:
-                    target_name = instance.client.farm_name or instance.client.name
-                
-                ActivityLog.log(
-                    action='invoice_created',
-                    description=f'Invoice #{instance.id} created for "{target_name}"',
-                    entity_type='invoice',
-                    entity_id=instance.id
-                )
-            except Exception as e:
-                print(f"Failed to log activity: {e}")
+            ActivityLog.log(
+                action='invoice_created',
+                description=f'Invoice #{instance.id} created for "{target_name}"',
+                entity_type='invoice',
+                entity_id=instance.id
+            )
         except Exception as e:
-            # THIS IS FOR DEBUGGING - IT WILL SHOW THE ERROR IN THE FRONTEND
-            raise ValidationError({"debug_error": str(e), "data_sent": self.request.data})
+            print(f"Failed to log activity: {e}")
 
     def perform_update(self, serializer):
         instance = serializer.save()

@@ -178,6 +178,16 @@ class InvoiceSerializer(serializers.ModelSerializer):
     payments = PaymentSerializer(many=True, read_only=True)
     new_farm_name = serializers.CharField(write_only=True, required=False)
     
+    def create(self, validated_data):
+        # Remove non-model fields before saving
+        validated_data.pop('new_farm_name', None)
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        # Remove non-model fields before updating
+        validated_data.pop('new_farm_name', None)
+        return super().update(instance, validated_data)
+
     class Meta:
         model = Invoice
         fields = [
