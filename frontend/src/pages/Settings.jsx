@@ -767,18 +767,22 @@ export default function Settings() {
                                             </div>
 
                                             {/* Our Cost */}
-                                            <div className="flex-1 flex flex-col justify-between bg-violet-50/80 dark:bg-violet-500/10 rounded-lg p-2.5 border border-violet-100/80 dark:border-violet-500/20">
+                                            <div className="flex-[1.2] flex flex-col justify-between bg-violet-50/80 dark:bg-violet-500/10 rounded-lg p-2.5 border border-violet-100/80 dark:border-violet-500/20">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <span className="text-violet-800 dark:text-violet-400 font-bold uppercase tracking-wider text-[10px]">Our Cost</span>
                                                     <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-200 dark:bg-violet-500/20 text-violet-900 dark:text-violet-300">Due to Uniform</span>
                                                 </div>
-                                                <div className="flex items-center justify-between mt-auto">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium">Purchase:</span>
+                                                <div className="flex flex-col gap-1 mt-auto">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">Normal Purch.:</span>
                                                         <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{parseFloat(mod.purchase_our_price || 0).toLocaleString()} €</span>
                                                     </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium">Renewal:</span>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">DairyLive Purch.:</span>
+                                                        <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{(parseFloat(mod.purchase_our_price || 0) * 0.5).toLocaleString()} €</span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between border-t border-violet-200/50 dark:border-violet-500/20 pt-1 mt-0.5">
+                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">Renewal:</span>
                                                         <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{parseFloat(mod.renewal_our_price || 0).toLocaleString()} €</span>
                                                     </div>
                                                 </div>
