@@ -209,7 +209,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
 
     const sections = [
         { id: 'overview', label: 'Overview', icon: Eye },
-        { id: 'finance', label: 'Finance', icon: DollarSign, badge: totalDue > 0 ? `${totalDue.toLocaleString()}` : null },
+        ...(client.is_4genetics_college ? [] : [{ id: 'finance', label: 'Finance', icon: DollarSign, badge: totalDue > 0 ? `${totalDue.toLocaleString()}` : null }]),
         { id: 'contacts', label: 'Contacts', icon: Users, count: contacts.length },
         { id: 'tickets', label: 'Tickets', icon: Ticket, count: openTickets },
         { id: 'files', label: 'Files', icon: Paperclip, count: generalFiles.length },
@@ -381,19 +381,22 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                 { icon: Receipt, label: 'Invoices', value: client.is_4genetics_college ? <span className="text-sm font-semibold text-gray-400">4Genetics College</span> : invoices.length, color: client.is_4genetics_college ? 'text-gray-400' : (isDark ? 'text-blue-400' : 'text-blue-600'), iconBg: client.is_4genetics_college ? (isDark ? 'bg-white/[0.06]' : 'bg-gray-100') : 'bg-blue-500/10', section: 'finance', strikethrough: client.is_4genetics_college },
                                 { icon: DollarSign, label: 'Due Amount', value: client.is_4genetics_college ? <span className="text-sm font-semibold text-gray-400">—</span> : (totalDue > 0 ? `${totalDue.toLocaleString()} EGP` : '0'), color: client.is_4genetics_college ? 'text-gray-400' : (totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600'), iconBg: client.is_4genetics_college ? (isDark ? 'bg-white/[0.06]' : 'bg-gray-100') : (totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100'), section: 'finance', strikethrough: client.is_4genetics_college },
                                 { icon: Ticket, label: 'Open Tickets', value: openTickets, color: openTickets > 0 ? 'text-violet-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: openTickets > 0 ? 'bg-violet-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100', section: 'tickets' },
-                            ].map((kpi, i) => (
-                                <div key={i} onClick={() => setActiveSection(kpi.section)} className={`rounded-xl border p-4 cursor-pointer transition-all hover:scale-[1.02] ${isDark ? 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12]' : 'bg-white border-gray-200 hover:border-gray-300 hover:shadow-md'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.iconBg}`}>
-                                            <kpi.icon size={18} className={kpi.color} />
-                                        </div>
-                                        <div>
-                                            <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'} ${kpi.strikethrough ? 'line-through opacity-60' : ''}`}>{kpi.label}</p>
-                                            <p className={`text-lg font-extrabold tabular-nums ${kpi.color}`}>{kpi.value}</p>
+                            ].map((kpi, i) => {
+                                const isClickable = !(client.is_4genetics_college && kpi.section === 'finance');
+                                return (
+                                    <div key={i} onClick={() => isClickable && setActiveSection(kpi.section)} className={`rounded-xl border p-4 transition-all ${isClickable ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-default opacity-80'} ${isClickable && isDark ? 'hover:border-white/[0.12]' : ''} ${isClickable && !isDark ? 'hover:border-gray-300 hover:shadow-md' : ''} ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${kpi.iconBg}`}>
+                                                <kpi.icon size={18} className={kpi.color} />
+                                            </div>
+                                            <div>
+                                                <p className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'} ${kpi.strikethrough ? 'line-through opacity-60' : ''}`}>{kpi.label}</p>
+                                                <p className={`text-lg font-extrabold tabular-nums ${kpi.color}`}>{kpi.value}</p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            ))}
+                                )
+                            })}
                         </div>
 
                         {/* ═══ OVERVIEW SECTION ═══ */}
