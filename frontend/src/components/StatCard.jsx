@@ -156,39 +156,44 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
                 }}
             />
 
-            <div className="relative flex items-start justify-between" style={{ transform: 'translateZ(30px)' }}>
-                <div className="min-w-0 flex-1">
-                    <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 flex items-center gap-1">
-                        <span className="line-clamp-2 leading-tight min-w-0 pr-1">{label}</span>
-                        {info && (
-                            <span
-                                ref={infoBtnRef}
-                                onClick={handleInfoClick}
-                                className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help p-1 -m-1 ${showInfo
-                                    ? isDark ? 'text-white/60' : 'text-gray-500'
-                                    : isDark ? 'text-white/20 hover:text-white/50 group-hover:text-white/50' : 'text-gray-300 hover:text-gray-500 group-hover:text-gray-500'
-                                    }`}
-                            >
-                                <Info size={12} strokeWidth={2.5} />
-                            </span>
+            <div className="relative flex flex-col h-full" style={{ transform: 'translateZ(30px)' }}>
+                <div className="flex items-start justify-between flex-1">
+                    <div className="min-w-0 flex-1 flex flex-col justify-between h-full">
+                        <div>
+                            <p className="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 mb-0.5 md:mb-1 flex items-center gap-1">
+                                <span className="line-clamp-2 leading-tight min-w-0 pr-1">{label}</span>
+                                {info && (
+                                    <span
+                                        ref={infoBtnRef}
+                                        onClick={handleInfoClick}
+                                        className={`inline-flex shrink-0 items-center transition-all duration-300 cursor-help p-1 -m-1 ${showInfo
+                                            ? isDark ? 'text-white/60' : 'text-gray-500'
+                                            : isDark ? 'text-white/20 hover:text-white/50 group-hover:text-white/50' : 'text-gray-300 hover:text-gray-500 group-hover:text-gray-500'
+                                            }`}
+                                    >
+                                        <Info size={12} strokeWidth={2.5} />
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+                        {subValue && (
+                            <div className="mt-auto pt-2">
+                                <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-500 flex items-center gap-1 truncate">
+                                    {trend === 'up' && <TrendingUp size={12} className="text-green-500 shrink-0" />}
+                                    {trend === 'down' && <TrendingUp size={12} className="text-red-500 rotate-180 shrink-0" />}
+                                    {subValue}
+                                </p>
+                            </div>
                         )}
-                    </p>
-                    <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{value}</p>
-                    {subValue && (
-                        <p className="text-[10px] md:text-sm text-gray-400 dark:text-gray-500 mt-0.5 md:mt-1 flex items-center gap-1 truncate">
-                            {trend === 'up' && <TrendingUp size={12} className="text-green-500 shrink-0" />}
-                            {trend === 'down' && <TrendingUp size={12} className="text-red-500 rotate-180 shrink-0" />}
-                            {subValue}
-                        </p>
-                    )}
-                </div>
-                <div
-                    className={`p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-br ${colorClasses[color]} shadow-lg transform transition-all duration-300 shrink-0 ml-2`}
-                    style={{
-                        transform: isHovered ? 'scale(1.1) rotate(3deg) translateZ(40px)' : 'translateZ(20px)',
-                    }}
-                >
-                    <Icon className="text-white w-4 h-4 md:w-6 md:h-6" />
+                    </div>
+                    <div
+                        className={`p-2 md:p-3 rounded-lg md:rounded-xl bg-gradient-to-br ${colorClasses[color]} shadow-lg transform transition-all duration-300 shrink-0 ml-2`}
+                        style={{
+                            transform: isHovered ? 'scale(1.1) rotate(3deg) translateZ(40px)' : 'translateZ(20px)',
+                        }}
+                    >
+                        <Icon className="text-white w-4 h-4 md:w-6 md:h-6" />
+                    </div>
                 </div>
             </div>
 
