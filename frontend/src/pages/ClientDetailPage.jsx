@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -49,6 +49,13 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
     });
 
     const client = clients.find(c => c.id === parseInt(id));
+
+    // Redirect to Serials Page if someone tries to access a 4Genetics College directly via /clients/:id
+    useEffect(() => {
+        if (client?.is_4genetics_college && !embeddedClientId && window.location.pathname.startsWith('/clients/')) {
+            navigate('/serials', { replace: true });
+        }
+    }, [client, embeddedClientId, navigate]);
 
     // Mutations
     const updateInvoiceMutation = useMutation({
