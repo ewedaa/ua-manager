@@ -34,10 +34,28 @@ export default function EditClientModal({ client, onClose }) {
     const [formData, setFormData] = useState({ ...client });
     const [error, setError] = useState(null);
 
-    const { data: availableModules = [] } = useQuery({
+    const { data: rawModules = [] } = useQuery({
         queryKey: ['subscription-modules'],
         queryFn: fetchModules,
     });
+
+    const availableModules = React.useMemo(() => {
+        return [...rawModules].filter(m => m.is_active !== false).sort((a, b) => {
+            const getOrder = (name) => {
+                if (name.includes('Base module')) return 0;
+                if (name.toLowerCase().includes('dairylive')) {
+                    const match = name.match(/(\d+)/);
+                    return 100000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                if (name.includes('Big farm module')) {
+                    const match = name.match(/(\d+)/);
+                    return 200000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                return 300000;
+            };
+            return getOrder(a.name) - getOrder(b.name);
+        });
+    }, [rawModules]);
 
     const mutation = useMutation({
         mutationFn: updateClient,

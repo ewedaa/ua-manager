@@ -33,7 +33,21 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
         },
     });
 
-    const activeModules = modules.filter(m => m.is_active);
+    const activeModules = modules.filter(m => m.is_active).sort((a, b) => {
+        const getOrder = (name) => {
+            if (name.includes('Base module')) return 0;
+            if (name.toLowerCase().includes('dairylive')) {
+                const match = name.match(/(\d+)/);
+                return 100000 + (match ? parseInt(match[1], 10) : 0);
+            }
+            if (name.includes('Big farm module')) {
+                const match = name.match(/(\d+)/);
+                return 200000 + (match ? parseInt(match[1], 10) : 0);
+            }
+            return 300000;
+        };
+        return getOrder(a.name) - getOrder(b.name);
+    });
 
     // Calculate totals from selected modules
     const costTotal = selectedModuleIds.reduce((sum, id) => {
