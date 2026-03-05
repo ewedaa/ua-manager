@@ -10,6 +10,51 @@ import {
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
+// ─── Shared Helpers ───────────────────────────────────────────
+const getClientLatestActivity = (client) => {
+    let latestDate = new Date(client.updated_at || client.created_at);
+    let latestType = 'Profile Updated';
+    let link = `/clients/${client.id}`;
+
+    // Check tickets
+    if (client.tickets && Array.isArray(client.tickets)) {
+        client.tickets.forEach(t => {
+            const d = new Date(t.updated_at || t.created_at);
+            if (d > latestDate) {
+                latestDate = d;
+                latestType = `Ticket: ${t.status}`;
+                link = `/clients/${client.id}`;
+            }
+        });
+    }
+
+    // Check invoices
+    if (client.invoices && Array.isArray(client.invoices)) {
+        client.invoices.forEach(i => {
+            const d = new Date(i.updated_at || i.created_at);
+            if (d > latestDate) {
+                latestDate = d;
+                latestType = `Invoice: ${i.status}`;
+                link = `/clients/${client.id}`;
+            }
+        });
+    }
+
+    // Check files
+    if (client.files && Array.isArray(client.files)) {
+        client.files.forEach(f => {
+            const d = new Date(f.uploaded_at);
+            if (d > latestDate) {
+                latestDate = d;
+                latestType = 'File Attached';
+                link = `/clients/${client.id}`;
+            }
+        });
+    }
+
+    return { type: latestType, date: latestDate, link };
+};
+
 // ─── Tile config registry ────────────────────────────────────
 const TILE_CONFIG = {
     'expiring-soon': {
@@ -289,22 +334,26 @@ const TILE_CONFIG = {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             return items.filter(c => {
-                const updated = new Date(c.updated_at || c.created_at);
-                return updated >= thirtyDaysAgo;
+                const act = getClientLatestActivity(c);
+                return act.date >= thirtyDaysAgo;
             });
         },
-        columns: ['Farm Name', 'Contact', 'Last Activity', 'Status'],
-        getRow: (c) => ({
-            id: c.id,
-            cells: [
-                c.farm_name,
-                c.name,
-                new Date(c.updated_at || c.created_at).toLocaleDateString(),
-                c.status || 'Active',
-            ],
-            link: `/clients/${c.id}`,
-            deleteUrl: `${API_BASE_URL}/clients/${c.id}/`,
-        }),
+        columns: ['Farm Name', 'Contact', 'Activity Type', 'Last Activity', 'Status'],
+        getRow: (c) => {
+            const act = getClientLatestActivity(c);
+            return {
+                id: c.id,
+                cells: [
+                    c.farm_name,
+                    c.name,
+                    act.type,
+                    act.date.toLocaleDateString(),
+                    c.status || 'Active',
+                ],
+                link: `/clients/${c.id}`,
+                deleteUrl: `${API_BASE_URL}/clients/${c.id}/`,
+            };
+        },
         resourceName: 'client',
         editRoute: (id) => `/clients/${id}`,
     },
@@ -670,10 +719,12 @@ export default function StatDetailPage() {
                     return (
                         <div
                             key={row.id}
-                            className={`grid gap-4 px-5 py-3.5 text-sm items-center transition-colors group ${isDark
-                                ? idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.015]'
-                                : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'
-                                } hover:bg-green-500/5`}
+                            onClick={() => { if (row.link) navigate(row.link); }}
+                            className={`grid gap-4 px-5 py-3.5 text-sm items-center transition-colors group ${row.link ? 'cursor-pointer hover:bg-green-500/5' : ''
+                                } ${isDark
+                                    ? idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.015]'
+                                    : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/60'
+                                }`}
                             style={{ gridTemplateColumns: `1fr repeat(${config.columns.length - 1}, 1fr) 80px` }}>
 
                             {row.cells.map((cell, ci) => (
@@ -686,7 +737,7 @@ export default function StatDetailPage() {
                             ))}
 
                             {/* Actions */}
-                            <div className="flex items-center justify-end gap-1.5">
+                            <div className="flex items-center justify-end gap-1.5" onClick={e => e.stopPropagation()}>
                                 {row.link && (
                                     <Link to={row.link}
                                         className={`p-1.5 rounded-lg transition-colors opacity-0 group-hover:opacity-100 ${isDark ? 'hover:bg-white/10 text-gray-400 hover:text-white' : 'hover:bg-gray-100 text-gray-400 hover:text-gray-700'}`}
