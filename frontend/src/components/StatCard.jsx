@@ -125,7 +125,7 @@ export default function StatCard({ icon: Icon, label, value, subValue, color = '
             onTouchStart={handleTouchStart}
             onTouchEnd={handleTouchEnd}
             onTouchMove={handleTouchMove}
-            className="relative overflow-hidden rounded-xl md:rounded-2xl p-3 md:p-6 transition-all duration-300 cursor-pointer group"
+            className="relative h-full flex flex-col justify-center overflow-hidden rounded-xl md:rounded-2xl p-3 md:p-6 transition-all duration-300 cursor-pointer group"
             style={{
                 background: isDark
                     ? 'rgba(255,255,255,0.03)'
