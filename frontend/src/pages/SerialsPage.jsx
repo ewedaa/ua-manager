@@ -270,7 +270,9 @@ export default function SerialsPage() {
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
                                         <input required value={form.serial_number} onChange={e => {
-                                            let val = e.target.value.toUpperCase();
+                                            let val = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+                                            val = val.match(/.{1,4}/g)?.join('-') || '';
+                                            val = val.substring(0, 24);
                                             setForm(f => ({ ...f, serial_number: val }));
                                         }} className={inputClass} />
                                     </div>
