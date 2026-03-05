@@ -52,6 +52,7 @@ export default function Clients() {
     const [viewMode, setViewMode] = useState('grid');
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterFinance, setFilterFinance] = useState('all');
+    const [filterType, setFilterType] = useState('subscribers'); // 'subscribers' or 'quoted'
     const [sortBy, setSortBy] = useState('name');
     const [filterOpen, setFilterOpen] = useState(false);
 
@@ -118,7 +119,9 @@ export default function Clients() {
             matchesFinance = !!hasDue;
         }
 
-        return matchesSearch && matchesStatus && matchesFinance;
+        const matchesType = filterType === 'quoted' ? client.is_quoted : !client.is_quoted;
+
+        return matchesSearch && matchesStatus && matchesFinance && matchesType;
     }).sort((a, b) => {
         if (sortBy === 'name') return a.farm_name.localeCompare(b.farm_name);
 
@@ -244,6 +247,28 @@ export default function Clients() {
                             title="List View"
                         >
                             <List size={18} />
+                        </button>
+                    </div>
+
+                    {/* Tab Switcher */}
+                    <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+                        <button
+                            onClick={() => setFilterType('subscribers')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${filterType === 'subscribers'
+                                ? 'bg-white dark:bg-gray-700 shadow-sm text-green-600 dark:text-green-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Subscribers
+                        </button>
+                        <button
+                            onClick={() => setFilterType('quoted')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${filterType === 'quoted'
+                                ? 'bg-white dark:bg-gray-700 shadow-sm text-amber-600 dark:text-amber-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Quoted Farms
                         </button>
                     </div>
 

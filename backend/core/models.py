@@ -22,6 +22,7 @@ class Client(models.Model):
     subscription_start_date = models.DateField()
     subscription_end_date = models.DateField()
     is_demo = models.BooleanField(default=False, help_text="Is this farm in demo/trial mode?")
+    is_quoted = models.BooleanField(default=False, help_text="Is this a farm that only has quotations?")
     demo_start_date = models.DateField(null=True, blank=True)
     demo_end_date = models.DateField(null=True, blank=True)
     is_4genetics_college = models.BooleanField(default=False, help_text="Is this a 4Genetics College?")

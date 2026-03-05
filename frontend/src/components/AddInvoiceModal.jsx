@@ -116,7 +116,11 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
 
         try {
             const form = new FormData();
-            form.append('client', clientId);
+            if (clientId) {
+                form.append('client', clientId);
+            } else if (formData.new_farm_name) {
+                form.append('new_farm_name', formData.new_farm_name);
+            }
             form.append('total_amount', customerTotal.toFixed(2));
             form.append('cost_total', costTotal.toFixed(2));
             form.append('customer_total', customerTotal.toFixed(2));

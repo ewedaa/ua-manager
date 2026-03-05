@@ -84,7 +84,24 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        instance = serializer.save()
+        from .models import Client
+        import django.utils.timezone as timezone
+        
+        new_farm_name = self.request.data.get('new_farm_name')
+        if new_farm_name and self.request.data.get('invoice_type') == 'Purchase Quotation':
+            # Create a quoted farm
+            client = Client.objects.create(
+                name=new_farm_name,
+                farm_name=new_farm_name,
+                is_quoted=True,
+                subscription_start_date=timezone.now().date(),
+                subscription_end_date=timezone.now().date() + timezone.timedelta(days=365),
+                phone='N/A'
+            )
+            instance = serializer.save(client=client)
+        else:
+            instance = serializer.save()
+            
         ActivityLog.log('invoice_created', f'Invoice #{instance.id} created for "{instance.client.farm_name}"', 'invoice', instance.id)
 
     def perform_update(self, serializer):

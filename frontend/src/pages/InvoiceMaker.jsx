@@ -27,9 +27,9 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         client: editInvoice?.client || '',
         invoice_type: editInvoice?.invoice_type || 'Renewal Invoice',
         livestock_ids: editInvoice?.livestock_selection?.map(l => l.id) || [],
-        status: editInvoice?.status || 'Due',
         notes: editInvoice?.notes || '',
     });
+    const [newFarmName, setNewFarmName] = useState('');
     const [selectedModuleIds, setSelectedModuleIds] = useState(
         editInvoice?.selected_modules?.map(m => m.id) || []
     );
@@ -202,8 +202,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!formData.client) {
-            setError('Please select a client');
+        if (!formData.client && !newFarmName) {
+            setError('Please select a client or enter a farm name');
             return;
         }
         if (selectedModuleIds.length === 0) {
@@ -213,6 +213,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         mutation.mutate({
             ...formData,
             selected_module_ids: selectedModuleIds,
+            new_farm_name: formData.invoice_type === 'Purchase Quotation' ? newFarmName : null,
             // Store totals in the selected display currency
             total_amount: parseFloat(toDisplay(customerTotal)).toFixed(2),
             cost_total: parseFloat(toDisplay(costTotal)).toFixed(2),
@@ -256,37 +257,6 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         </div>
                     )}
 
-                    {/* Client Selection */}
-                    <div>
-                        <div className="flex items-center justify-between mb-2">
-                            <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                Client *
-                            </label>
-                            {isAdmin && (
-                                <button
-                                    type="button"
-                                    onClick={() => setShowQuickAdd(true)}
-                                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors"
-                                >
-                                    <Plus size={12} /> New Farm
-                                </button>
-                            )}
-                        </div>
-                        <select
-                            value={formData.client}
-                            onChange={(e) => setFormData({ ...formData, client: e.target.value })}
-                            className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.08] bg-white/[0.04] text-white' : 'border-gray-200 bg-white text-gray-900'} focus:ring-2 focus:ring-green-500 focus:outline-none`}
-                            disabled={!isAdmin}
-                        >
-                            <option value="">Select a client...</option>
-                            {clients?.map(client => (
-                                <option key={client.id} value={client.id}>
-                                    {client.name} - {client.farm_name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
                     {/* Invoice Type */}
                     <div>
                         <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -307,6 +277,74 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                 </button>
                             ))}
                         </div>
+                    </div>
+
+                    {/* Client Selection */}
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className={`block text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {formData.invoice_type === 'Purchase Quotation' ? 'Client / New Farm Name *' : 'Client *'}
+                            </label>
+                            {isAdmin && formData.invoice_type !== 'Purchase Quotation' && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowQuickAdd(true)}
+                                    className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg bg-green-600 hover:bg-green-500 text-white transition-colors"
+                                >
+                                    <Plus size={12} /> New Farm
+                                </button>
+                            )}
+                        </div>
+
+                        {formData.invoice_type === 'Purchase Quotation' ? (
+                            <div className="space-y-3">
+                                <select
+                                    value={formData.client}
+                                    onChange={(e) => {
+                                        setFormData({ ...formData, client: e.target.value });
+                                        if (e.target.value) setNewFarmName('');
+                                    }}
+                                    className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.08] bg-white/[0.04] text-white' : 'border-gray-200 bg-white text-gray-900'} focus:ring-2 focus:ring-green-500 focus:outline-none`}
+                                    disabled={!isAdmin}
+                                >
+                                    <option value="">Select existing client (Optional)...</option>
+                                    {clients?.map(client => (
+                                        <option key={client.id} value={client.id}>
+                                            {client.name} - {client.farm_name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {!formData.client && (
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <Building2 size={14} className={isDark ? 'text-gray-600' : 'text-gray-400'} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder="Or enter new farm name..."
+                                            value={newFarmName}
+                                            onChange={(e) => setNewFarmName(e.target.value)}
+                                            className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.08] bg-white/[0.04] text-white placeholder-gray-600' : 'border-gray-200 bg-white text-gray-900 placeholder-gray-400'} focus:ring-2 focus:ring-green-500 focus:outline-none`}
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <select
+                                value={formData.client}
+                                onChange={(e) => setFormData({ ...formData, client: e.target.value })}
+                                className={`w-full px-4 py-2.5 rounded-xl border ${isDark ? 'border-white/[0.08] bg-white/[0.04] text-white' : 'border-gray-200 bg-white text-gray-900'} focus:ring-2 focus:ring-green-500 focus:outline-none`}
+                                disabled={!isAdmin}
+                            >
+                                <option value="">Select a client...</option>
+                                {clients?.map(client => (
+                                    <option key={client.id} value={client.id}>
+                                        {client.name} - {client.farm_name}
+                                    </option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     {/* Currency Selector */}
