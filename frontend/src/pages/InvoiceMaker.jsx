@@ -136,9 +136,27 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const profit = customerTotal - costTotal;
 
     const toggleModule = (id) => {
-        setSelectedModuleIds(prev =>
-            prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-        );
+        setSelectedModuleIds(prev => {
+            const isSelecting = !prev.includes(id);
+            if (!isSelecting) return prev.filter(x => x !== id);
+
+            const mod = modules.find(m => m.id === id);
+            if (!mod || !mod.name.includes('Big farm module')) return [...prev, id];
+
+            // Helper to parse cow count
+            const getCows = (name) => {
+                const match = name.match(/(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+            };
+
+            const targetCows = getCows(mod.name);
+            const lowerTierIds = activeModules
+                .filter(m => m.name.includes('Big farm module') && getCows(m.name) < targetCows)
+                .map(m => m.id);
+
+            const newSet = new Set([...prev, id, ...lowerTierIds]);
+            return Array.from(newSet);
+        });
     };
 
     const mutation = useMutation({

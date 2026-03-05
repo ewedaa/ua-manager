@@ -177,12 +177,27 @@ export default function EditClientModal({ client, onClose }) {
                                         onChange={(e) => {
                                             const currentModules = (formData.subscription_modules || '').split(',').map(s => s.trim()).filter(Boolean);
                                             let newModules;
+
                                             if (e.target.checked) {
                                                 newModules = [...currentModules, mod.name];
+
+                                                // Cumulative selection for Big farm modules
+                                                if (mod.name.includes('Big farm module')) {
+                                                    const getCows = (name) => {
+                                                        const match = name.match(/(\d+)/);
+                                                        return match ? parseInt(match[1], 10) : 0;
+                                                    };
+                                                    const targetCows = getCows(mod.name);
+                                                    const lowerTierNames = availableModules
+                                                        .filter(m => m.name.includes('Big farm module') && getCows(m.name) < targetCows)
+                                                        .map(m => m.name);
+
+                                                    newModules = Array.from(new Set([...newModules, ...lowerTierNames]));
+                                                }
                                             } else {
                                                 newModules = currentModules.filter(m => m !== mod.name);
                                             }
-                                            setFormData({ ...formData, subscription_modules: newModules.join(', ') });
+                                            setFormData({ ...formData, subscription_modules: newModules.sort().join(', ') });
                                         }}
                                         className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
                                     />
