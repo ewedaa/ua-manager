@@ -671,12 +671,12 @@ export default function Settings() {
                         <div className="relative">
                             <input type="number" step="0.01" placeholder="Purchase Price" value={newModulePurchasePrice} onChange={(e) => setNewModulePurchasePrice(e.target.value)}
                                 className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none pr-12" />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">P EGP</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">P €</span>
                         </div>
                         <div className="relative">
                             <input type="number" step="0.01" placeholder="Renewal Price" value={newModuleRenewalPrice} onChange={(e) => setNewModuleRenewalPrice(e.target.value)}
                                 className="w-36 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none pr-12" />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">R EGP</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">R €</span>
                         </div>
                         <button type="submit" disabled={createMutation.isPending || !newModule.trim()}
                             className="bg-gradient-to-r from-green-600 to-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-medium disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25 transition-all">
@@ -704,13 +704,13 @@ export default function Settings() {
                                             <input type="number" step="0.01" value={editingPurchasePrice} onChange={(e) => setEditingPurchasePrice(e.target.value)}
                                                 placeholder="Purchase"
                                                 className="w-24 px-3 py-1.5 border border-blue-300 dark:border-blue-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none text-right pr-8" />
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-blue-400 font-bold">P</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">P €</span>
                                         </div>
                                         <div className="relative">
                                             <input type="number" step="0.01" value={editingRenewalPrice} onChange={(e) => setEditingRenewalPrice(e.target.value)}
                                                 placeholder="Renewal"
                                                 className="w-24 px-3 py-1.5 border border-amber-300 dark:border-amber-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none text-right pr-8" />
-                                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-amber-400 font-bold">R</span>
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 font-bold">R €</span>
                                         </div>
                                         <button onClick={() => handleSaveEdit(mod.id)} disabled={updateMutation.isPending} className="text-green-600 hover:text-green-700 p-1.5"><Save size={18} /></button>
                                         <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1.5"><X size={18} /></button>
@@ -719,10 +719,10 @@ export default function Settings() {
                                     <>
                                         <span className="flex-1 font-medium text-gray-700 dark:text-gray-300">{mod.name}</span>
                                         <span className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-lg ${parseFloat(mod.purchase_price) > 0 ? 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
-                                            P: {parseFloat(mod.purchase_price || 0).toLocaleString()} EGP
+                                            P: {parseFloat(mod.purchase_price || 0).toLocaleString()} €
                                         </span>
-                                        <span className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-lg ${parseFloat(mod.renewal_price) > 0 ? 'bg-amber-100 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400' : 'text-gray-400'}`}>
-                                            R: {parseFloat(mod.renewal_price || 0).toLocaleString()} EGP
+                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-200'}`}>
+                                            R: {parseFloat(mod.renewal_price || 0).toLocaleString()} €
                                         </span>
                                         {isAdmin && (
                                             <>

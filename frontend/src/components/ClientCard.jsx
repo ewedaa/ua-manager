@@ -111,7 +111,7 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                         {totalDue > 0 && (
                             <div className="text-right hidden md:block">
                                 <p className="text-[10px] text-orange-500 font-bold uppercase tracking-wider">Due</p>
-                                <p className="text-sm font-bold text-orange-500 tabular-nums">{totalDue.toLocaleString()} EGP</p>
+                                <p className="text-sm font-bold text-orange-500 tabular-nums">{totalDue.toLocaleString()} €</p>
                             </div>
                         )}
                         <div className={`p-1.5 rounded-lg transition-all group-hover:translate-x-0.5 ${isDark ? 'text-gray-600 group-hover:text-emerald-400' : 'text-gray-300 group-hover:text-emerald-500'}`}>

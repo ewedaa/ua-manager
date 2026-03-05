@@ -49,7 +49,7 @@ const sections = [
         items: [
             {
                 q: 'What data is shown on the Dashboard?',
-                a: 'The Dashboard provides a high-level overview of business health. Key Performance Indicators (KPIs) include: Total Active Clients, Tickets needing attention (Open/In Progress), Monthly Revenue (in EGP), and Active Projects. It also features a "Recent Activity" feed tracking the latest system actions and an "Expiring Soon" alert section for subscriptions ending within 60 days.',
+                a: 'The Dashboard provides a high-level overview of business health. Key Performance Indicators (KPIs) include: Total Active Clients, Tickets needing attention (Open/In Progress), Monthly Revenue (in €), and Active Projects. It also features a "Recent Activity" feed tracking the latest system actions and an "Expiring Soon" alert section for subscriptions ending within 60 days.',
                 image: { title: 'Dashboard Overview', icon: BarChart3 }
             },
             {

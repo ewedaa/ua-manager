@@ -241,8 +241,8 @@ export default function PaymentTracker() {
             <div className="flex flex-wrap gap-3">
                 {[
                     { label: 'Total invoices', value: invoices.length, color: 'text-gray-400' },
-                    { label: 'Due from farms', value: `${totalDue.toLocaleString()} ${invoices[0]?.currency || 'EGP'}`, color: 'text-amber-400' },
-                    { label: 'Received from farms', value: `${totalPaidUs.toLocaleString()} ${invoices[0]?.currency || 'EGP'}`, color: 'text-green-400' },
+                    { label: 'Due from farms', value: `${totalDue.toLocaleString()} ${invoices[0]?.currency || '€'}`, color: 'text-amber-400' },
+                    { label: 'Received from farms', value: `${totalPaidUs.toLocaleString()} ${invoices[0]?.currency || '€'}`, color: 'text-green-400' },
                     { label: 'Paid to Uniform Agri (€)', value: `€${totalPaidUniform.toLocaleString()}`, color: 'text-blue-400' },
                 ].map(chip => (
                     <div key={chip.label} className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-gray-100 shadow-sm'}`}>

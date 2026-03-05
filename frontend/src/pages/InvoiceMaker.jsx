@@ -22,7 +22,6 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const queryClient = useQueryClient();
     const { isAdmin } = useAuth();
     const { isDark } = useTheme();
-    const isPurchaseType = (type) => type === 'Purchase Invoice' || type === 'Purchase Quotation';
 
     const [formData, setFormData] = useState({
         client: editInvoice?.client || '',
@@ -89,7 +88,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         if (currency === 'EGP' && !exchangeRate) {
             fetchRate();
         }
-    }, [currency]);
+    }, [currency, exchangeRate, fetchRate]);
 
     // Price conversion helper
     const toDisplay = (eurAmount) => {
@@ -867,13 +866,13 @@ export default function InvoiceMaker() {
                 <StatCard
                     icon={DollarSign}
                     label="Total Customer Revenue"
-                    value={`${totalCustomer.toLocaleString()} EGP`}
+                    value={`${totalCustomer.toLocaleString()} €`}
                     color="purple"
                 />
                 <StatCard
                     icon={TrendingUp}
                     label="Total Profit"
-                    value={`${totalProfit.toLocaleString()} EGP`}
+                    value={`${totalProfit.toLocaleString()} €`}
                     color="green"
                 />
             </div>

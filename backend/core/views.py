@@ -319,7 +319,7 @@ class GeneticsSerialViewSet(viewsets.ModelViewSet):
     queryset = GeneticsSerial.objects.select_related('client').all()
     serializer_class = GeneticsSerialSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['serial_number', 'product_type', 'client__farm_name']
+    search_fields = ['serial_number', 'product_type', 'college_name']
     ordering_fields = ['created_at', 'serial_number', 'product_type']
 
 

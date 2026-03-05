@@ -97,7 +97,7 @@ const TILE_CONFIG = {
             cells: [
                 inv.client_name || `Client #${inv.client}`,
                 inv.invoice_type,
-                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || 'EGP'}`,
+                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || '€'}`,
                 new Date(inv.created_at).toLocaleDateString(),
             ],
             link: '/invoices',
@@ -187,7 +187,7 @@ const TILE_CONFIG = {
             cells: [
                 inv.client_name || `Client #${inv.client}`,
                 inv.invoice_type,
-                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || 'EGP'}`,
+                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || '€'}`,
                 inv.status,
             ],
             link: '/invoices',
@@ -237,7 +237,7 @@ const TILE_CONFIG = {
             cells: [
                 inv.client_name || `Client #${inv.client}`,
                 inv.invoice_type,
-                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || 'EGP'}`,
+                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || '€'}`,
                 new Date(inv.updated_at || inv.created_at).toLocaleDateString(),
             ],
             link: '/invoices',
@@ -480,7 +480,7 @@ const TILE_CONFIG = {
             cells: [
                 inv.client_name || `Client #${inv.client}`,
                 inv.invoice_type,
-                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || 'EGP'}`,
+                `${parseFloat(inv.customer_total || inv.total_amount || 0).toLocaleString()} ${inv.currency || '€'}`,
                 new Date(inv.updated_at || inv.created_at).toLocaleDateString(),
             ],
             link: '/invoices',

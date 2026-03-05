@@ -191,7 +191,7 @@ export default function Dashboard() {
                 <StatCard
                     icon={DollarSign}
                     label="Revenue / Client"
-                    value={`${(stats?.kpis?.revenue_per_client || 0).toLocaleString()} EGP`}
+                    value={`${(stats?.kpis?.revenue_per_client || 0).toLocaleString()} €`}
                     subValue="Per active farm"
                     color="cyan"
                     to="/stats/revenue-per-client"
@@ -285,7 +285,7 @@ export default function Dashboard() {
                 <StatCard
                     icon={DollarSign}
                     label="Total Revenue"
-                    value={`${(stats?.invoices?.total_revenue || 0).toLocaleString()} EGP`}
+                    value={`${(stats?.invoices?.total_revenue || 0).toLocaleString()} €`}
                     subValue="Paid invoices"
                     color="cyan"
                     to="/stats/total-revenue"
@@ -326,7 +326,7 @@ export default function Dashboard() {
                         <div className={`border-l pl-4 flex items-center gap-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>
                             <Flame size={14} className="text-orange-400" />
                             <span className="text-xs text-gray-500 dark:text-gray-400">Burn</span>
-                            <span className="text-xs font-bold text-orange-600 dark:text-orange-300">{(stats?.kpis?.monthly_burn_rate || 0).toLocaleString()} EGP</span>
+                            <span className="text-xs font-bold text-orange-600 dark:text-orange-300">{(stats?.kpis?.monthly_burn_rate || 0).toLocaleString()} €</span>
                         </div>
                         {stats?.kpis?.avg_ticket_age_days != null && (
                             <div className={`border-l pl-4 flex items-center gap-2 ${isDark ? 'border-white/10' : 'border-gray-200'}`}>

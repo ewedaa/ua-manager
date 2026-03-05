@@ -289,6 +289,7 @@ class GeneticsSerial(models.Model):
     
     serial_number = models.CharField(max_length=100, unique=True)
     client = models.ForeignKey(Client, on_delete=models.SET_NULL, null=True, blank=True, related_name='genetics_serials')
+    college_name = models.CharField(max_length=255, blank=True, help_text="Direct college name instead of Client relation")
     product_type = models.CharField(max_length=100, choices=PRODUCT_CHOICES)
     role = models.CharField(max_length=255, blank=True, help_text="Role or position at the college")
     modules = models.TextField(blank=True, help_text="Subscription modules for this college")

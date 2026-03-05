@@ -6,8 +6,7 @@ import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, To
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
-import { fetchSerials, fetchClients } from '../lib/fetchers';
-import ClientDetailPage from './ClientDetailPage';
+import { fetchSerials } from '../lib/fetchers';
 
 const fetchModules = async () => {
     const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
@@ -34,22 +33,13 @@ export default function SerialsPage() {
     const [filterType, setFilterType] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', client: '', role: '', modules: '', notes: '', is_active: true });
+    const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true });
     const [formError, setFormError] = useState('');
-    const [selectedClientForDetails, setSelectedClientForDetails] = useState(null);
 
     const { data: serials = [], isLoading } = useQuery({
         queryKey: ['serials'],
         queryFn: fetchSerials,
     });
-
-    const { data: clients = [] } = useQuery({
-        queryKey: ['clients'],
-        queryFn: fetchClients,
-    });
-
-    // Only show 4Genetics College clients in the dropdown
-    const collegeClients = clients.filter(c => c.is_4genetics_college);
 
     const { data: availableModules = [] } = useQuery({
         queryKey: ['subscription-modules'],
@@ -62,8 +52,18 @@ export default function SerialsPage() {
             return fetch(url, {
                 method: editingId ? 'PUT' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...data, client: data.client || null }),
-            }).then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); });
+                body: JSON.stringify(data),
+            }).then(async r => {
+                if (!r.ok) {
+                    let errMsg = 'Failed to save serial';
+                    try {
+                        const errData = await r.json();
+                        errMsg = typeof errData === 'object' ? Object.values(errData).flat().join(' ') : 'Failed';
+                    } catch (e) { }
+                    throw new Error(errMsg);
+                }
+                return r.json();
+            });
         },
         onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['serials'] }); closeModal(); },
         onError: (err) => setFormError(err.message),
@@ -83,11 +83,11 @@ export default function SerialsPage() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['serials'] }),
     });
 
-    const closeModal = () => { setShowModal(false); setEditingId(null); setForm({ serial_number: '', product_type: 'Dairy Cows', client: '', role: '', modules: '', notes: '', is_active: true }); setFormError(''); };
-    const openEdit = (s) => { setEditingId(s.id); setForm({ serial_number: s.serial_number, product_type: s.product_type, client: s.client || '', role: s.role || '', modules: s.modules || '', notes: s.notes || '', is_active: s.is_active }); setShowModal(true); };
+    const closeModal = () => { setShowModal(false); setEditingId(null); setForm({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true }); setFormError(''); };
+    const openEdit = (s) => { setEditingId(s.id); setForm({ serial_number: s.serial_number, product_type: s.product_type, college_name: s.college_name || '', role: s.role || '', modules: s.modules || '', notes: s.notes || '', is_active: s.is_active }); setShowModal(true); };
 
     const filtered = serials.filter(s => {
-        const matchSearch = !search || s.serial_number?.toLowerCase().includes(search.toLowerCase()) || s.client_name?.toLowerCase().includes(search.toLowerCase());
+        const matchSearch = !search || s.serial_number?.toLowerCase().includes(search.toLowerCase()) || s.college_name?.toLowerCase().includes(search.toLowerCase());
         const matchType = !filterType || s.product_type === filterType;
         return matchSearch && matchType;
     });
@@ -95,8 +95,8 @@ export default function SerialsPage() {
     const stats = {
         total: serials.length,
         active: serials.filter(s => s.is_active).length,
-        assigned: serials.filter(s => s.client).length,
-        unassigned: serials.filter(s => !s.client && s.is_active).length,
+        assigned: serials.filter(s => s.college_name && s.college_name.trim() !== '').length,
+        unassigned: serials.filter(s => (!s.college_name || s.college_name.trim() === '') && s.is_active).length,
     };
 
     const inputClass = `w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 focus:ring-green-500`;
@@ -119,7 +119,7 @@ export default function SerialsPage() {
                         const data = serials.map(s => ({
                             'Serial Number': s.serial_number,
                             'Product Type': s.product_type,
-                            'College Name': s.client_name || 'Unassigned',
+                            'College Name': s.college_name || 'Unassigned',
                             'Role': s.role || '',
                             'Modules': s.modules || '',
                             'Active': s.is_active ? 'Yes' : 'No',
@@ -194,12 +194,7 @@ export default function SerialsPage() {
                                 {filtered.map(s => (
                                     <tr
                                         key={s.id}
-                                        className={`transition-colors duration-100 cursor-pointer ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50'}`}
-                                        onClick={(e) => {
-                                            // Prevent navigation if they click actions / buttons
-                                            if (e.target.closest('button')) return;
-                                            if (s.client) setSelectedClientForDetails(s.client);
-                                        }}
+                                        className={`transition-colors duration-100 ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50'}`}
                                     >
                                         <td className="px-5 py-3.5 font-mono text-sm text-gray-900 dark:text-gray-200">{s.serial_number}</td>
                                         <td className="px-5 py-3.5">
@@ -208,9 +203,9 @@ export default function SerialsPage() {
                                             </span>
                                         </td>
                                         <td className="px-5 py-3.5 text-sm">
-                                            {s.client ? (
+                                            {s.college_name ? (
                                                 <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                                                    {s.client_name}
+                                                    {s.college_name}
                                                 </span>
                                             ) : (
                                                 <span className="opacity-40 text-gray-600 dark:text-gray-400">Unassigned</span>
@@ -262,7 +257,7 @@ export default function SerialsPage() {
                                     }
                                     const duplicate = serials.find(s => s.serial_number.toLowerCase() === form.serial_number.trim().toLowerCase() && s.id !== editingId);
                                     if (duplicate) {
-                                        setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.client_name || 'unassigned'}).`);
+                                        setFormError(`Serial number "${form.serial_number.trim()}" already exists (assigned to ${duplicate.college_name || 'unassigned'}).`);
                                         return;
                                     }
                                     saveMutation.mutate(form);
@@ -287,19 +282,12 @@ export default function SerialsPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Name</label>
-                                        <select value={form.client} onChange={e => setForm(f => ({ ...f, client: e.target.value }))} className={inputClass}>
-                                            <option value="">Unassigned</option>
-                                            {collegeClients.length > 0 && (
-                                                <optgroup label="4Genetics Colleges">
-                                                    {collegeClients.map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
-                                                </optgroup>
-                                            )}
-                                            {clients.filter(c => !c.is_4genetics_college).length > 0 && (
-                                                <optgroup label="Other Clients">
-                                                    {clients.filter(c => !c.is_4genetics_college).map(c => <option key={c.id} value={c.id}>{c.farm_name}</option>)}
-                                                </optgroup>
-                                            )}
-                                        </select>
+                                        <input
+                                            value={form.college_name}
+                                            onChange={e => setForm(f => ({ ...f, college_name: e.target.value }))}
+                                            placeholder="e.g. Yasha' Farm"
+                                            className={inputClass}
+                                        />
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
@@ -347,20 +335,6 @@ export default function SerialsPage() {
                 )
             )}
 
-            {/* Embedded Client Details Overlay */}
-            {selectedClientForDetails && (
-                createPortal(
-                    <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm overflow-hidden flex flex-col">
-                        <div className="w-full h-full bg-white dark:bg-gray-950 overflow-y-auto animate-in fade-in slide-in-from-bottom-4 duration-300 relative">
-                            <ClientDetailPage
-                                embeddedClientId={selectedClientForDetails}
-                                onClose={() => setSelectedClientForDetails(null)}
-                            />
-                        </div>
-                    </div>,
-                    document.body
-                )
-            )}
         </div>
     );
 }

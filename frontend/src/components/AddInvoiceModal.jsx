@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Save, Loader2, AlertCircle, Upload, FileText, Plus, Package, Check, TrendingUp, ArrowRight, DollarSign, Building2, Users, StickyNote, Receipt, ShoppingCart, RefreshCw, Sparkles, ChevronRight, CheckCircle } from 'lucide-react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
@@ -11,10 +11,12 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
     const fileInputRef = useRef(null);
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
-        client: clientId,
-        invoice_type: 'Renewal Invoice',
+        client: '',
+        invoice_type: 'Purchase Quotation',
+        currency: 'EUR',
+        livestock_ids: [],
         status: 'Due',
-        notes: '',
+        notes: ''
     });
     const [selectedModuleIds, setSelectedModuleIds] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -88,6 +90,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
             form.append('customer_total', customerTotal.toFixed(2));
             form.append('invoice_type', formData.invoice_type);
             form.append('status', formData.status);
+            form.append('currency', formData.currency);
             form.append('notes', formData.notes);
             if (selectedFile) {
                 form.append('pdf_file', selectedFile);
@@ -206,49 +209,78 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                         {/* ═══ STEP 1: TYPE & STATUS ═══ */}
                         {step === 1 && (
                             <div className="space-y-5 animate-in fade-in slide-in-from-right-4 duration-300">
-                                {/* Invoice Type Cards */}
-                                <div>
-                                    <label className={`block text-[11px] font-bold uppercase mb-3 tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                        Document Type
-                                    </label>
-                                    <div className="grid grid-cols-3 gap-2.5">
-                                        {invoiceTypes.map((type) => {
-                                            const isActive = formData.invoice_type === type.value;
-                                            return (
+                                {/* Type & Currency Container */}
+                                <div className="grid grid-cols-[1fr,120px] gap-4">
+                                    {/* Invoice Type Cards */}
+                                    <div>
+                                        <label className={`block text-[11px] font-bold uppercase mb-3 tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            Document Type
+                                        </label>
+                                        <div className="grid grid-cols-3 gap-2.5">
+                                            {invoiceTypes.map((type) => {
+                                                const isActive = formData.invoice_type === type.value;
+                                                return (
+                                                    <button
+                                                        key={type.value}
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, invoice_type: type.value })}
+                                                        className={`relative p-3.5 rounded-xl border-2 transition-all duration-300 text-center group overflow-hidden ${isActive
+                                                            ? `${type.bg} ${type.border} shadow-sm`
+                                                            : isDark
+                                                                ? 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
+                                                                : 'bg-gray-50/50 border-gray-200 hover:border-gray-300 hover:bg-gray-100/50'
+                                                            }`}
+                                                    >
+                                                        {isActive && (
+                                                            <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${type.gradient}`} />
+                                                        )}
+                                                        <div className={`w-9 h-9 rounded-lg mx-auto mb-2 flex items-center justify-center transition-all duration-300 ${isActive
+                                                            ? `bg-gradient-to-br ${type.gradient} shadow-lg`
+                                                            : isDark ? 'bg-white/[0.06]' : 'bg-gray-100'
+                                                            }`}>
+                                                            <type.icon size={16} className={isActive ? 'text-white' : isDark ? 'text-gray-500' : 'text-gray-400'} />
+                                                        </div>
+                                                        <p className={`text-xs font-bold mb-0.5 ${isActive ? type.text : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                            {type.label}
+                                                        </p>
+                                                        <p className={`text-[9px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                                                            {type.desc}
+                                                        </p>
+                                                        {isActive && (
+                                                            <div className={`absolute top-2 right-2 w-4 h-4 rounded-full bg-gradient-to-br ${type.gradient} flex items-center justify-center`}>
+                                                                <Check size={10} className="text-white" />
+                                                            </div>
+                                                        )}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+
+                                    {/* Currency Toggle */}
+                                    <div>
+                                        <label className={`block text-[11px] font-bold uppercase mb-3 tracking-widest ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            Currency
+                                        </label>
+                                        <div className="flex flex-col gap-2.5">
+                                            {[
+                                                { code: 'EUR', sym: '€' },
+                                                { code: 'EGP', sym: 'E£' }
+                                            ].map(cur => (
                                                 <button
-                                                    key={type.value}
+                                                    key={cur.code}
                                                     type="button"
-                                                    onClick={() => setFormData({ ...formData, invoice_type: type.value })}
-                                                    className={`relative p-3.5 rounded-xl border-2 transition-all duration-300 text-center group overflow-hidden ${isActive
-                                                        ? `${type.bg} ${type.border} shadow-sm`
-                                                        : isDark
-                                                            ? 'bg-white/[0.02] border-white/[0.06] hover:border-white/[0.12] hover:bg-white/[0.04]'
-                                                            : 'bg-gray-50/50 border-gray-200 hover:border-gray-300 hover:bg-gray-100/50'
+                                                    onClick={() => setFormData({ ...formData, currency: cur.code })}
+                                                    className={`py-6 rounded-xl font-bold text-sm transition-all border ${formData.currency === cur.code
+                                                        ? isDark ? 'bg-indigo-500/15 border-indigo-500/30 text-indigo-400' : 'bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm'
+                                                        : isDark ? 'bg-white/[0.04] border-white/10 text-gray-500 hover:bg-white/[0.08]' : 'bg-gray-50 border-gray-200 text-gray-500 hover:bg-gray-100'
                                                         }`}
                                                 >
-                                                    {isActive && (
-                                                        <div className={`absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r ${type.gradient}`} />
-                                                    )}
-                                                    <div className={`w-9 h-9 rounded-lg mx-auto mb-2 flex items-center justify-center transition-all duration-300 ${isActive
-                                                        ? `bg-gradient-to-br ${type.gradient} shadow-lg`
-                                                        : isDark ? 'bg-white/[0.06]' : 'bg-gray-100'
-                                                        }`}>
-                                                        <type.icon size={16} className={isActive ? 'text-white' : isDark ? 'text-gray-500' : 'text-gray-400'} />
-                                                    </div>
-                                                    <p className={`text-xs font-bold mb-0.5 ${isActive ? type.text : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
-                                                        {type.label}
-                                                    </p>
-                                                    <p className={`text-[9px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
-                                                        {type.desc}
-                                                    </p>
-                                                    {isActive && (
-                                                        <div className={`absolute top-2 right-2 w-4 h-4 rounded-full bg-gradient-to-br ${type.gradient} flex items-center justify-center`}>
-                                                            <Check size={10} className="text-white" />
-                                                        </div>
-                                                    )}
+                                                    <span className="text-xl mb-1 block">{cur.sym}</span>
+                                                    <span>{cur.code}</span>
                                                 </button>
-                                            );
-                                        })}
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -345,14 +377,14 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                     <div className="text-right">
                                                         <div className={`text-[9px] uppercase font-bold tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Cost</div>
                                                         <span className={`text-[11px] font-semibold tabular-nums ${isSelected ? isDark ? 'text-gray-300' : 'text-gray-600' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                            {parseFloat(mod.price || 0).toLocaleString()}
+                                                            {parseFloat(mod.price || 0).toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                                         </span>
                                                     </div>
                                                     <ArrowRight size={9} className={isDark ? 'text-gray-700' : 'text-gray-300'} />
                                                     <div className="text-right">
                                                         <div className={`text-[9px] uppercase font-bold tracking-wider ${isSelected ? isDark ? 'text-green-500' : 'text-green-600' : isDark ? 'text-gray-600' : 'text-gray-400'}`}>Client</div>
                                                         <span className={`text-[11px] font-bold tabular-nums ${isSelected ? isDark ? 'text-green-400' : 'text-green-700' : isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                            {parseFloat(mod.customer_price || 0).toLocaleString()}
+                                                            {parseFloat(mod.customer_price || 0).toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                                         </span>
                                                     </div>
                                                 </div>
@@ -373,14 +405,14 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                     {selectedModuleIds.length} module{selectedModuleIds.length > 1 ? 's' : ''} selected
                                                 </p>
                                                 <p className={`text-sm font-extrabold tabular-nums ${isDark ? 'text-green-400' : 'text-green-700'}`}>
-                                                    {customerTotal.toLocaleString()} EGP
+                                                    {customerTotal.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                                 </p>
                                             </div>
                                         </div>
                                         <div className={`text-right`}>
                                             <p className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Profit</p>
                                             <p className={`text-sm font-extrabold tabular-nums ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
-                                                +{profit.toLocaleString()}
+                                                +{profit.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                             </p>
                                         </div>
                                     </div>
@@ -438,7 +470,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                         <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{mod.name}</span>
                                                     </div>
                                                     <span className={`text-xs font-semibold tabular-nums ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                                        {parseFloat(mod.customer_price || 0).toLocaleString()} EGP
+                                                        {parseFloat(mod.customer_price || 0).toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                                     </span>
                                                 </div>
                                             );
@@ -459,7 +491,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                 </div>
                                             </div>
                                             <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                {costTotal.toLocaleString()} EGP
+                                                {costTotal.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                             </span>
                                         </div>
 
@@ -482,7 +514,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                 </div>
                                             </div>
                                             <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                                                {customerTotal.toLocaleString()} EGP
+                                                {customerTotal.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
                                             </span>
                                         </div>
 
@@ -495,7 +527,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                 <span className={`text-sm font-bold ${isDark ? 'text-green-400' : 'text-green-700'}`}>Your Profit</span>
                                             </div>
                                             <span className={`text-xl font-extrabold tabular-nums ${isDark ? 'text-green-400' : 'text-green-600'}`}>
-                                                +{profit.toLocaleString()} <span className="text-xs font-bold">EGP</span>
+                                                +{profit.toLocaleString()} <span className="text-xs font-bold">{formData.currency === 'EGP' ? 'EGP' : '€'}</span>
                                             </span>
                                         </div>
                                     </div>

@@ -386,7 +386,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                             {[
                                 { icon: Clock, label: 'Days Left', value: daysRemaining !== null ? (daysRemaining < 0 ? `${Math.abs(daysRemaining)} overdue` : daysRemaining) : '—', color: daysRemaining !== null && daysRemaining < 30 ? 'text-red-500' : 'text-emerald-500', iconBg: daysRemaining !== null && daysRemaining < 30 ? 'bg-red-500/10' : 'bg-emerald-500/10', section: 'overview' },
                                 { icon: Receipt, label: 'Invoices', value: client.is_4genetics_college ? <span className="text-sm font-semibold text-gray-400">4Genetics College</span> : invoices.length, color: client.is_4genetics_college ? 'text-gray-400' : (isDark ? 'text-blue-400' : 'text-blue-600'), iconBg: client.is_4genetics_college ? (isDark ? 'bg-white/[0.06]' : 'bg-gray-100') : 'bg-blue-500/10', section: 'finance', strikethrough: client.is_4genetics_college },
-                                { icon: DollarSign, label: 'Due Amount', value: client.is_4genetics_college ? <span className="text-sm font-semibold text-gray-400">—</span> : (totalDue > 0 ? `${totalDue.toLocaleString()} EGP` : '0'), color: client.is_4genetics_college ? 'text-gray-400' : (totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600'), iconBg: client.is_4genetics_college ? (isDark ? 'bg-white/[0.06]' : 'bg-gray-100') : (totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100'), section: 'finance', strikethrough: client.is_4genetics_college },
+                                { icon: DollarSign, label: 'Due Amount', value: client.is_4genetics_college ? <span className="text-sm font-semibold text-gray-400">—</span> : (totalDue > 0 ? `${totalDue.toLocaleString()} €` : '0'), color: client.is_4genetics_college ? 'text-gray-400' : (totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600'), iconBg: client.is_4genetics_college ? (isDark ? 'bg-white/[0.06]' : 'bg-gray-100') : (totalDue > 0 ? 'bg-orange-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100'), section: 'finance', strikethrough: client.is_4genetics_college },
                                 { icon: Ticket, label: 'Open Tickets', value: openTickets, color: openTickets > 0 ? 'text-violet-500' : isDark ? 'text-gray-400' : 'text-gray-600', iconBg: openTickets > 0 ? 'bg-violet-500/10' : isDark ? 'bg-white/[0.06]' : 'bg-gray-100', section: 'tickets' },
                             ].map((kpi, i) => {
                                 const isClickable = !(client.is_4genetics_college && kpi.section === 'finance');
@@ -471,9 +471,9 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                 {/* Finance Summary */}
                                 <div className="grid grid-cols-3 gap-3">
                                     {[
-                                        { label: 'Total Revenue', value: `${totalRevenue.toLocaleString()} EGP`, color: isDark ? 'text-gray-200' : 'text-gray-800' },
-                                        { label: 'Collected', value: `${paidAmount.toLocaleString()} EGP`, color: 'text-green-500' },
-                                        { label: 'Pending', value: `${totalDue.toLocaleString()} EGP`, color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600' },
+                                        { label: 'Total Revenue', value: `${totalRevenue.toLocaleString()} €`, color: isDark ? 'text-gray-200' : 'text-gray-800' },
+                                        { label: 'Collected', value: `${paidAmount.toLocaleString()} €`, color: 'text-green-500' },
+                                        { label: 'Pending', value: `${totalDue.toLocaleString()} €`, color: totalDue > 0 ? 'text-orange-500' : isDark ? 'text-gray-400' : 'text-gray-600' },
                                     ].map((item, i) => (
                                         <div key={i} className={`rounded-xl border p-4 text-center ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                             <p className={`text-[10px] font-bold uppercase tracking-wider mb-1 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</p>
@@ -516,7 +516,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                     </div>
                                                     <div className="flex items-center gap-3">
                                                         <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>
-                                                            {parseFloat(inv.total_amount || 0).toLocaleString()} EGP
+                                                            {parseFloat(inv.total_amount || 0).toLocaleString()} €
                                                         </span>
                                                         {isAdmin ? (
                                                             <select

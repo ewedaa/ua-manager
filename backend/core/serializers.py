@@ -49,11 +49,10 @@ class SubscriptionModuleSerializer(serializers.ModelSerializer):
 
 class GeneticsSerialSerializer(serializers.ModelSerializer):
     """Serializer for GeneticsSerial model."""
-    client_name = serializers.CharField(source='client.farm_name', read_only=True, default='Unassigned')
     
     class Meta:
         model = GeneticsSerial
-        fields = ['id', 'serial_number', 'client', 'client_name', 'product_type', 'role', 'modules', 'is_active', 'assigned_date', 'notes', 'created_at']
+        fields = ['id', 'serial_number', 'college_name', 'product_type', 'role', 'modules', 'is_active', 'assigned_date', 'notes', 'created_at']
         read_only_fields = ['created_at']
 
 
