@@ -718,24 +718,55 @@ export default function Settings() {
                                         <button onClick={() => setEditingId(null)} className="text-gray-400 hover:text-gray-600 p-1.5"><X size={18} /></button>
                                     </>
                                 ) : (
-                                    <>
-                                        <span className="flex-1 font-medium text-gray-700 dark:text-gray-300">{mod.name}</span>
-                                        <span className={`text-xs font-bold tabular-nums px-2 py-0.5 rounded-lg ${parseFloat(mod.purchase_price) > 0 ? 'bg-blue-100 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
-                                            P: {parseFloat(mod.purchase_price || 0).toLocaleString()} €
-                                        </span>
-                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isDark ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-200'}`}>
-                                            R: {parseFloat(mod.renewal_price || 0).toLocaleString()} €
-                                        </span>
-                                        {isAdmin && (
-                                            <>
-                                                <button onClick={() => { setEditingId(mod.id); setEditingName(mod.name); setEditingPurchasePrice(mod.purchase_price || '0'); setEditingRenewalPrice(mod.renewal_price || '0'); }}
-                                                    className="text-gray-400 hover:text-blue-600 p-1.5 opacity-0 group-hover:opacity-100 transition-all"><Edit2 size={16} /></button>
-                                                <button onClick={() => { if (confirm(`Delete "${mod.name}"?`)) deleteMutation.mutate(mod.id); }}
-                                                    disabled={deleteMutation.isPending}
-                                                    className="text-gray-400 hover:text-red-600 p-1.5 opacity-0 group-hover:opacity-100 transition-all"><Trash2 size={16} /></button>
-                                            </>
-                                        )}
-                                    </>
+                                    <div className="flex flex-col w-full gap-2.5">
+                                        <div className="flex items-start justify-between w-full">
+                                            <span className="font-semibold text-gray-800 dark:text-gray-200">{mod.name}</span>
+                                            {isAdmin && (
+                                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => { setEditingId(mod.id); setEditingName(mod.name); setEditingPurchasePrice(mod.purchase_price || '0'); setEditingRenewalPrice(mod.renewal_price || '0'); }}
+                                                        className="text-gray-500 hover:text-blue-600 p-1 bg-gray-100 dark:bg-slate-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded shadow-sm transition-colors"><Edit2 size={14} /></button>
+                                                    <button onClick={() => { if (confirm(`Delete "${mod.name}"?`)) deleteMutation.mutate(mod.id); }}
+                                                        disabled={deleteMutation.isPending}
+                                                        className="text-gray-500 hover:text-red-600 p-1 bg-gray-100 dark:bg-slate-800 hover:bg-red-50 dark:hover:bg-red-900/30 rounded shadow-sm transition-colors"><Trash2 size={14} /></button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row items-stretch gap-2 text-xs w-full">
+                                            {/* Normal Customer */}
+                                            <div className="flex-1 flex flex-col justify-between bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-100 dark:border-slate-700/60">
+                                                <span className="text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider text-[10px]">Normal Price</span>
+                                                <div className="flex items-center justify-between mt-auto">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-gray-400 dark:text-gray-500 font-medium">Purchase:</span>
+                                                        <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{parseFloat(mod.purchase_customer_price || 0).toLocaleString()} €</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-gray-400 dark:text-gray-500 font-medium">Renewal:</span>
+                                                        <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* DairyLive Customer */}
+                                            <div className="flex-1 flex flex-col justify-between bg-emerald-50/80 dark:bg-emerald-500/10 rounded-lg p-2.5 border border-emerald-100/80 dark:border-emerald-500/20">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-emerald-800 dark:text-emerald-400 font-bold uppercase tracking-wider text-[10px]">DairyLive Price</span>
+                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-200 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300">-50% on Purchase</span>
+                                                </div>
+                                                <div className="flex items-center justify-between mt-auto">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-emerald-600/70 dark:text-emerald-400/70 font-medium">Purchase:</span>
+                                                        <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{(parseFloat(mod.purchase_customer_price || 0) * 0.5).toLocaleString()} €</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5">
+                                                        <span className="text-emerald-600/70 dark:text-emerald-400/70 font-medium">Renewal:</span>
+                                                        <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         ))
