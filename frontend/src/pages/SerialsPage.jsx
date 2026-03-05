@@ -125,7 +125,7 @@ export default function SerialsPage() {
                         const XLSX = await import('xlsx');
                         const data = serials.map(s => ({
                             'Serial Number': s.serial_number,
-                            'Product Type': s.product_type,
+                            'Livestock Type': s.product_type,
                             'College Name': s.college_name || 'Unassigned',
                             'Role': s.role || '',
                             'Modules': s.modules || '',
@@ -197,7 +197,7 @@ export default function SerialsPage() {
                             <thead>
                                 <tr className={isDark ? 'bg-white/[0.03]' : 'bg-gray-50'}>
                                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</th>
-                                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Product Type</th>
+                                    <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Livestock Type</th>
                                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">College Name</th>
                                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                                     <th className="text-left px-5 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">Modules</th>
@@ -292,7 +292,7 @@ export default function SerialsPage() {
                                         }} className={inputClass} />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Product Type</label>
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Livestock Type</label>
                                         <select value={form.product_type} onChange={e => setForm(f => ({ ...f, product_type: e.target.value }))} className={inputClass}>
                                             {PRODUCT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
                                         </select>
@@ -307,8 +307,19 @@ export default function SerialsPage() {
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
-                                        <input value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} placeholder="vet / breeder / consultant / Millitary farm" className={inputClass} />
+                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role Type</label>
+                                        <select value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))} className={inputClass}>
+                                            <option value="">Select a role type...</option>
+                                            <option value="4Genetics Employee">4Genetics Employee</option>
+                                            <option value="Military Farm">Military Farm</option>
+                                            <option value="Vet">Vet</option>
+                                            <option value="Breeder">Breeder</option>
+                                            <option value="Consultant">Consultant</option>
+                                            <option value="Professor">Professor</option>
+                                            <option value="Student">Student</option>
+                                            <option value="Lab Manager">Lab Manager</option>
+                                            <option value="Other">Other</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modules</label>
