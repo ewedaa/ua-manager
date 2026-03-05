@@ -33,7 +33,7 @@ export default function SerialsPage() {
     const [filterType, setFilterType] = useState('');
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
-    const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true });
+    const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true, start_date: '', end_date: '' });
     const [formError, setFormError] = useState('');
 
     const { data: serials = [], isLoading } = useQuery({
@@ -83,8 +83,8 @@ export default function SerialsPage() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['serials'] }),
     });
 
-    const closeModal = () => { setShowModal(false); setEditingId(null); setForm({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true }); setFormError(''); };
-    const openEdit = (s) => { setEditingId(s.id); setForm({ serial_number: s.serial_number, product_type: s.product_type, college_name: s.college_name || '', role: s.role || '', modules: s.modules || '', notes: s.notes || '', is_active: s.is_active }); setShowModal(true); };
+    const closeModal = () => { setShowModal(false); setEditingId(null); setForm({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true, start_date: '', end_date: '' }); setFormError(''); };
+    const openEdit = (s) => { setEditingId(s.id); setForm({ serial_number: s.serial_number, product_type: s.product_type, college_name: s.college_name || '', role: s.role || '', modules: s.modules || '', notes: s.notes || '', is_active: s.is_active, start_date: s.start_date || '', end_date: s.end_date || '' }); setShowModal(true); };
 
     const filtered = serials.filter(s => {
         const matchSearch = !search || s.serial_number?.toLowerCase().includes(search.toLowerCase()) || s.college_name?.toLowerCase().includes(search.toLowerCase());
@@ -320,6 +320,16 @@ export default function SerialsPage() {
                                             )) : (
                                                 <p className="col-span-2 text-xs text-gray-400 italic">No modules configured. Add them in Settings.</p>
                                             )}
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                                            <input type="date" value={form.start_date || ''} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} className={inputClass} />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                                            <input type="date" value={form.end_date || ''} onChange={e => setForm(f => ({ ...f, end_date: e.target.value }))} className={inputClass} />
                                         </div>
                                     </div>
                                     <div>

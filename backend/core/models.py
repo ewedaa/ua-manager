@@ -295,6 +295,8 @@ class GeneticsSerial(models.Model):
     modules = models.TextField(blank=True, help_text="Subscription modules for this college")
     is_active = models.BooleanField(default=True)
     assigned_date = models.DateField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
