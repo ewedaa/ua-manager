@@ -547,29 +547,31 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         </div>
                     </div>
 
-                    {/* Status */}
-                    <div>
-                        <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Status
-                        </label>
-                        <div className="grid grid-cols-3 gap-2">
-                            {['Due', 'Paid to Us', 'Paid to Uniform'].map(status => (
-                                <button
-                                    key={status}
-                                    type="button"
-                                    onClick={() => isAdmin && setFormData({ ...formData, status })}
-                                    className={`px-3 py-2 rounded-xl border font-medium text-xs transition-all ${formData.status === status
-                                        ? status === 'Due'
-                                            ? isDark ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-amber-50 border-amber-400 text-amber-700'
-                                            : isDark ? 'bg-green-500/15 border-green-500/30 text-green-400' : 'bg-green-50 border-green-500 text-green-700'
-                                        : isDark ? 'bg-white/[0.03] border-white/[0.08] text-gray-400 hover:border-white/[0.15]' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
-                                        } ${!isAdmin && 'opacity-50 cursor-not-allowed'}`}
-                                >
-                                    {status}
-                                </button>
-                            ))}
+                    {/* Status (Hidden for quotations) */}
+                    {formData.invoice_type !== 'Purchase Quotation' && (
+                        <div>
+                            <label className={`block text-xs font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+                                Status
+                            </label>
+                            <div className="grid grid-cols-3 gap-2">
+                                {['Due', 'Paid to Us', 'Paid to Uniform'].map(status => (
+                                    <button
+                                        key={status}
+                                        type="button"
+                                        onClick={() => isAdmin && setFormData({ ...formData, status })}
+                                        className={`px-3 py-2 rounded-xl border font-medium text-xs transition-all ${formData.status === status
+                                            ? status === 'Due'
+                                                ? isDark ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'bg-amber-50 border-amber-400 text-amber-700'
+                                                : isDark ? 'bg-green-500/15 border-green-500/30 text-green-400' : 'bg-green-50 border-green-500 text-green-700'
+                                            : isDark ? 'bg-white/[0.03] border-white/[0.08] text-gray-400 hover:border-white/[0.15]' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'
+                                            } ${!isAdmin && 'opacity-50 cursor-not-allowed'}`}
+                                    >
+                                        {status}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Notes */}
                     <div>
