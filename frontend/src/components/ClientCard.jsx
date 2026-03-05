@@ -35,6 +35,7 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     const daysRemaining = getDaysRemaining();
 
     const getStatusInfo = () => {
+        if (client.is_quoted) return { label: 'QUOTED', gradient: 'from-amber-400 to-orange-500', bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50', text: isDark ? 'text-amber-400' : 'text-amber-700', dot: 'bg-amber-500' };
         if (client.is_demo) return { label: 'DEMO', gradient: 'from-purple-500 to-violet-600', bg: isDark ? 'bg-purple-500/10' : 'bg-purple-50', text: isDark ? 'text-purple-400' : 'text-purple-700', dot: 'bg-purple-500' };
         if (daysRemaining !== null && daysRemaining < 0) return { label: 'EXPIRED', gradient: 'from-red-500 to-rose-600', bg: isDark ? 'bg-red-500/10' : 'bg-red-50', text: isDark ? 'text-red-400' : 'text-red-700', dot: 'bg-red-500' };
         if (isCritical) return { label: 'EXPIRING', gradient: 'from-amber-500 to-orange-600', bg: isDark ? 'bg-amber-500/10' : 'bg-amber-50', text: isDark ? 'text-amber-400' : 'text-amber-700', dot: 'bg-amber-500 animate-pulse' };
@@ -48,6 +49,21 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
             if (!res.ok) throw new Error('Failed');
         },
         onSuccess: () => queryClient.invalidateQueries(['clients']),
+    });
+
+    const convertMutation = useMutation({
+        mutationFn: async () => {
+            const res = await fetch(`${API_BASE_URL}/clients/${client.id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_quoted: false }),
+            });
+            if (!res.ok) throw new Error('Failed to convert');
+            return res.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['clients']);
+        },
     });
 
     const calculateProgress = () => {
@@ -221,6 +237,21 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                     className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 ${isDark ? 'text-gray-500 hover:text-purple-400 hover:bg-purple-500/10' : 'text-gray-400 hover:text-purple-600 hover:bg-purple-50'}`}
                                     title="Edit">
                                     <Pencil size={15} />
+                                </button>
+                            )}
+                            {isAdmin && client.is_quoted && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (window.confirm(`Convert ${client.farm_name} to a regular subscriber?`)) {
+                                            convertMutation.mutate();
+                                        }
+                                    }}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 ${isDark ? 'text-gray-500 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                                    title="Convert to Subscriber"
+                                    disabled={convertMutation.isPending}
+                                >
+                                    {convertMutation.isPending ? <Clock size={15} className="animate-spin" /> : <Layers size={15} />}
                                 </button>
                             )}
                         </div>
