@@ -25,7 +25,6 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
         subscription_start_date: today,
         subscription_end_date: oneYear,
         is_demo: false,
-        is_4genetics_college: false,
         general_notes: '',
         serial_number: '',
         livestock_type: 'Dairy Cows',
@@ -56,25 +55,6 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                 throw new Error(Object.values(err).flat().join(' ') || 'Failed to create client');
             }
             const newClient = await res.json();
-
-            if (form.is_4genetics_college) {
-                try {
-                    await fetch(`${API_BASE_URL}/genetics-serials/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            serial_number: form.serial_number || `4G-${Date.now()}`,
-                            client: newClient.id,
-                            product_type: form.livestock_type || 'Dairy Cows',
-                            role: form.role || '',
-                            is_active: true,
-                            notes: 'Auto-enrolled from quick add modal'
-                        })
-                    });
-                } catch (e) {
-                    console.error('Failed to create genetics serial', e);
-                }
-            }
 
             queryClient.invalidateQueries(['clients']);
             queryClient.invalidateQueries(['dashboardStats']);
@@ -154,32 +134,7 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                                 </div>
                             </div>
 
-                            <div className="col-span-2 flex items-center gap-2 mt-1 px-1">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.is_4genetics_college}
-                                        onChange={(e) => field('is_4genetics_college', e.target.checked)}
-                                        className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                                    />
-                                    <span className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>
-                                        This is a 4Genetics College
-                                    </span>
-                                </label>
-                            </div>
 
-                            {form.is_4genetics_college && (
-                                <div className="col-span-2 grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300 border-l-2 border-green-500 pl-3 ml-1 mb-1 relative">
-                                    <div className="col-span-2">
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>College Serial Number</label>
-                                        <input value={form.serial_number} onChange={e => field('serial_number', e.target.value)} placeholder="Auto-generated if empty" className={inp} />
-                                    </div>
-                                    <div className="col-span-2">
-                                        <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>College Role</label>
-                                        <input value={form.role} onChange={e => field('role', e.target.value)} placeholder="e.g. Professor, Lab Manager" className={inp} />
-                                    </div>
-                                </div>
-                            )}
 
                             <div>
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Start Date *</label>

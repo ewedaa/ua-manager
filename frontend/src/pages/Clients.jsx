@@ -25,26 +25,7 @@ const createClient = async (newClient) => {
     }
     const clientData = await response.json();
 
-    // Automatically enroll in 4Genetics if checked
-    if (newClient.is_4genetics_college) {
-        try {
-            await fetch(`${API_BASE_URL}/genetics-serials/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    serial_number: newClient.serial_number || `4G-${Date.now()}`,
-                    client: clientData.id,
-                    product_type: clientData.livestock_type || 'Dairy Cows',
-                    role: newClient.role || '',
-                    modules: newClient.subscription_modules || '',
-                    notes: 'Auto-enrolled from client wizard',
-                    is_active: true
-                })
-            });
-        } catch (e) {
-            console.error('Failed to create genetics serial', e);
-        }
-    }
+    // Legacy 4Genetics auto-enroll removed
     return clientData;
 };
 
@@ -84,7 +65,6 @@ export default function Clients() {
         subscription_modules: '',
         general_notes: '',
         is_demo: false,
-        is_4genetics_college: false,
         livestock_type: 'Dairy Cows',
         role: ''
     });
@@ -111,7 +91,6 @@ export default function Clients() {
                 subscription_modules: '',
                 general_notes: '',
                 is_demo: false,
-                is_4genetics_college: false,
                 livestock_type: 'Dairy Cows',
                 role: ''
             });
@@ -139,7 +118,7 @@ export default function Clients() {
             matchesFinance = !!hasDue;
         }
 
-        return matchesSearch && matchesStatus && matchesFinance && !client.is_4genetics_college;
+        return matchesSearch && matchesStatus && matchesFinance;
     }).sort((a, b) => {
         if (sortBy === 'name') return a.farm_name.localeCompare(b.farm_name);
 
@@ -462,34 +441,7 @@ export default function Clients() {
                                             />
                                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Is Demo Farm?</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                name="is_4genetics_college"
-                                                checked={formData.is_4genetics_college}
-                                                onChange={(e) => setFormData(p => ({ ...p, is_4genetics_college: e.target.checked }))}
-                                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">4Genetics College?</span>
-                                        </label>
                                     </div>
-
-                                    {formData.is_4genetics_college && (
-                                        <div className="grid grid-cols-1 gap-4 animate-in slide-in-from-top-2 duration-300 border-l-2 border-green-500 pl-3 ml-2">
-                                            <div>
-                                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">College Role</label>
-                                                <input
-                                                    type="text"
-                                                    name="role"
-                                                    placeholder="e.g. Professor, Lab Manager"
-                                                    value={formData.role}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
                                         <textarea

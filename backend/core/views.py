@@ -379,9 +379,10 @@ class DashboardStatsView(APIView):
     def get(self, request):
         from .models import Client, Invoice, Ticket, Payment, GeneticsSerial
         
-        # Client statistics
-        total_clients = Client.objects.count()
-        expiring_clients = [c for c in Client.objects.all() if c.is_expiring_soon]
+        # Client statistics (exclude legacy 4Genetics colleges)
+        base_clients = Client.objects.filter(is_4genetics_college=False)
+        total_clients = base_clients.count()
+        expiring_clients = [c for c in base_clients if c.is_expiring_soon]
         expiring_count = len(expiring_clients)
         
         # Expired clients (subscription end date has passed)

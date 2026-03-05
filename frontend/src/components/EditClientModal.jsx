@@ -82,7 +82,6 @@ export default function EditClientModal({ client, onClose }) {
             is_demo: formData.is_demo || false,
             demo_start_date: formData.demo_start_date || null,
             demo_end_date: formData.demo_end_date || null,
-            is_4genetics_college: formData.is_4genetics_college || false,
         };
         mutation.mutate(payload);
     };
@@ -200,16 +199,6 @@ export default function EditClientModal({ client, onClose }) {
                                 className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
                             />
                             <span className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>Is Demo Farm?</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                name="is_4genetics_college"
-                                checked={formData.is_4genetics_college}
-                                onChange={(e) => setFormData(p => ({ ...p, is_4genetics_college: e.target.checked }))}
-                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                            />
-                            <span className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>4Genetics College?</span>
                         </label>
                     </div>
 
