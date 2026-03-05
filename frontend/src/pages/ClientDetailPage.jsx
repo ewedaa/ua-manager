@@ -299,7 +299,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                             {/* Info Cards */}
                             <div className="space-y-2.5">
                                 {[
-                                    { icon: Hash, label: 'Serial', value: client.serial_key || '—', copy: true },
+                                    { icon: Hash, label: 'Serial', value: client.serial_number || '—', copy: true },
                                     { icon: Phone, label: 'Phone', value: client.phone || '—', copy: true },
                                     { icon: Calendar, label: 'Started', value: client.subscription_start_date || '—' },
                                     { icon: Calendar, label: 'Expires', value: client.subscription_end_date || '—', critical: daysRemaining !== null && daysRemaining < 30 },
@@ -442,7 +442,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription Details</h3>
                                         <div className="space-y-3">
                                             {[
-                                                { label: 'Serial Key', value: client.serial_key || '—' },
+                                                { label: 'Serial Key', value: client.serial_number || '—' },
                                                 { label: 'Start Date', value: client.subscription_start_date || '—' },
                                                 { label: 'End Date', value: client.subscription_end_date || '—' },
                                                 { label: 'Status', value: status.label },
