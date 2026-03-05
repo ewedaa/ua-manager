@@ -732,61 +732,54 @@ export default function Settings() {
                                             )}
                                         </div>
 
-                                        <div className="flex flex-col sm:flex-row items-stretch gap-2 text-xs w-full">
-                                            {/* Normal Customer */}
-                                            <div className="flex-1 flex flex-col justify-between bg-gray-50 dark:bg-slate-800/60 rounded-lg p-2.5 border border-gray-100 dark:border-slate-700/60">
-                                                <span className="text-gray-500 dark:text-gray-400 font-bold mb-2 uppercase tracking-wider text-[10px]">Normal Price</span>
-                                                <div className="flex items-center justify-between mt-auto">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-gray-400 dark:text-gray-500 font-medium">Purchase:</span>
-                                                        <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{parseFloat(mod.purchase_customer_price || 0).toLocaleString()} €</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-gray-400 dark:text-gray-500 font-medium">Renewal:</span>
-                                                        <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* DairyLive Customer */}
-                                            <div className="flex-1 flex flex-col justify-between bg-emerald-50/80 dark:bg-emerald-500/10 rounded-lg p-2.5 border border-emerald-100/80 dark:border-emerald-500/20">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-emerald-800 dark:text-emerald-400 font-bold uppercase tracking-wider text-[10px]">DairyLive Price</span>
-                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-200 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300">-50% on P</span>
-                                                </div>
-                                                <div className="flex items-center justify-between mt-auto">
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-emerald-600/70 dark:text-emerald-400/70 font-medium">Purchase:</span>
-                                                        <span className="font-bold text-blue-600 dark:text-blue-400 text-sm">{(parseFloat(mod.purchase_customer_price || 0) * 0.5).toLocaleString()} €</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5">
-                                                        <span className="text-emerald-600/70 dark:text-emerald-400/70 font-medium">Renewal:</span>
-                                                        <span className="font-bold text-amber-600 dark:text-amber-400 text-sm">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* Our Cost */}
-                                            <div className="flex-[1.2] flex flex-col justify-between bg-violet-50/80 dark:bg-violet-500/10 rounded-lg p-2.5 border border-violet-100/80 dark:border-violet-500/20">
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-violet-800 dark:text-violet-400 font-bold uppercase tracking-wider text-[10px]">Our Cost</span>
-                                                    <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-200 dark:bg-violet-500/20 text-violet-900 dark:text-violet-300">Due to Uniform</span>
-                                                </div>
-                                                <div className="flex flex-col gap-1 mt-auto">
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">Normal Purch.:</span>
-                                                        <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{parseFloat(mod.purchase_our_price || 0).toLocaleString()} €</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">DairyLive Purch.:</span>
-                                                        <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{(parseFloat(mod.purchase_our_price || 0) * 0.5).toLocaleString()} €</span>
-                                                    </div>
-                                                    <div className="flex items-center justify-between border-t border-violet-200/50 dark:border-violet-500/20 pt-1 mt-0.5">
-                                                        <span className="text-violet-600/70 dark:text-violet-400/70 font-medium text-[11px]">Renewal:</span>
-                                                        <span className="font-bold text-violet-700 dark:text-violet-300 text-sm">{parseFloat(mod.renewal_our_price || 0).toLocaleString()} €</span>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                        <div className="w-full overflow-x-auto mt-4 rounded-xl border border-gray-200 dark:border-white/[0.08]">
+                                            <table className="w-full text-left text-sm whitespace-nowrap min-w-[500px]">
+                                                <thead className="bg-gray-50 dark:bg-white/[0.03] text-gray-500 dark:text-gray-400 text-xs uppercase font-bold tracking-wide">
+                                                    <tr>
+                                                        <th className="px-4 py-3 font-semibold border-b dark:border-white/[0.06]">Pricing Tier (EUR)</th>
+                                                        <th className="px-4 py-3 font-semibold text-right border-b dark:border-white/[0.06] bg-blue-50/50 dark:bg-blue-500/5 text-blue-700 dark:text-blue-400">Purchase</th>
+                                                        <th className="px-4 py-3 font-semibold text-right border-b dark:border-white/[0.06] bg-amber-50/50 dark:bg-amber-500/5 text-amber-700 dark:text-amber-400">Renewal</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-gray-100 dark:divide-white/[0.06]">
+                                                    <tr className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-colors">
+                                                        <td className="px-4 py-3.5 font-bold text-gray-700 dark:text-gray-300">Normal Customer</td>
+                                                        <td className="px-4 py-3.5 text-right text-blue-600 dark:text-blue-400 shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)] bg-blue-50/30 dark:bg-blue-500/5">
+                                                            <span className="font-extrabold text-[15px]">{parseFloat(mod.purchase_customer_price || 0).toLocaleString()} €</span>
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right text-amber-600 dark:text-amber-400 shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)] bg-amber-50/30 dark:bg-amber-500/5">
+                                                            <span className="font-extrabold text-[15px]">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr className="bg-emerald-50/40 dark:bg-emerald-500/10 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 transition-colors">
+                                                        <td className="px-4 py-3.5 font-bold text-emerald-800 dark:text-emerald-400 flex items-center gap-2">
+                                                            DairyLive Customer
+                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-emerald-200 dark:bg-emerald-500/20 text-emerald-900 dark:text-emerald-300 leading-none">-50% on Purch.</span>
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)]">
+                                                            <span className="font-extrabold text-[15px] text-emerald-700 dark:text-emerald-400">{(parseFloat(mod.purchase_customer_price || 0) * 0.5).toLocaleString()} €</span>
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right text-amber-600 dark:text-amber-400 shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)]">
+                                                            <span className="font-extrabold text-[15px]">{parseFloat(mod.renewal_customer_price || 0).toLocaleString()} €</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr className="bg-violet-50/40 dark:bg-violet-500/10 hover:bg-violet-50 dark:hover:bg-violet-500/20 transition-colors">
+                                                        <td className="px-4 py-3.5 font-bold text-violet-800 dark:text-violet-400 flex items-center gap-2">
+                                                            Our Cost
+                                                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-violet-200 dark:bg-violet-500/20 text-violet-900 dark:text-violet-300 leading-none">Due to Uniform</span>
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)]">
+                                                            <div className="flex flex-col items-end justify-center">
+                                                                <span className="font-extrabold text-[15px] text-violet-700 dark:text-violet-300">{parseFloat(mod.purchase_our_price || 0).toLocaleString()} €</span>
+                                                                <span className="text-[10px] text-violet-600/80 dark:text-violet-400/80 font-bold mt-0.5 px-1.5 py-0.5 rounded bg-violet-200/50 dark:bg-violet-900/40">{(parseFloat(mod.purchase_our_price || 0) * 0.5).toLocaleString()} € if DairyLive</span>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right shadow-[inset_1px_0_0_0_rgba(0,0,0,0.02)] dark:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.02)] text-violet-700 dark:text-violet-300">
+                                                            <span className="font-extrabold text-[15px]">{parseFloat(mod.renewal_our_price || 0).toLocaleString()} €</span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
                                         </div>
                                     </div>
                                 )}
