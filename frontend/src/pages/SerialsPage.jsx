@@ -31,6 +31,7 @@ export default function SerialsPage() {
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('');
+    const [activeCardFilter, setActiveCardFilter] = useState('Total');
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true, start_date: '', end_date: '' });
@@ -89,7 +90,13 @@ export default function SerialsPage() {
     const filtered = serials.filter(s => {
         const matchSearch = !search || s.serial_number?.toLowerCase().includes(search.toLowerCase()) || s.college_name?.toLowerCase().includes(search.toLowerCase());
         const matchType = !filterType || s.product_type === filterType;
-        return matchSearch && matchType;
+
+        let matchCard = true;
+        if (activeCardFilter === 'Active') matchCard = s.is_active;
+        if (activeCardFilter === '4Genetics Employee') matchCard = (s.role?.toLowerCase().includes('employee') || s.college_name?.toLowerCase().includes('4genetics'));
+        if (activeCardFilter === 'Military Farms') matchCard = (s.role?.toLowerCase().includes('military') || s.college_name?.toLowerCase().includes('military'));
+
+        return matchSearch && matchType && matchCard;
     });
 
     const stats = {
@@ -148,12 +155,20 @@ export default function SerialsPage() {
                     { label: 'Active', value: stats.active, color: 'text-green-400' },
                     { label: '4Genetics Employee', value: stats.employees, color: 'text-purple-400' },
                     { label: 'Military Farms', value: stats.military, color: 'text-amber-400' },
-                ].map(s => (
-                    <div key={s.label} className={`rounded-xl p-4 border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-gray-100'}`}>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{s.label}</p>
-                        <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
-                    </div>
-                ))}
+                ].map(s => {
+                    const isActive = activeCardFilter === s.label;
+                    const isDarkClasses = isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-white border-gray-100';
+                    return (
+                        <div
+                            key={s.label}
+                            onClick={() => setActiveCardFilter(isActive ? 'Total' : s.label)}
+                            className={`rounded-xl p-4 border transition-all cursor-pointer ${isDarkClasses} ${isActive && s.label !== 'Total' ? 'ring-2 ring-green-500 border-transparent shadow-lg shadow-green-500/10 scale-[1.02]' : 'hover:border-green-500/50 hover:scale-[1.01]'}`}
+                        >
+                            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider">{s.label}</p>
+                            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                        </div>
+                    );
+                })}
             </div>
 
             {/* Filters */}
