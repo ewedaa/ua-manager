@@ -85,7 +85,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         from .models import Client
-        import django.utils.timezone as timezone
+        from django.utils import timezone
+        from datetime import timedelta
         
         new_farm_name = self.request.data.get('new_farm_name')
         if new_farm_name and self.request.data.get('invoice_type') == 'Purchase Quotation':
@@ -95,7 +96,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 farm_name=new_farm_name,
                 is_quoted=True,
                 subscription_start_date=timezone.now().date(),
-                subscription_end_date=timezone.now().date() + timezone.timedelta(days=365),
+                subscription_end_date=timezone.now().date() + timedelta(days=365),
                 phone='N/A'
             )
             instance = serializer.save(client=client)
