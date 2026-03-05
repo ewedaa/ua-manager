@@ -51,8 +51,9 @@ export default function Dashboard() {
     });
 
     const filteredClients = clients?.filter(client =>
-        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.farm_name.toLowerCase().includes(searchTerm.toLowerCase())
+        !client.is_4genetics_college &&
+        (client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            client.farm_name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (statsLoading || clientsLoading) {

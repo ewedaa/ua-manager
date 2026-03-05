@@ -83,7 +83,7 @@ export default function CommandPalette({ isOpen, onClose }) {
 
                 // Process Clients
                 if (Array.isArray(clientsRes)) {
-                    clientsRes.slice(0, 3).forEach(c => {
+                    clientsRes.filter(c => !c.is_4genetics_college).slice(0, 3).forEach(c => {
                         newResults.push({
                             section: 'Clients',
                             icon: Users,
