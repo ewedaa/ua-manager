@@ -209,9 +209,9 @@ export default function SerialsPage() {
                                         </td>
                                         <td className="px-5 py-3.5 text-sm">
                                             {s.client ? (
-                                                <Link to={`/clients/${s.client}`} className={`font-semibold hover:underline ${isDark ? 'text-blue-400 hover:text-blue-300' : 'text-blue-600 hover:text-blue-700'}`}>
+                                                <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
                                                     {s.client_name}
-                                                </Link>
+                                                </span>
                                             ) : (
                                                 <span className="opacity-40 text-gray-600 dark:text-gray-400">Unassigned</span>
                                             )}
