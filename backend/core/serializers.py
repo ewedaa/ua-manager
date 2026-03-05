@@ -153,6 +153,11 @@ class ClientSerializer(serializers.ModelSerializer):
 
 class InvoiceSerializer(serializers.ModelSerializer):
     """Serializer for Invoice model with full details."""
+    client = serializers.PrimaryKeyRelatedField(
+        queryset=Client.objects.all(),
+        required=False,
+        allow_null=True
+    )
     client_name = serializers.CharField(source='client.name', read_only=True)
     livestock_selection = LivestockTypeSerializer(many=True, read_only=True)
     livestock_ids = serializers.PrimaryKeyRelatedField(
