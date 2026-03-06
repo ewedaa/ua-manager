@@ -95,8 +95,8 @@ export default function SerialsPage() {
 
         let matchCard = true;
         if (activeCardFilter === 'Active') matchCard = s.is_active;
-        if (activeCardFilter === '4Genetics Employee') matchCard = (s.role?.toLowerCase().includes('employee') || s.college_name?.toLowerCase().includes('4genetics'));
-        if (activeCardFilter === 'Military Farms') matchCard = (s.role?.toLowerCase().includes('military') || s.college_name?.toLowerCase().includes('military'));
+        if (activeCardFilter === '4Genetics Employee') matchCard = (s.role && !['MILITARY FARM', 'OTHER'].includes(s.role));
+        if (activeCardFilter === 'Military Farms') matchCard = s.role === 'MILITARY FARM';
 
         return matchSearch && matchType && matchCard;
     });
@@ -104,8 +104,8 @@ export default function SerialsPage() {
     const stats = {
         total: serials.length,
         active: serials.filter(s => s.is_active).length,
-        employees: serials.filter(s => s.role?.toLowerCase().includes('employee') || s.college_name?.toLowerCase().includes('4genetics')).length,
-        military: serials.filter(s => s.role?.toLowerCase().includes('military') || s.college_name?.toLowerCase().includes('military')).length,
+        employees: serials.filter(s => s.role && !['MILITARY FARM', 'OTHER'].includes(s.role)).length,
+        military: serials.filter(s => s.role === 'MILITARY FARM').length,
     };
 
     const inputClass = `w-full px-4 py-2.5 rounded-xl border ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder-gray-500' : 'bg-white border-gray-200 text-gray-900'} outline-none focus:ring-2 focus:ring-green-500`;
@@ -341,11 +341,6 @@ export default function SerialsPage() {
                                             <option value="">Select a role type...</option>
                                             <option value="4GENETICS EMPLOYEE">4GENETICS EMPLOYEE</option>
                                             <option value="MILITARY FARM">MILITARY FARM</option>
-                                            <option value="VET">VET</option>
-                                            <option value="BREEDER">BREEDER</option>
-                                            <option value="CONSULTANT">CONSULTANT</option>
-                                            <option value="OWNER">OWNER</option>
-                                            <option value="UNIFOR AGRI TECHNICAL SUPPORT">UNIFOR AGRI TECHNICAL SUPPORT</option>
                                             <option value="OTHER">OTHER</option>
                                         </select>
                                     </div>

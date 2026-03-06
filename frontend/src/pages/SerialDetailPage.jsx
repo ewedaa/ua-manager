@@ -398,11 +398,6 @@ export default function SerialDetailPage() {
                                         <option value="">Select a role type...</option>
                                         <option value="4GENETICS EMPLOYEE">4GENETICS EMPLOYEE</option>
                                         <option value="MILITARY FARM">MILITARY FARM</option>
-                                        <option value="VET">VET</option>
-                                        <option value="BREEDER">BREEDER</option>
-                                        <option value="CONSULTANT">CONSULTANT</option>
-                                        <option value="OWNER">OWNER</option>
-                                        <option value="UNIFOR AGRI TECHNICAL SUPPORT">UNIFOR AGRI TECHNICAL SUPPORT</option>
                                         <option value="OTHER">OTHER</option>
                                     </select>
                                 </div>
