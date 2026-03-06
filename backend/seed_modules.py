@@ -17,7 +17,7 @@ modules_data = [
         "renewal": 676
     },
     {
-        "name": "Country specific links (FR, DU, DK, Fin, NO, Rus, etc.)",
+        "name": "Country specific links (FR / DU / DK / Fin / NO / Rus / etc.)",
         "desc": "",
         "purchase": 395,
         "renewal": 172
@@ -29,13 +29,13 @@ modules_data = [
         "renewal": 303
     },
     {
-        "name": "Link process computer (milking parlour/robot, activity, feeding, sorting)",
+        "name": "Link process computer (milking parlour/robot / activity / feeding / sorting)",
         "desc": "",
         "purchase": 495,
         "renewal": 172
     },
     {
-        "name": "Multiherd / Animal exchange (with data exchange, incl. extra database)",
+        "name": "Multiherd / Animal exchange (with data exchange / incl. extra database)",
         "desc": "",
         "purchase": 240,
         "renewal": 107
