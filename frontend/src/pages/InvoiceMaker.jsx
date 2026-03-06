@@ -810,7 +810,8 @@ export default function InvoiceMaker() {
     const filteredInvoices = invoices?.filter(invoice => {
         const matchesSearch = invoice.client_name?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
-        return matchesSearch && matchesStatus;
+        const isQuotation = invoice.invoice_type?.toLowerCase().includes('quotation');
+        return matchesSearch && matchesStatus && !isQuotation;
     });
 
     const handleEdit = (invoice) => {
@@ -823,11 +824,12 @@ export default function InvoiceMaker() {
         setEditInvoice(null);
     };
 
-    // Calculate stats
-    const totalCost = invoices?.reduce((s, i) => s + parseFloat(i.cost_total || 0), 0) || 0;
-    const totalCustomer = invoices?.reduce((s, i) => s + parseFloat(i.customer_total || 0), 0) || 0;
+    // Calculate stats (Exclude Quotations)
+    const financialInvoices = invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation')) || [];
+    const totalCost = financialInvoices.reduce((s, i) => s + parseFloat(i.cost_total || 0), 0);
+    const totalCustomer = financialInvoices.reduce((s, i) => s + parseFloat(i.customer_total || 0), 0);
     const totalProfit = totalCustomer - totalCost;
-    const dueCount = invoices?.filter(i => i.status === 'Due').length || 0;
+    const dueCount = financialInvoices.filter(i => i.status === 'Due').length;
 
     const handleExport = async () => {
         if (!filteredInvoices) return;
@@ -929,7 +931,7 @@ export default function InvoiceMaker() {
                 <StatCard
                     icon={FileText}
                     label="Total Invoices"
-                    value={invoices?.length || 0}
+                    value={financialInvoices.length}
                     color="blue"
                 />
                 <StatCard

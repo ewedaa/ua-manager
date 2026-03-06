@@ -177,9 +177,10 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
 
     // Derived data
     const invoices = client.invoices || [];
-    const totalDue = invoices.filter(inv => inv.status === 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
-    const paidAmount = invoices.filter(inv => inv.status !== 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
-    const totalRevenue = invoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const financialInvoices = invoices.filter(inv => !inv.invoice_type?.toLowerCase().includes('quotation'));
+    const totalDue = financialInvoices.filter(inv => inv.status === 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const paidAmount = financialInvoices.filter(inv => inv.status !== 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const totalRevenue = financialInvoices.reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
     const tickets = client.tickets || [];
     const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
     const contacts = client.contacts || [];

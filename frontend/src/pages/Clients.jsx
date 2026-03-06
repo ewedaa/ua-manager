@@ -115,7 +115,7 @@ export default function Clients() {
         if (filterStatus === 'demo') matchesStatus = client.is_demo === true;
 
         if (filterFinance === 'due_invoices') {
-            const hasDue = client.invoices?.some(inv => inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
+            const hasDue = client.invoices?.some(inv => !inv.invoice_type?.toLowerCase().includes('quotation') && inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
             matchesFinance = !!hasDue;
         }
 
@@ -131,8 +131,8 @@ export default function Clients() {
         if (sortBy === 'expiry_desc') return dateB - dateA;
 
         if (sortBy === 'due_amount') {
-            const dueA = a.invoices?.filter(i => i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
-            const dueB = b.invoices?.filter(i => i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
+            const dueA = a.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
+            const dueB = b.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
             return dueB - dueA;
         }
         return 0;

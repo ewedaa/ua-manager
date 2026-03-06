@@ -22,7 +22,8 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     const ref = useRef(null);
 
     const invoices = client.invoices || [];
-    const totalDue = invoices.filter(inv => inv.status === 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
+    const financialInvoices = invoices.filter(inv => !inv.invoice_type?.toLowerCase().includes('quotation'));
+    const totalDue = financialInvoices.filter(inv => inv.status === 'Due').reduce((sum, inv) => sum + parseFloat(inv.total_amount || 0), 0);
     const tickets = client.tickets || [];
     const openTickets = tickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
 
@@ -209,7 +210,7 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                     {/* ═══ STATS ROW ═══ */}
                     <div className={`grid grid-cols-3 gap-3 mt-4 pt-4 border-t ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                         <div className="text-center">
-                            <p className={`text-lg font-extrabold tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>{invoices.length}</p>
+                            <p className={`text-lg font-extrabold tabular-nums ${isDark ? 'text-white' : 'text-gray-900'}`}>{financialInvoices.length}</p>
                             <p className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>Invoices</p>
                         </div>
                         <div className="text-center">

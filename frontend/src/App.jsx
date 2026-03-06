@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from './lib/queryClient';
 import { API_BASE_URL } from './lib/api';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import Sidebar from './components/Sidebar';
 import { Moon, Menu, Loader2 } from 'lucide-react';
@@ -28,6 +28,7 @@ const Analytics = React.lazy(() => import('./pages/Analytics'));
 const ReportWriter = React.lazy(() => import('./pages/ReportWriter'));
 const ClientDetailPage = React.lazy(() => import('./pages/ClientDetailPage'));
 const StatDetailPage = React.lazy(() => import('./pages/StatDetailPage'));
+const SerialDetailPage = React.lazy(() => import('./pages/SerialDetailPage'));
 
 
 // Loading Screen Component with Premium Animation
@@ -175,8 +176,9 @@ const SyncManager = () => {
                 const newQueue = current.filter(t => t.id !== ticket.id);
                 localStorage.setItem('offline_tickets', JSON.stringify(newQueue));
               }
-            } catch (err) {
-              console.error('Failed to sync ticket', ticket.id, err);
+            } catch {
+              // Error parsing JSON or network error fallback handled by errMsg
+              console.error('Failed to sync ticket', ticket.id);
             }
           }
         }
@@ -218,7 +220,6 @@ import CommandPalette from './components/CommandPalette';
 import TopBar from './components/TopBar';
 
 function AppContent() {
-  const { isLoggedIn } = useAuth();
   const { isDark } = useTheme();
   const [isSleepMode, setIsSleepMode] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -291,6 +292,7 @@ function AppContent() {
                   <Route path="/invoices" element={<InvoiceMaker />} />
                   <Route path="/stats/:tileId" element={<StatDetailPage />} />
                   <Route path="/serials" element={<SerialsPage />} />
+                  <Route path="/serials/:id" element={<SerialDetailPage />} />
                   <Route path="/payments" element={<PaymentTracker />} />
                   <Route path="/support" element={<SupportContacts />} />
                   <Route path="/todo" element={<TodoPage />} />

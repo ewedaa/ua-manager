@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, ToggleRight, FileDown, Printer } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, ToggleRight, FileDown, Printer, Building2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 
@@ -60,7 +60,9 @@ export default function SerialsPage() {
                     try {
                         const errData = await r.json();
                         errMsg = typeof errData === 'object' ? Object.values(errData).flat().join(' ') : 'Failed';
-                    } catch (e) { }
+                    } catch {
+                        // Error parsing JSON or network error fallback handled by errMsg
+                    }
                     throw new Error(errMsg);
                 }
                 return r.json();
@@ -209,35 +211,62 @@ export default function SerialsPage() {
                                 {filtered.map(s => (
                                     <tr
                                         key={s.id}
-                                        className={`transition-colors duration-100 ${isDark ? 'hover:bg-white/[0.03]' : 'hover:bg-gray-50'}`}
+                                        onClick={() => navigate(`/serials/${s.id}`)}
+                                        className={`transition-colors duration-100 cursor-pointer ${isDark ? 'hover:bg-white/[0.05] bg-white/[0.01]' : 'hover:bg-gray-50 bg-white'}`}
                                     >
-                                        <td className="px-5 py-3.5 font-mono text-sm text-gray-900 dark:text-gray-200">{s.serial_number}</td>
+                                        <td className="px-5 py-3.5 font-mono text-sm text-gray-900 dark:text-gray-200">
+                                            <div className="flex items-center gap-2">
+                                                <Barcode size={14} className="text-gray-400" />
+                                                {s.serial_number}
+                                            </div>
+                                        </td>
                                         <td className="px-5 py-3.5">
-                                            <span className={`inline-flex px-2.5 py-1 rounded-lg text-xs font-medium border ${badgeColor[s.product_type] || 'bg-gray-500/15 text-gray-400'}`}>
+                                            <span className={`inline-flex px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider border ${badgeColor[s.product_type] || 'bg-gray-500/15 text-gray-400'}`}>
                                                 {s.product_type}
                                             </span>
                                         </td>
                                         <td className="px-5 py-3.5 text-sm">
                                             {s.college_name ? (
-                                                <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
-                                                    {s.college_name}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <Building2 size={14} className="text-gray-400" />
+                                                    <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>
+                                                        {s.college_name}
+                                                    </span>
+                                                </div>
                                             ) : (
-                                                <span className="opacity-40 text-gray-600 dark:text-gray-400">Unassigned</span>
+                                                <span className="opacity-40 text-gray-600 dark:text-gray-400 italic">Unassigned</span>
                                             )}
                                         </td>
-                                        <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400">{s.role || <span className="opacity-30">—</span>}</td>
-                                        <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">{s.modules || <span className="opacity-30">—</span>}</td>
+                                        <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400">
+                                            {s.role ? (
+                                                <span className="text-xs font-medium px-2 py-0.5 rounded bg-gray-500/5 text-gray-400 border border-gray-500/10">
+                                                    {s.role}
+                                                </span>
+                                            ) : <span className="opacity-30">—</span>}
+                                        </td>
+                                        <td className="px-5 py-3.5 text-sm text-gray-600 dark:text-gray-400 max-w-[180px] truncate">
+                                            {s.modules ? (
+                                                <div className="flex flex-wrap gap-1">
+                                                    {s.modules.split(',').slice(0, 2).map((m, i) => (
+                                                        <span key={i} className="text-[10px] text-emerald-500">{m.trim()}</span>
+                                                    ))}
+                                                    {s.modules.split(',').length > 2 && <span className="text-[10px] text-gray-500">+{s.modules.split(',').length - 2}</span>}
+                                                </div>
+                                            ) : <span className="opacity-30">—</span>}
+                                        </td>
                                         <td className="px-5 py-3.5">
-                                            <button onClick={() => toggleActive.mutate({ id: s.id, is_active: s.is_active })} className="flex items-center gap-1.5 group">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); toggleActive.mutate({ id: s.id, is_active: s.is_active }); }}
+                                                className="flex items-center gap-1.5 group"
+                                            >
                                                 {s.is_active ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} className="text-gray-400" />}
-                                                <span className={`text-xs font-medium ${s.is_active ? 'text-green-500' : 'text-gray-400'}`}>{s.is_active ? 'Active' : 'Inactive'}</span>
+                                                <span className={`text-[10px] font-bold uppercase tracking-widest ${s.is_active ? 'text-green-500' : 'text-gray-400'}`}>{s.is_active ? 'Active' : 'Inactive'}</span>
                                             </button>
                                         </td>
                                         <td className="px-5 py-3.5 text-right">
                                             <div className="flex items-center justify-end gap-1">
-                                                <button onClick={() => openEdit(s)} className="p-2 rounded-lg hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 transition-colors"><Edit2 size={15} /></button>
-                                                <button onClick={() => { if (confirm('Delete this serial?')) deleteMutation.mutate(s.id); }} className="p-2 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"><Trash2 size={15} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); openEdit(s); }} className="p-2 rounded-lg hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 transition-colors"><Edit2 size={15} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); if (confirm('Delete this serial?')) deleteMutation.mutate(s.id); }} className="p-2 rounded-lg hover:bg-red-500/10 text-gray-400 hover:text-red-400 transition-colors"><Trash2 size={15} /></button>
                                             </div>
                                         </td>
                                     </tr>

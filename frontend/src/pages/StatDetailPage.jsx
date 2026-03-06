@@ -90,7 +90,7 @@ const TILE_CONFIG = {
         quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
-        filter: (items) => items.filter(i => i.status === 'Due' && i.invoice_type !== 'Purchase Quotation'),
+        filter: (items) => items.filter(i => i.status === 'Due' && !i.invoice_type?.toLowerCase().includes('quotation')),
         columns: ['Client', 'Type', 'Amount', 'Created'],
         getRow: (inv) => ({
             id: inv.id,
@@ -180,7 +180,7 @@ const TILE_CONFIG = {
         quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
-        filter: (items) => items,
+        filter: (items) => items.filter(i => !i.invoice_type?.toLowerCase().includes('quotation')),
         columns: ['Client', 'Type', 'Amount', 'Status'],
         getRow: (inv) => ({
             id: inv.id,
@@ -230,7 +230,7 @@ const TILE_CONFIG = {
         quickAction: { label: 'New Invoice', to: '/invoices' },
         fetchKey: 'invoices',
         fetchUrl: `${API_BASE_URL}/invoices/`,
-        filter: (items) => items.filter(i => i.status === 'Paid to Us'),
+        filter: (items) => items.filter(i => i.status === 'Paid to Us' && !i.invoice_type?.toLowerCase().includes('quotation')),
         columns: ['Client', 'Type', 'Amount', 'Paid On'],
         getRow: (inv) => ({
             id: inv.id,

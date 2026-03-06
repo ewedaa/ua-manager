@@ -107,6 +107,7 @@ export default function PaymentTracker() {
 
     // Filter + sort
     const rows = invoices
+        .filter(inv => !inv.invoice_type?.toLowerCase().includes('quotation'))
         .filter(inv => {
             if (!search) return true;
             const q = search.toLowerCase();
@@ -127,10 +128,11 @@ export default function PaymentTracker() {
             return 0;
         });
 
-    // Summary stats
-    const totalDue = invoices.filter(i => i.status === 'Due').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
-    const totalPaidUs = invoices.filter(i => i.status === 'Paid to Us').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
-    const totalPaidUniform = invoices.filter(i => i.status === 'Paid to Uniform').reduce((s, i) => s + parseFloat(i.cost_total || 0), 0);
+    // Summary stats (Exclude Quotations)
+    const financialInvoices = invoices.filter(i => !i.invoice_type?.toLowerCase().includes('quotation'));
+    const totalDue = financialInvoices.filter(i => i.status === 'Due').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
+    const totalPaidUs = financialInvoices.filter(i => i.status === 'Paid to Us').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
+    const totalPaidUniform = financialInvoices.filter(i => i.status === 'Paid to Uniform').reduce((s, i) => s + parseFloat(i.cost_total || 0), 0);
 
     // Invoice # format matching Notion convention: V + YY + padded invoice id
     const invoiceNumber = (inv) => {

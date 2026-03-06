@@ -436,7 +436,7 @@ class DashboardStatsView(APIView):
         active_this_month = Client.objects.filter(updated_at__gte=month_ago).count()
         
         # Invoice statistics
-        real_invoices = Invoice.objects.exclude(invoice_type='Purchase Quotation')
+        real_invoices = Invoice.objects.exclude(invoice_type__icontains='Quotation')
         total_invoices = real_invoices.count()
         due_invoices = real_invoices.filter(status='Due').count()
         paid_to_us = real_invoices.filter(status='Paid to Us').count()
@@ -636,7 +636,7 @@ class ChartDataView(APIView):
         ))
         
         # Invoice trends by month
-        real_invoices = Invoice.objects.exclude(invoice_type='Purchase Quotation')
+        real_invoices = Invoice.objects.exclude(invoice_type__icontains='Quotation')
         invoices_by_month = real_invoices.filter(
             created_at__gte=six_months_ago
         ).annotate(
