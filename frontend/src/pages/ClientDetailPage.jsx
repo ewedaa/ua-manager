@@ -468,28 +468,24 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Client Information</h3>
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
-                                                <div className="w-1/2 text-right">
-                                                    <InlineEdit
-                                                        value={client.name}
-                                                        onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
-                                                        className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
-                                                        disabled={!isAdmin}
-                                                    />
-                                                </div>
+                                            <div className="flex items-center justify-between group">
+                                                <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
+                                                <InlineEdit
+                                                    value={client.name}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
+                                                    className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    disabled={!isAdmin}
+                                                />
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Area</span>
-                                                <div className="w-1/2 text-right">
-                                                    <InlineEdit
-                                                        value={client.area || ''}
-                                                        onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
-                                                        className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
-                                                        placeholder="—"
-                                                        disabled={!isAdmin}
-                                                    />
-                                                </div>
+                                            <div className="flex items-center justify-between group">
+                                                <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Area</span>
+                                                <InlineEdit
+                                                    value={client.area || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
+                                                    className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    placeholder="—"
+                                                    disabled={!isAdmin}
+                                                />
                                             </div>
                                         </div>
                                     </div>
@@ -497,33 +493,31 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription Details</h3>
                                         <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Serial Key</span>
-                                                <div className="w-1/2 text-right">
-                                                    <InlineEdit
-                                                        value={client.serial_number || ''}
-                                                        onSave={(newVal) => updateClientMutation.mutate({ serial_number: newVal })}
-                                                        className={`text-sm font-semibold truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
-                                                        placeholder="—"
-                                                        disabled={!isAdmin}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Start Date</span>
-                                                <InlineEditDate
-                                                    value={client.subscription_start_date || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_start_date: newVal })}
-                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                            <div className="flex items-center justify-between group">
+                                                <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Serial Key</span>
+                                                <InlineEdit
+                                                    value={client.serial_number || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ serial_number: newVal })}
+                                                    className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    placeholder="—"
                                                     disabled={!isAdmin}
                                                 />
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>End Date</span>
+                                            <div className="flex items-center justify-between group">
+                                                <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Start Date</span>
+                                                <InlineEditDate
+                                                    value={client.subscription_start_date || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_start_date: newVal })}
+                                                    className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    disabled={!isAdmin}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between group">
+                                                <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>End Date</span>
                                                 <InlineEditDate
                                                     value={client.subscription_end_date || ''}
                                                     onSave={(newVal) => updateClientMutation.mutate({ subscription_end_date: newVal })}
-                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     disabled={!isAdmin}
                                                 />
                                             </div>
