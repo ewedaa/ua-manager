@@ -583,9 +583,9 @@ def generate_formal_invoice_pdf(invoice):
     def to_display(eur_amount):
         """Convert EUR amount to display string in the invoice currency."""
         if use_egp:
-            converted = (eur_amount * rate).quantize(Decimal('0.01'))
+            converted = (eur_amount * Decimal(str(rate))).quantize(Decimal('0.01'))
             return f'{converted} EGP'
-        return f'\u20ac{eur_amount}'
+        return f'€{eur_amount}'
 
     curr_label = 'EGP (Egyptian Pound)' if use_egp else 'EUR (Euro \u20ac)'
 

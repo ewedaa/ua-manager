@@ -239,6 +239,16 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         lines.append("")
 
+        inv_currency = getattr(invoice, 'currency', 'EUR')
+        rate = getattr(invoice, 'exchange_rate', None)
+        use_egp = inv_currency == 'EGP' and rate
+
+        def to_display(eur_amount):
+            if use_egp:
+                converted = (eur_amount * Decimal(str(rate))).quantize(Decimal('0.01'))
+                return f'{converted} EGP'
+            return f'€{eur_amount}'
+
         # Modules with cost AND customer price side-by-side
         modules = invoice.selected_modules.all()
         if modules.exists():
@@ -251,7 +261,12 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 cost = get_cost(mod)
                 cust = get_customer_price(mod)
                 margin = cust - cost
-                lines.append(f"| {mod.name} | {cost} EGP | {cust} EGP | +{margin} EGP |")
+                
+                cost_disp = to_display(cost)
+                cust_disp = to_display(cust)
+                margin_disp = to_display(margin)
+                
+                lines.append(f"| {mod.name} | {cost_disp} | {cust_disp} | +{margin_disp} |")
             lines.append("")
 
         # Livestock
@@ -266,16 +281,20 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 lines.append(f"| {item.name} | x{item.price_multiplier} |")
             lines.append("")
 
-        # Full pricing breakdown
         cost = invoice.cost_total or 0
         customer = invoice.customer_total or invoice.total_amount
-        profit = float(str(customer)) - float(str(cost))
+        try:
+            profit = float(str(customer)) - float(str(cost))
+        except (ValueError, TypeError):
+            profit = 0
+
+        curr_label = 'EGP' if use_egp else '€'
 
         lines.extend([
             "## Financial Summary",
-            f"- **💸 Due to Uniform Agri (our cost):** {cost} EGP",
-            f"- **💰 Due from Farm (customer price):** {customer} EGP",
-            f"- **📈 Your Profit:** +{profit:.2f} EGP",
+            f"- **💸 Due to Uniform Agri (our cost):** {cost} {curr_label}",
+            f"- **💰 Due from Farm (customer price):** {customer} {curr_label}",
+            f"- **📈 Your Profit:** +{profit:.2f} {curr_label}",
             "",
         ])
 
