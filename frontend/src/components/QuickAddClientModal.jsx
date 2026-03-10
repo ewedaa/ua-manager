@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
 import { Users, X, Loader2 } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
+
+const fetchModules = async () => {
+    const response = await fetch(`${API_BASE_URL}/subscription-modules/`);
+    if (!response.ok) throw new Error('Failed to fetch modules');
+    return response.json();
+};
 
 /**
  * QuickAddClientModal — reusable modal to create a new client/farm inline
@@ -34,6 +40,29 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
     });
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
+
+    const { data: rawModules = [] } = useQuery({
+        queryKey: ['subscription-modules'],
+        queryFn: fetchModules,
+    });
+
+    const availableModules = React.useMemo(() => {
+        return [...rawModules].filter(m => m.is_active !== false).sort((a, b) => {
+            const getOrder = (name) => {
+                if (name.includes('Base module')) return 0;
+                if (name.toLowerCase().includes('dairylive')) {
+                    const match = name.match(/(\d+)/);
+                    return 100000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                if (name.includes('Big farm module')) {
+                    const match = name.match(/(\d+)/);
+                    return 200000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                return 300000;
+            };
+            return getOrder(a.name) - getOrder(b.name);
+        });
+    }, [rawModules]);
 
     const field = (key, value) => setForm(f => ({ ...f, [key]: value }));
 
@@ -151,8 +180,42 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                                 <input required type="date" value={form.subscription_end_date} onChange={e => field('subscription_end_date', e.target.value)} className={inp} />
                             </div>
                             <div className="col-span-2">
-                                <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Subscription Modules</label>
-                                <input value={form.subscription_modules} onChange={e => field('subscription_modules', e.target.value)} placeholder="e.g. 1, 2, 5" className={inp} />
+                                <label className={`block text-xs font-semibold mb-2 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Subscription Modules</label>
+                                <div className={`grid grid-cols-2 gap-2 p-3 rounded-lg border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
+                                    {availableModules.length > 0 ? availableModules.map((mod) => (
+                                        <label key={mod.id} className={`flex items-center space-x-2 text-xs cursor-pointer p-1.5 rounded transition-colors ${isDark ? 'text-gray-300 hover:bg-white/[0.06]' : 'text-gray-700 hover:bg-gray-100'}`}>
+                                            <input
+                                                type="checkbox"
+                                                checked={(form.subscription_modules || '').includes(mod.name)}
+                                                onChange={(e) => {
+                                                    const currentModules = (form.subscription_modules || '').split(',').map(s => s.trim()).filter(Boolean);
+                                                    let newModules;
+                                                    if (e.target.checked) {
+                                                        newModules = [...currentModules, mod.name];
+                                                        if (mod.name.includes('Big farm module')) {
+                                                            const getCows = (name) => {
+                                                                const match = name.match(/(\d+)/);
+                                                                return match ? parseInt(match[1], 10) : 0;
+                                                            };
+                                                            const targetCows = getCows(mod.name);
+                                                            const lowerTierNames = availableModules
+                                                                .filter(m => m.name.includes('Big farm module') && getCows(m.name) < targetCows)
+                                                                .map(m => m.name);
+                                                            newModules = Array.from(new Set([...newModules, ...lowerTierNames]));
+                                                        }
+                                                    } else {
+                                                        newModules = currentModules.filter(m => m !== mod.name);
+                                                    }
+                                                    field('subscription_modules', newModules.sort().join(', '));
+                                                }}
+                                                className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
+                                            />
+                                            <span>{mod.name}</span>
+                                        </label>
+                                    )) : (
+                                        <p className="col-span-2 text-xs text-gray-400 italic">No modules available.</p>
+                                    )}
+                                </div>
                             </div>
                             <div className="col-span-2">
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Notes</label>

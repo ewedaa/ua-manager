@@ -11,6 +11,12 @@ import { API_BASE_URL } from '../lib/api';
 
 import { fetchClients } from '../lib/fetchers';
 
+const fetchModules = async () => {
+    const response = await fetch(`${API_BASE_URL}/subscription-modules/`);
+    if (!response.ok) throw new Error('Failed to fetch modules');
+    return response.json();
+};
+
 const createClient = async (newClient) => {
     const response = await fetch(`${API_BASE_URL}/clients/`, {
         method: 'POST',
@@ -76,6 +82,29 @@ export default function Clients() {
         queryKey: ['clients'],
         queryFn: fetchClients,
     });
+
+    const { data: rawModules = [] } = useQuery({
+        queryKey: ['subscription-modules'],
+        queryFn: fetchModules,
+    });
+
+    const availableModules = React.useMemo(() => {
+        return [...rawModules].filter(m => m.is_active !== false).sort((a, b) => {
+            const getOrder = (name) => {
+                if (name.includes('Base module')) return 0;
+                if (name.toLowerCase().includes('dairylive')) {
+                    const match = name.match(/(\d+)/);
+                    return 100000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                if (name.includes('Big farm module')) {
+                    const match = name.match(/(\d+)/);
+                    return 200000 + (match ? parseInt(match[1], 10) : 0);
+                }
+                return 300000;
+            };
+            return getOrder(a.name) - getOrder(b.name);
+        });
+    }, [rawModules]);
 
     const mutation = useMutation({
         mutationFn: createClient,
@@ -478,15 +507,42 @@ export default function Clients() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subscription Modules</label>
-                                <input
-                                    type="text"
-                                    name="subscription_modules"
-                                    placeholder="e.g. 1, 2, 5"
-                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
-                                    value={formData.subscription_modules}
-                                    onChange={handleInputChange}
-                                />
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Subscription Modules</label>
+                                <div className="grid grid-cols-2 gap-2 p-3 rounded-xl border border-gray-300 dark:border-white/[0.08] bg-gray-50 dark:bg-white/[0.02]">
+                                    {availableModules.length > 0 ? availableModules.map((mod) => (
+                                        <label key={mod.id} className="flex items-center space-x-2 text-sm cursor-pointer p-1.5 rounded transition-colors text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-white/[0.06]">
+                                            <input
+                                                type="checkbox"
+                                                checked={(formData.subscription_modules || '').includes(mod.name)}
+                                                onChange={(e) => {
+                                                    const currentModules = (formData.subscription_modules || '').split(',').map(s => s.trim()).filter(Boolean);
+                                                    let newModules;
+                                                    if (e.target.checked) {
+                                                        newModules = [...currentModules, mod.name];
+                                                        if (mod.name.includes('Big farm module')) {
+                                                            const getCows = (name) => {
+                                                                const match = name.match(/(\d+)/);
+                                                                return match ? parseInt(match[1], 10) : 0;
+                                                            };
+                                                            const targetCows = getCows(mod.name);
+                                                            const lowerTierNames = availableModules
+                                                                .filter(m => m.name.includes('Big farm module') && getCows(m.name) < targetCows)
+                                                                .map(m => m.name);
+                                                            newModules = Array.from(new Set([...newModules, ...lowerTierNames]));
+                                                        }
+                                                    } else {
+                                                        newModules = currentModules.filter(m => m !== mod.name);
+                                                    }
+                                                    setFormData({ ...formData, subscription_modules: newModules.sort().join(', ') });
+                                                }}
+                                                className="w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300"
+                                            />
+                                            <span>{mod.name}</span>
+                                        </label>
+                                    )) : (
+                                        <p className="col-span-2 text-xs text-gray-400 italic">No modules available.</p>
+                                    )}
+                                </div>
                             </div>
 
                             <div>
