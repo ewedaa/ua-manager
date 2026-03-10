@@ -15,9 +15,11 @@ modules_to_update = [
 
 print("=== SETTING MODULE PRICES ===")
 
-# The original Link process computer had this exact price configuration:
-target_purchase_price = 495.00
-target_renewal_price = 172.00
+# The original Link process computer prices + 10%:
+# Purchase: 495.00 + 10% = 544.50
+# Renewal: 172.00 + 10% = 189.20
+target_purchase_price = 544.50
+target_renewal_price = 189.20
 
 for name in modules_to_update:
     mod, created = SubscriptionModule.objects.get_or_create(name=name)
