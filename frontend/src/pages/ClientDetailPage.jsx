@@ -342,7 +342,6 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                             <div className="space-y-2.5">
                                 {[
                                     { icon: Hash, label: 'Serial', value: client.serial_number || '—', copy: true },
-                                    { icon: Phone, label: 'Phone', value: client.phone || '—', copy: true },
                                     { icon: Calendar, label: 'Started', value: client.subscription_start_date || '—' },
                                     { icon: Calendar, label: 'Expires', value: client.subscription_end_date || '—', critical: daysRemaining !== null && daysRemaining < 30 },
                                 ].map((item, i) => (
@@ -352,16 +351,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{item.label}</p>
-                                            {item.label === 'Phone' ? (
-                                                <InlineEdit
-                                                    value={item.value}
-                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ phone: newVal })}
-                                                    className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}
-                                                    disabled={!isAdmin}
-                                                />
-                                            ) : (
-                                                <p className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.value}</p>
-                                            )}
+                                            <p className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.value}</p>
                                         </div>
                                         {item.copy && item.value !== '—' && (
                                             <button onClick={() => handleCopy(item.value, item.label)} className={`p-1 rounded-lg transition-colors ${copiedField === item.label ? 'text-green-500' : isDark ? 'text-gray-600 hover:text-gray-400' : 'text-gray-300 hover:text-gray-500'}`}>
