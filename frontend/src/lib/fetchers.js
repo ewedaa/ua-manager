@@ -8,6 +8,12 @@ export const fetchClients = async () => {
     return response.json();
 };
 
+export const fetchClient = async (id) => {
+    const response = await fetch(`${API}/clients/${id}/`);
+    if (!response.ok) throw new Error('Failed to fetch client');
+    return response.json();
+};
+
 export const fetchTickets = async () => {
     const response = await fetch(`${API}/tickets/`);
     if (!response.ok) throw new Error('Failed to fetch tickets');

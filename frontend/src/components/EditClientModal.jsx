@@ -92,7 +92,9 @@ export default function EditClientModal({ client, onClose }) {
         // Only send writable fields to avoid issues with nested read-only objects
         const payload = {
             id: formData.id,
+            name: formData.farm_name,
             farm_name: formData.farm_name,
+            area: formData.area || '',
             phone: formData.phone,
             serial_number: formData.serial_number,
             livestock_type: formData.livestock_type || 'Dairy Cows',
@@ -126,17 +128,30 @@ export default function EditClientModal({ client, onClose }) {
                 )}
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                    {/* Farm Name */}
-                    <div>
-                        <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name</label>
-                        <input
-                            type="text"
-                            name="farm_name"
-                            value={formData.farm_name || ''}
-                            onChange={handleChange}
-                            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
-                            required
-                        />
+                    {/* Farm Name + Area */}
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Farm Name *</label>
+                            <input
+                                type="text"
+                                name="farm_name"
+                                value={formData.farm_name || ''}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                                required
+                            />
+                        </div>
+                        <div>
+                            <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Area</label>
+                            <input
+                                type="text"
+                                name="area"
+                                value={formData.area || ''}
+                                onChange={handleChange}
+                                placeholder="e.g. Cairo, Alexandria"
+                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

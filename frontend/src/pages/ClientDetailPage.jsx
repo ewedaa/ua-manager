@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/api';
+import { fetchClient } from '../lib/fetchers';
 import EditClientModal from '../components/EditClientModal';
 import AddInvoiceModal from '../components/AddInvoiceModal';
 import AddContactModal from '../components/AddContactModal';
@@ -39,17 +40,12 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
     const [uploadModal, setUploadModal] = useState(null); // { file, category }
     const [isAddContactOpen, setIsAddContactOpen] = useState(false);
 
-    // Fetch all clients and find the one we need
-    const { data: clients = [], isLoading } = useQuery({
-        queryKey: ['clients'],
-        queryFn: async () => {
-            const res = await fetch(`${API_BASE_URL}/clients/`);
-            if (!res.ok) throw new Error('Failed to fetch');
-            return res.json();
-        },
+    // Fetch the individual client detail
+    const { data: client, isLoading } = useQuery({
+        queryKey: ['client', id],
+        queryFn: () => fetchClient(id),
+        enabled: !!id,
     });
-
-    const client = clients.find(c => c.id === parseInt(id));
 
     // Redirect to Serials Page if someone tries to access a 4Genetics College directly via /clients/:id
     useEffect(() => {
@@ -68,7 +64,10 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
             if (!res.ok) throw new Error('Failed');
             return res.json();
         },
-        onSuccess: () => queryClient.invalidateQueries(['clients']),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['client', id]);
+            queryClient.invalidateQueries(['clients']);
+        },
     });
 
     const deleteClientMutation = useMutation({
@@ -76,7 +75,10 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
             const res = await fetch(`${API_BASE_URL}/clients/${clientId}/`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed');
         },
-        onSuccess: () => { queryClient.invalidateQueries(['clients']); navigate('/clients'); },
+        onSuccess: () => {
+            queryClient.invalidateQueries(['clients']);
+            navigate('/clients');
+        },
     });
 
     const updateClientMutation = useMutation({
@@ -86,10 +88,16 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updates),
             });
-            if (!res.ok) throw new Error('Failed to update client');
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(JSON.stringify(errData) || 'Failed to update client');
+            }
             return res.json();
         },
-        onSuccess: () => queryClient.invalidateQueries(['clients']),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['client', id]);
+            queryClient.invalidateQueries(['clients']);
+        },
     });
 
     // Helpers
@@ -111,6 +119,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
             if (meta.file_date) formData.append('file_date', meta.file_date);
             const res = await fetch(`${API_BASE_URL}/clients/${client.id}/files/`, { method: 'POST', body: formData });
             if (!res.ok) throw new Error('Upload failed');
+            queryClient.invalidateQueries(['client', id]);
             queryClient.invalidateQueries(['clients']);
         } catch (err) { console.error(err); } finally { setIsUploading(false); }
     };
@@ -132,6 +141,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
     const handleFileDelete = async (fileId) => {
         try {
             await fetch(`${API_BASE_URL}/clients/${client.id}/files/${fileId}/`, { method: 'DELETE' });
+            queryClient.invalidateQueries(['client', id]);
             queryClient.invalidateQueries(['clients']);
         } catch (err) { console.error(err); }
     };
@@ -339,7 +349,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                             {item.label === 'Phone' ? (
                                                 <InlineEdit
                                                     value={item.value}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ phone: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ phone: newVal })}
                                                     className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}
                                                     disabled={!isAdmin}
                                                 />
@@ -455,7 +465,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                         <InlineEdit
                                             type="textarea"
                                             value={client.general_notes || ''}
-                                            onSave={(newVal) => updateClientMutation.mutate({ general_notes: newVal })}
+                                            onSave={(newVal) => updateClientMutation.mutateAsync({ general_notes: newVal })}
                                             placeholder="Add notes..."
                                             className={`text-sm leading-relaxed whitespace-pre-wrap block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
                                             disabled={!isAdmin}
@@ -472,7 +482,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
                                                 <InlineEdit
                                                     value={client.farm_name}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ farm_name: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ farm_name: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     disabled={!isAdmin}
                                                 />
@@ -481,7 +491,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Area</span>
                                                 <InlineEdit
                                                     value={client.area || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ area: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     placeholder="—"
                                                     disabled={!isAdmin}
@@ -497,7 +507,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Serial Key</span>
                                                 <InlineEdit
                                                     value={client.serial_number || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ serial_number: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ serial_number: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     placeholder="—"
                                                     disabled={!isAdmin}
@@ -507,7 +517,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Start Date</span>
                                                 <InlineEditDate
                                                     value={client.subscription_start_date || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_start_date: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ subscription_start_date: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     disabled={!isAdmin}
                                                 />
@@ -516,7 +526,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>End Date</span>
                                                 <InlineEditDate
                                                     value={client.subscription_end_date || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_end_date: newVal })}
+                                                    onSave={(newVal) => updateClientMutation.mutateAsync({ subscription_end_date: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     disabled={!isAdmin}
                                                 />

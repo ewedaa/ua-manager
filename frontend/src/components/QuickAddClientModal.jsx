@@ -22,6 +22,7 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
         farm_name: '',
         name: '',
         phone: '',
+        area: '',
         subscription_start_date: today,
         subscription_end_date: oneYear,
         is_demo: false,
@@ -110,6 +111,10 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                             <div>
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Phone</label>
                                 <input value={form.phone} onChange={e => field('phone', e.target.value)} placeholder="+20 100 000 0000" className={inp} />
+                            </div>
+                            <div>
+                                <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Area</label>
+                                <input value={form.area} onChange={e => field('area', e.target.value)} placeholder="e.g. Cairo" className={inp} />
                             </div>
                             <div>
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Livestock Type *</label>

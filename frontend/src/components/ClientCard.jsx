@@ -186,6 +186,11 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                         {client.livestock_type}
                                     </span>
                                 )}
+                                {client.area && (
+                                    <span className={`inline-flex items-center gap-1 text-[9px] font-extrabold px-2 py-0.5 rounded-full tracking-widest ${isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-cyan-50 text-cyan-700'}`}>
+                                        {client.area}
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

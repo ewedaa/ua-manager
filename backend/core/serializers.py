@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import Client, LivestockType, Invoice, Payment, Ticket, Contact, SubscriptionModule, GeneticsSerial, ClientFile, IssueCategory
+from .models import (
+    Client, LivestockType, Invoice, Payment, Ticket, Contact,
+    SubscriptionModule, GeneticsSerial, ClientFile, IssueCategory,
+    Reminder, ActivityLog, Todo, Project,
+)
 
 
 class LivestockTypeSerializer(serializers.ModelSerializer):
@@ -69,7 +73,7 @@ class IssueCategorySerializer(serializers.ModelSerializer):
 
 class TicketSerializer(serializers.ModelSerializer):
     """Serializer for Ticket model."""
-    client_name = serializers.CharField(source='client.name', read_only=True)
+    client_name = serializers.CharField(source='client.farm_name', read_only=True)
     
     class Meta:
         model = Ticket
@@ -212,14 +216,12 @@ class ClientDetailSerializer(ClientSerializer):
 
 class ReminderSerializer(serializers.ModelSerializer):
     """Serializer for Reminder/Notification model."""
-    from .models import Reminder
     
     client_name = serializers.CharField(source='client.farm_name', read_only=True, allow_null=True)
     type_display = serializers.CharField(source='get_reminder_type_display', read_only=True)
     priority_display = serializers.CharField(source='get_priority_display', read_only=True)
     
     class Meta:
-        from .models import Reminder
         model = Reminder
         fields = [
             'id', 'title', 'message', 'reminder_type', 'type_display',
@@ -234,12 +236,10 @@ class ReminderSerializer(serializers.ModelSerializer):
 
 class ActivityLogSerializer(serializers.ModelSerializer):
     """Serializer for ActivityLog model."""
-    from .models import ActivityLog
     
     action_display = serializers.CharField(source='get_action_display', read_only=True)
     
     class Meta:
-        from .models import ActivityLog
         model = ActivityLog
         fields = ['id', 'action', 'action_display', 'description', 'entity_type', 'entity_id', 'created_at']
         read_only_fields = ['created_at']
@@ -247,10 +247,8 @@ class ActivityLogSerializer(serializers.ModelSerializer):
 
 class TodoSerializer(serializers.ModelSerializer):
     """Serializer for Todo model."""
-    from .models import Todo
     
     class Meta:
-        from .models import Todo
         model = Todo
         fields = ['id', 'text', 'priority', 'status', 'due_date', 'is_done', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
@@ -258,10 +256,8 @@ class TodoSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     """Serializer for Project model."""
-    from .models import Project
 
     class Meta:
-        from .models import Project
         model = Project
         fields = ['id', 'name', 'description', 'status', 'created_at', 'updated_at']
         read_only_fields = ['created_at', 'updated_at']
