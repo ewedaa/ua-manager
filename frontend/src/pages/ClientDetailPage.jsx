@@ -89,8 +89,14 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                 body: JSON.stringify(updates),
             });
             if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(JSON.stringify(errData) || 'Failed to update client');
+                let errorMsg = 'Failed to update client';
+                try {
+                    const errData = await res.json();
+                    errorMsg = typeof errData === 'object' ? Object.values(errData).flat().join(', ') : errData;
+                } catch (e) {
+                    errorMsg = `Server Error (${res.status})`;
+                }
+                throw new Error(errorMsg);
             }
             return res.json();
         },

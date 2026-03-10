@@ -9,6 +9,11 @@ export const queryClient = new QueryClient({
             staleTime: 1000 * 60, // 1 minute (data becomes stale much faster)
             refetchOnWindowFocus: true, // Always refetch when user switches tabs/windows
             retry: 1,
+            networkMode: 'always', // Don't pause queries on network errors
+        },
+        mutations: {
+            networkMode: 'always', // CRITICAL: prevents UI hanging if API is unreachable
+            retry: 0,
         },
     },
 })
