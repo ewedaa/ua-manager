@@ -14,6 +14,7 @@ class Client(models.Model):
     
     name = models.CharField(max_length=255, db_index=True)
     farm_name = models.CharField(max_length=255, db_index=True)
+    area = models.CharField(max_length=255, blank=True, null=True)
     phone = models.CharField(max_length=20)
     livestock_type = models.CharField(max_length=100, choices=LIVESTOCK_CHOICES, default='Dairy Cows')
     serial_number = models.CharField(max_length=100, blank=True)

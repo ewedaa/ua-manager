@@ -119,7 +119,7 @@ class ClientSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'farm_name', 'phone', 'serial_number', 'livestock_type',
             'subscription_modules', 'general_notes', 'contacts', 'whatsapp_link',
-            'subscription_start_date', 'subscription_end_date',
+            'subscription_start_date', 'subscription_end_date', 'area',
             'is_demo', 'is_quoted', 'demo_start_date', 'demo_end_date', 'is_4genetics_college',
             'is_expiring_soon', 'alert_status', 'status', 'tickets', 'invoices', 'files', 'created_at', 'updated_at'
         ]
