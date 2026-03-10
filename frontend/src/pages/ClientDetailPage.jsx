@@ -470,22 +470,26 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                         <div className="space-y-3">
                                             <div className="flex items-center justify-between">
                                                 <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
-                                                <InlineEdit
-                                                    value={client.name}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
-                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
-                                                    disabled={!isAdmin}
-                                                />
+                                                <div className="w-1/2 text-right">
+                                                    <InlineEdit
+                                                        value={client.name}
+                                                        onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
+                                                        className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                        disabled={!isAdmin}
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="flex items-center justify-between">
                                                 <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Area</span>
-                                                <InlineEdit
-                                                    value={client.area || ''}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
-                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
-                                                    placeholder="—"
-                                                    disabled={!isAdmin}
-                                                />
+                                                <div className="w-1/2 text-right">
+                                                    <InlineEdit
+                                                        value={client.area || ''}
+                                                        onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
+                                                        className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                        placeholder="—"
+                                                        disabled={!isAdmin}
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
