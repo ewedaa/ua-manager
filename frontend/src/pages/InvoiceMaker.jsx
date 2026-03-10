@@ -19,13 +19,13 @@ import { fetchInvoices, fetchLivestockTypes, fetchClients } from '../lib/fetcher
 // ──────────────────────────────────────────────
 // Invoice Form Modal (Dual Pricing)
 // ──────────────────────────────────────────────
-const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = null }) => {
+const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = null, preselectedClientId = null }) => {
     const queryClient = useQueryClient();
     const { isAdmin } = useAuth();
     const { isDark } = useTheme();
 
     const [formData, setFormData] = useState({
-        client: editInvoice?.client || '',
+        client: editInvoice?.client || preselectedClientId || '',
         invoice_type: editInvoice?.invoice_type || 'Renewal Invoice',
         livestock_ids: editInvoice?.livestock_selection?.map(l => l.id) || [],
         notes: editInvoice?.notes || '',
@@ -41,6 +41,29 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const [rateDate, setRateDate] = useState('');
     const [error, setError] = useState('');
     const [showQuickAdd, setShowQuickAdd] = useState(false);
+    const [lastAutofilledClient, setLastAutofilledClient] = useState(null);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setLastAutofilledClient(null);
+        }
+    }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen && !editInvoice && formData.client && modules.length > 0 && formData.client !== lastAutofilledClient) {
+            const selectedClient = clients?.find(c => c.id.toString() === formData.client.toString());
+            if (selectedClient && selectedClient.subscription_modules) {
+                const clientModuleNames = selectedClient.subscription_modules.split(',').map(s => s.trim());
+                const matchingIds = modules
+                    .filter(m => clientModuleNames.includes(m.name))
+                    .map(m => m.id);
+                setSelectedModuleIds(matchingIds);
+            } else {
+                setSelectedModuleIds([]);
+            }
+            setLastAutofilledClient(formData.client);
+        }
+    }, [isOpen, editInvoice, formData.client, modules, clients, lastAutofilledClient]);
 
     // Fetch modules
     const { data: modules = [] } = useQuery({
@@ -790,11 +813,8 @@ export default function InvoiceMaker() {
     const navigate = useNavigate();
 
     const [isModalOpen, setIsModalOpen] = useState(location.state?.openNewInvoice || false);
-    const [editInvoice, setEditInvoice] = useState(
-        location.state?.preselectedClientId
-            ? { client: location.state.preselectedClientId }
-            : null
-    );
+    const [preselectedClientId, setPreselectedClientId] = useState(location.state?.preselectedClientId || null);
+    const [editInvoice, setEditInvoice] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
@@ -836,6 +856,7 @@ export default function InvoiceMaker() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditInvoice(null);
+        setPreselectedClientId(null);
     };
 
     // Calculate stats (Exclude Quotations)
@@ -1095,6 +1116,7 @@ export default function InvoiceMaker() {
                 clients={clients}
                 livestockTypes={livestockTypes}
                 editInvoice={editInvoice}
+                preselectedClientId={preselectedClientId}
             />
         </div>
     );
