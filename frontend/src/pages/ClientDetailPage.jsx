@@ -8,6 +8,7 @@ import { API_BASE_URL } from '../lib/api';
 import EditClientModal from '../components/EditClientModal';
 import AddInvoiceModal from '../components/AddInvoiceModal';
 import AddContactModal from '../components/AddContactModal';
+import InlineEdit, { InlineEditDate, InlineEditNumber } from '../components/InlineEdit';
 import {
     ArrowLeft, Phone, Calendar, MessageSquare, Hash, FileText,
     Pencil, Receipt, Plus, CheckCircle, Clock, Users, DollarSign,
@@ -76,6 +77,19 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
             if (!res.ok) throw new Error('Failed');
         },
         onSuccess: () => { queryClient.invalidateQueries(['clients']); navigate('/clients'); },
+    });
+
+    const updateClientMutation = useMutation({
+        mutationFn: async (updates) => {
+            const res = await fetch(`${API_BASE_URL}/clients/${client.id}/`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates),
+            });
+            if (!res.ok) throw new Error('Failed to update client');
+            return res.json();
+        },
+        onSuccess: () => queryClient.invalidateQueries(['clients']),
     });
 
     // Helpers
@@ -322,7 +336,16 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={`text-[9px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>{item.label}</p>
-                                            <p className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.value}</p>
+                                            {item.label === 'Phone' ? (
+                                                <InlineEdit
+                                                    value={item.value}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ phone: newVal })}
+                                                    className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                                                    disabled={!isAdmin}
+                                                />
+                                            ) : (
+                                                <p className={`text-xs font-semibold truncate ${item.critical ? 'text-red-500' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>{item.value}</p>
+                                            )}
                                         </div>
                                         {item.copy && item.value !== '—' && (
                                             <button onClick={() => handleCopy(item.value, item.label)} className={`p-1 rounded-lg transition-colors ${copiedField === item.label ? 'text-green-500' : isDark ? 'text-gray-600 hover:text-gray-400' : 'text-gray-300 hover:text-gray-500'}`}>
@@ -426,10 +449,17 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                 </div>
 
                                 {/* General Notes */}
-                                {client.general_notes && (
+                                {(client.general_notes || isAdmin) && (
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Notes</h3>
-                                        <p className={`text-sm leading-relaxed whitespace-pre-wrap ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>{client.general_notes}</p>
+                                        <InlineEdit
+                                            type="textarea"
+                                            value={client.general_notes || ''}
+                                            onSave={(newVal) => updateClientMutation.mutate({ general_notes: newVal })}
+                                            placeholder="Add notes..."
+                                            className={`text-sm leading-relaxed whitespace-pre-wrap block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                                            disabled={!isAdmin}
+                                        />
                                     </div>
                                 )}
 
@@ -438,32 +468,65 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Client Information</h3>
                                         <div className="space-y-3">
-                                            {[
-                                                { label: 'Farm', value: client.name },
-                                                { label: 'Area', value: client.area || '—' },
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex items-center justify-between">
-                                                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</span>
-                                                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.value}</span>
-                                                </div>
-                                            ))}
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
+                                                <InlineEdit
+                                                    value={client.name}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
+                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    disabled={!isAdmin}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Area</span>
+                                                <InlineEdit
+                                                    value={client.area || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ area: newVal })}
+                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    placeholder="—"
+                                                    disabled={!isAdmin}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
 
                                     <div className={`rounded-xl border p-5 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Subscription Details</h3>
                                         <div className="space-y-3">
-                                            {[
-                                                { label: 'Serial Key', value: client.serial_number || '—' },
-                                                { label: 'Start Date', value: client.subscription_start_date || '—' },
-                                                { label: 'End Date', value: client.subscription_end_date || '—' },
-                                                { label: 'Status', value: status.label },
-                                            ].map((item, i) => (
-                                                <div key={i} className="flex items-center justify-between">
-                                                    <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{item.label}</span>
-                                                    <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{item.value}</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Serial Key</span>
+                                                <div className="w-1/2 text-right">
+                                                    <InlineEdit
+                                                        value={client.serial_number || ''}
+                                                        onSave={(newVal) => updateClientMutation.mutate({ serial_number: newVal })}
+                                                        className={`text-sm font-semibold truncate ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                        placeholder="—"
+                                                        disabled={!isAdmin}
+                                                    />
                                                 </div>
-                                            ))}
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Start Date</span>
+                                                <InlineEditDate
+                                                    value={client.subscription_start_date || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_start_date: newVal })}
+                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    disabled={!isAdmin}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>End Date</span>
+                                                <InlineEditDate
+                                                    value={client.subscription_end_date || ''}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ subscription_end_date: newVal })}
+                                                    className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
+                                                    disabled={!isAdmin}
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between">
+                                                <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Status</span>
+                                                <span className={`text-sm font-semibold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{status.label}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
