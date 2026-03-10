@@ -255,11 +255,11 @@ const InlineEdit = ({
             aria-label={`Edit ${displayValue || placeholder}`}
         >
             <span className={`
-                inline-flex items-center gap-1 px-1 py-0.5 rounded transition-all duration-150
+                inline-flex items-center gap-1 px-1 py-0.5 rounded transition-all duration-150 min-h-[1.5rem] min-w-[2rem]
                 ${!disabled ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : ''}
                 ${showSuccess ? 'bg-green-100 dark:bg-green-900/30' : ''}
             `}>
-                <span className={!displayValue ? 'text-gray-400 italic' : ''}>
+                <span className={!displayValue ? 'text-gray-400 italic font-normal' : ''}>
                     {displayValue || placeholder}
                 </span>
                 {!disabled && (
