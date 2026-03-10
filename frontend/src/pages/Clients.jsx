@@ -478,6 +478,18 @@ export default function Clients() {
                             </div>
 
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subscription Modules</label>
+                                <input
+                                    type="text"
+                                    name="subscription_modules"
+                                    placeholder="e.g. 1, 2, 5"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                    value={formData.subscription_modules}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
                                 <textarea
                                     name="general_notes"

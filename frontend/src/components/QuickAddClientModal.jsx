@@ -23,6 +23,7 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
         name: '',
         phone: '',
         area: '',
+        subscription_modules: '',
         subscription_start_date: today,
         subscription_end_date: oneYear,
         is_demo: false,
@@ -148,6 +149,10 @@ export default function QuickAddClientModal({ onClose, onCreated }) {
                             <div>
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>End Date *</label>
                                 <input required type="date" value={form.subscription_end_date} onChange={e => field('subscription_end_date', e.target.value)} className={inp} />
+                            </div>
+                            <div className="col-span-2">
+                                <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Subscription Modules</label>
+                                <input value={form.subscription_modules} onChange={e => field('subscription_modules', e.target.value)} placeholder="e.g. 1, 2, 5" className={inp} />
                             </div>
                             <div className="col-span-2">
                                 <label className={`block text-xs font-semibold mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Notes</label>
