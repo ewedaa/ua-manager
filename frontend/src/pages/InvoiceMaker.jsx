@@ -740,18 +740,29 @@ const InvoicePDFButton = ({ invoice }) => {
 
     if (invoice.pdf_file) {
         const backendOrigin = new URL(API_BASE_URL).origin;
-        const pdfHref = invoice.pdf_file.startsWith('http') ? invoice.pdf_file : `${backendOrigin}${invoice.pdf_file}`;
+        const baseHref = invoice.pdf_file.startsWith('http') ? invoice.pdf_file : `${backendOrigin}${invoice.pdf_file}`;
+        const pdfHref = `${baseHref}?t=${new Date().getTime()}`; // Bypass browser cache
         return (
-            <a
-                href={pdfHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-500 border border-green-500/25 rounded-lg transition-all text-xs font-semibold"
-                title="Download PDF"
-            >
-                <Download size={14} />
-                Download
-            </a>
+            <div className="flex items-center gap-1">
+                <a
+                    href={pdfHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-500 border border-green-500/25 rounded-lg transition-all text-xs font-semibold"
+                    title="Download PDF"
+                >
+                    <Download size={14} />
+                    Download
+                </a>
+                <button
+                    onClick={handleGenerate}
+                    disabled={isGenerating}
+                    className="p-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg transition-all disabled:opacity-50"
+                    title="Force Regenerate PDF"
+                >
+                    {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                </button>
+            </div>
         );
     }
 
