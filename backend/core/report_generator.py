@@ -683,6 +683,15 @@ def generate_formal_invoice_pdf(invoice):
             Paragraph('', cell_style),
         ])
 
+    livestock = invoice.livestock_selection.all()
+    # Calculate total in EUR manually from the DB models to avoid double-conversion
+    eur_total = Decimal('0')
+    for mod in modules:
+        eur_total += get_customer_price(mod)
+        
+    for item in livestock:
+        eur_total += Decimal(str(item.price_multiplier)) * Decimal('10.0')
+
     page_w = A4[0] - 80
     mod_table = Table(table_data, colWidths=[1.8 * inch, page_w - 3.2 * inch, 1.4 * inch],
                       repeatRows=1)
@@ -723,7 +732,7 @@ def generate_formal_invoice_pdf(invoice):
                                  textColor=BRAND_GRAY, alignment=TA_RIGHT)
     total_data = [[
         Paragraph('Total Amount:', label_style),
-        Paragraph(f'<b>{to_display(total)}</b>', total_style),
+        Paragraph(f'<b>{to_display(eur_total)}</b>', total_style),
     ]]
     total_table = Table(total_data, colWidths=[page_w - 2 * inch, 2 * inch])
     total_table.setStyle(TableStyle([
