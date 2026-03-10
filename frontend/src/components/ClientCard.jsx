@@ -1,8 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    MessageSquare, Pencil, Receipt, DollarSign, Clock,
-    Trash2, Ticket, ChevronRight, ArrowUpRight, Layers
+    MessageSquare, Pencil, Clock,
+    ChevronRight, ArrowUpRight
 } from 'lucide-react';
 import EditClientModal from './EditClientModal';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -44,22 +44,18 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
     };
     const status = getStatusInfo();
 
-    const deleteClientMutation = useMutation({
-        mutationFn: async (id) => {
-            const res = await fetch(`${API_BASE_URL}/clients/${id}/`, { method: 'DELETE' });
-            if (!res.ok) throw new Error('Failed');
-        },
-        onSuccess: () => queryClient.invalidateQueries(['clients']),
-    });
+    const categoryUpdateMutation = useMutation({
+        mutationFn: async (newCategory) => {
+            const is_demo = newCategory === 'demo';
+            const is_quoted = newCategory === 'quoted';
+            const payload = { is_demo, is_quoted };
 
-    const convertMutation = useMutation({
-        mutationFn: async () => {
             const res = await fetch(`${API_BASE_URL}/clients/${client.id}/`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ is_quoted: false }),
+                body: JSON.stringify(payload),
             });
-            if (!res.ok) throw new Error('Failed to convert');
+            if (!res.ok) throw new Error('Failed to update category');
             return res.json();
         },
         onSuccess: () => {
@@ -240,20 +236,30 @@ export default function ClientCard({ client, viewMode = 'grid' }) {
                                     <Pencil size={15} />
                                 </button>
                             )}
-                            {isAdmin && client.is_quoted && (
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (window.confirm(`Convert ${client.farm_name} to a regular subscriber?`)) {
-                                            convertMutation.mutate();
-                                        }
-                                    }}
-                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:scale-110 ${isDark ? 'text-gray-500 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
-                                    title="Convert to Subscriber"
-                                    disabled={convertMutation.isPending}
-                                >
-                                    {convertMutation.isPending ? <Clock size={15} className="animate-spin" /> : <Layers size={15} />}
-                                </button>
+                            {isAdmin && (
+                                <div className="relative flex items-center" onClick={e => e.stopPropagation()}>
+                                    {categoryUpdateMutation.isPending ? (
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            <Clock size={15} className="animate-spin" />
+                                        </div>
+                                    ) : (
+                                        <select
+                                            value={client.is_demo ? 'demo' : (client.is_quoted ? 'quoted' : 'active')}
+                                            onChange={(e) => {
+                                                if (window.confirm(`Transfer ${client.farm_name} to ${e.target.options[e.target.selectedIndex].text}?`)) {
+                                                    categoryUpdateMutation.mutate(e.target.value);
+                                                }
+                                            }}
+                                            className={`appearance-none bg-transparent outline-none cursor-pointer text-xs font-semibold px-2 py-1 flex items-center justify-center rounded-lg transition-all ${isDark ? 'text-gray-500 hover:text-green-400 hover:bg-green-500/10' : 'text-gray-400 hover:text-green-600 hover:bg-green-50'}`}
+                                            title="Transfer Category"
+                                            style={{ textAlignLast: 'center' }}
+                                        >
+                                            <option value="active">Active</option>
+                                            <option value="demo">Demo</option>
+                                            <option value="quoted">Quoted</option>
+                                        </select>
+                                    )}
+                                </div>
                             )}
                         </div>
                         <div className={`flex items-center gap-1 text-xs font-semibold transition-all duration-200 group-hover:translate-x-0.5 ${isDark ? 'text-gray-600 group-hover:text-emerald-400' : 'text-gray-400 group-hover:text-emerald-600'}`}>

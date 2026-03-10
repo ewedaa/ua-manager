@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { Loader2, Plus, Search, X, Check, AlertCircle, FileDown, Printer, Users, LayoutGrid, List, Filter, ArrowUpDown } from 'lucide-react';
+import { Loader2, Plus, Search, X, Check, AlertCircle, FileDown, Users, LayoutGrid, List, Filter, ArrowUpDown } from 'lucide-react';
 import ClientCard from '../components/ClientCard';
 import EmptyState from '../components/EmptyState';
 
@@ -52,7 +52,7 @@ export default function Clients() {
     const [viewMode, setViewMode] = useState('grid');
     const [filterStatus, setFilterStatus] = useState('all');
     const [filterFinance, setFilterFinance] = useState('all');
-    const [filterType, setFilterType] = useState('subscribers'); // 'subscribers' or 'quoted'
+    const [filterType, setFilterType] = useState('active'); // 'active', 'demo', 'quoted'
     const [sortBy, setSortBy] = useState('name');
     const [filterOpen, setFilterOpen] = useState(false);
 
@@ -65,7 +65,7 @@ export default function Clients() {
         serial_number: '',
         subscription_modules: '',
         general_notes: '',
-        is_demo: false,
+        category: 'active', // 'active', 'demo', 'quoted'
         livestock_type: 'Dairy Cows',
         role: ''
     });
@@ -91,7 +91,7 @@ export default function Clients() {
                 serial_number: '',
                 subscription_modules: '',
                 general_notes: '',
-                is_demo: false,
+                category: 'active',
                 livestock_type: 'Dairy Cows',
                 role: ''
             });
@@ -112,14 +112,16 @@ export default function Clients() {
         if (filterStatus === 'active') matchesStatus = client.status === 'Active';
         if (filterStatus === 'expiring_soon') matchesStatus = client.status === 'Expiring Soon';
         if (filterStatus === 'expired') matchesStatus = client.status === 'Expired';
-        if (filterStatus === 'demo') matchesStatus = client.is_demo === true;
 
         if (filterFinance === 'due_invoices') {
             const hasDue = client.invoices?.some(inv => !inv.invoice_type?.toLowerCase().includes('quotation') && inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
             matchesFinance = !!hasDue;
         }
 
-        const matchesType = filterType === 'quoted' ? client.is_quoted : !client.is_quoted;
+        let matchesType = false;
+        if (filterType === 'active') matchesType = !client.is_demo && !client.is_quoted;
+        if (filterType === 'demo') matchesType = client.is_demo;
+        if (filterType === 'quoted') matchesType = client.is_quoted;
 
         return matchesSearch && matchesStatus && matchesFinance && matchesType;
     }).sort((a, b) => {
@@ -164,9 +166,10 @@ export default function Clients() {
         }
         setFieldErrors({});
 
-        // Send farm_name as name, and dummy phone to bypass backend validation
         const payload = {
             ...formData,
+            is_demo: formData.category === 'demo',
+            is_quoted: formData.category === 'quoted',
             name: formData.farm_name,
             phone: '-'
         };
@@ -189,10 +192,6 @@ export default function Clients() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Clients");
         XLSX.writeFile(wb, "clients_list.xlsx");
-    };
-
-    const handlePrint = () => {
-        window.print();
     };
 
     if (isLoading) {
@@ -253,13 +252,22 @@ export default function Clients() {
                     {/* Tab Switcher */}
                     <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                         <button
-                            onClick={() => setFilterType('subscribers')}
-                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${filterType === 'subscribers'
+                            onClick={() => setFilterType('active')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${filterType === 'active'
                                 ? 'bg-white dark:bg-gray-700 shadow-sm text-green-600 dark:text-green-400'
                                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                         >
-                            Subscribers
+                            Active
+                        </button>
+                        <button
+                            onClick={() => setFilterType('demo')}
+                            className={`px-4 py-1.5 rounded-lg text-sm font-bold transition-all ${filterType === 'demo'
+                                ? 'bg-white dark:bg-gray-700 shadow-sm text-purple-600 dark:text-purple-400'
+                                : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                                }`}
+                        >
+                            Demo
                         </button>
                         <button
                             onClick={() => setFilterType('quoted')}
@@ -268,7 +276,7 @@ export default function Clients() {
                                 : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                                 }`}
                         >
-                            Quoted Farms
+                            Quoted
                         </button>
                     </div>
 
@@ -373,135 +381,135 @@ export default function Clients() {
             }
 
             {/* Modal */}
-            {
-                isModalOpen && (
-                    createPortal(
-                        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999] backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
-                            <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300 border border-gray-200 dark:border-white/10 my-auto max-h-[90vh] overflow-y-auto">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Client</h2>
-                                    <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 hover:rotate-90">
-                                        <X size={24} />
-                                    </button>
-                                </div>
+            {isModalOpen && createPortal(
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-[9999] backdrop-blur-md animate-in fade-in duration-200 overflow-y-auto">
+                    <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full p-6 animate-in fade-in zoom-in duration-300 border border-gray-200 dark:border-white/10 my-auto max-h-[90vh] overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New Client</h2>
+                            <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 hover:rotate-90">
+                                <X size={24} />
+                            </button>
+                        </div>
 
-                                {formError && (
-                                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm border border-transparent dark:border-red-500/20">
-                                        <AlertCircle size={16} className="mt-0.5 shrink-0" />
-                                        <p className="break-words">{formError}</p>
-                                    </div>
-                                )}
-
-                                <form onSubmit={handleSubmit} className="space-y-4">
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Farm Name</label>
-                                        <input
-                                            type="text"
-                                            name="farm_name"
-                                            className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.farm_name ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                            value={formData.farm_name}
-                                            onChange={handleInputChange}
-                                        />
-                                        {fieldErrors.farm_name && <p className="text-xs text-red-500 mt-1">{fieldErrors.farm_name}</p>}
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
-                                        <input
-                                            type="text"
-                                            name="serial_number"
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
-                                            value={formData.serial_number}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Livestock Type *</label>
-                                        <select
-                                            name="livestock_type"
-                                            value={formData.livestock_type}
-                                            onChange={handleInputChange}
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
-                                        >
-                                            <option value="Dairy Cows">Dairy Cows</option>
-                                            <option value="Dairy Buffalos">Dairy Buffalos</option>
-                                            <option value="Fattening">Fattening</option>
-                                            <option value="Sheep and Goat">Sheep and Goat</option>
-                                        </select>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
-                                            <input
-                                                type="date"
-                                                name="subscription_start_date"
-                                                className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_start_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                                value={formData.subscription_start_date}
-                                                onChange={handleInputChange}
-                                            />
-                                            {fieldErrors.subscription_start_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_start_date}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
-                                            <input
-                                                type="date"
-                                                name="subscription_end_date"
-                                                className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_end_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
-                                                value={formData.subscription_end_date}
-                                                onChange={handleInputChange}
-                                            />
-                                            {fieldErrors.subscription_end_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_end_date}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-6 p-4 rounded-xl border border-gray-300 dark:border-white/[0.08] bg-gray-50/50 dark:bg-gray-800/50">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                name="is_demo"
-                                                checked={formData.is_demo}
-                                                onChange={(e) => setFormData(p => ({ ...p, is_demo: e.target.checked }))}
-                                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600"
-                                            />
-                                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Is Demo Farm?</span>
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
-                                        <textarea
-                                            name="general_notes"
-                                            className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none transition-all duration-200"
-                                            rows={2}
-                                            value={formData.general_notes}
-                                            onChange={handleInputChange}
-                                        />
-                                    </div>
-
-                                    <div className="flex justify-end gap-3 mt-6">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsModalOpen(false)}
-                                            className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            disabled={mutation.isPending}
-                                            className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white rounded-xl font-medium flex items-center gap-2 transition-all duration-300 disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25"
-                                        >
-                                            {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
-                                            Save Client
-                                        </button>
-                                    </div>
-                                </form>
+                        {formError && (
+                            <div className="mb-4 p-3 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 rounded-lg flex items-start gap-2 text-sm border border-transparent dark:border-red-500/20">
+                                <AlertCircle size={16} className="mt-0.5 shrink-0" />
+                                <p className="break-words">{formError}</p>
                             </div>
-                        </div>,
-                        document.body
-                    )
-                )
-            }
-        </div >
+                        )}
+
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Farm Name</label>
+                                <input
+                                    type="text"
+                                    name="farm_name"
+                                    className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.farm_name ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                    value={formData.farm_name}
+                                    onChange={handleInputChange}
+                                />
+                                {fieldErrors.farm_name && <p className="text-xs text-red-500 mt-1">{fieldErrors.farm_name}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Serial Number</label>
+                                <input
+                                    type="text"
+                                    name="serial_number"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                    value={formData.serial_number}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Category *</label>
+                                    <select
+                                        name="category"
+                                        value={formData.category}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                    >
+                                        <option value="active">Active Subscriber</option>
+                                        <option value="demo">Demo Farm</option>
+                                        <option value="quoted">Quoted</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Livestock Type *</label>
+                                    <select
+                                        name="livestock_type"
+                                        value={formData.livestock_type}
+                                        onChange={handleInputChange}
+                                        className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200"
+                                    >
+                                        <option value="Dairy Cows">Dairy Cows</option>
+                                        <option value="Dairy Buffalos">Dairy Buffalos</option>
+                                        <option value="Fattening">Fattening</option>
+                                        <option value="Sheep and Goat">Sheep and Goat</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Start Date</label>
+                                    <input
+                                        type="date"
+                                        name="subscription_start_date"
+                                        className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_start_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                        value={formData.subscription_start_date}
+                                        onChange={handleInputChange}
+                                    />
+                                    {fieldErrors.subscription_start_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_start_date}</p>}
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">End Date</label>
+                                    <input
+                                        type="date"
+                                        name="subscription_end_date"
+                                        className={`w-full px-3 py-2 border rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all duration-200 ${fieldErrors.subscription_end_date ? 'border-red-400 dark:border-red-500' : 'border-gray-300 dark:border-white/[0.08]'}`}
+                                        value={formData.subscription_end_date}
+                                        onChange={handleInputChange}
+                                    />
+                                    {fieldErrors.subscription_end_date && <p className="text-xs text-red-500 mt-1">{fieldErrors.subscription_end_date}</p>}
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note</label>
+                                <textarea
+                                    name="general_notes"
+                                    className="w-full px-3 py-2 border border-gray-300 dark:border-white/[0.08] rounded-xl bg-white dark:bg-white/[0.04] text-gray-900 dark:text-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none transition-all duration-200"
+                                    rows={2}
+                                    value={formData.general_notes}
+                                    onChange={handleInputChange}
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 mt-6">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsModalOpen(false)}
+                                    className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all duration-300"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={mutation.isPending}
+                                    className="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-500 hover:to-emerald-400 text-white rounded-xl font-medium flex items-center gap-2 transition-all duration-300 disabled:opacity-50 hover:shadow-lg hover:shadow-green-500/25"
+                                >
+                                    {mutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} />}
+                                    Save Client
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>,
+                document.body
+            )}
+        </div>
     );
 }

@@ -31,7 +31,10 @@ const fetchModules = async () => {
 export default function EditClientModal({ client, onClose }) {
     const queryClient = useQueryClient();
     const { isDark } = useTheme();
-    const [formData, setFormData] = useState({ ...client });
+    const [formData, setFormData] = useState({
+        ...client,
+        category: client.is_demo ? 'demo' : (client.is_quoted ? 'quoted' : 'active')
+    });
     const [error, setError] = useState(null);
 
     const { data: rawModules = [] } = useQuery({
@@ -97,7 +100,8 @@ export default function EditClientModal({ client, onClose }) {
             general_notes: formData.general_notes,
             subscription_start_date: formData.subscription_start_date || null,
             subscription_end_date: formData.subscription_end_date || null,
-            is_demo: formData.is_demo || false,
+            is_demo: formData.category === 'demo',
+            is_quoted: formData.category === 'quoted',
             demo_start_date: formData.demo_start_date || null,
             demo_end_date: formData.demo_end_date || null,
         };
@@ -148,7 +152,23 @@ export default function EditClientModal({ client, onClose }) {
                             />
                         </div>
 
-                        {/* Livestock Type */}
+                        {/* Category */}
+                        <div>
+                            <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Category *</label>
+                            <select
+                                name="category"
+                                value={formData.category}
+                                onChange={handleChange}
+                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white' : 'border-gray-300 bg-white'}`}
+                            >
+                                <option value="active">Active Subscriber</option>
+                                <option value="demo">Demo Farm</option>
+                                <option value="quoted">Quoted</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className={`block text-xs font-bold uppercase mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Livestock Type *</label>
                             <select
@@ -221,19 +241,7 @@ export default function EditClientModal({ client, onClose }) {
                         />
                     </div>
 
-                    {/* Toggles */}
-                    <div className={`flex items-center gap-6 p-4 rounded-lg border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
-                        <label className="flex items-center gap-2 cursor-pointer group">
-                            <input
-                                type="checkbox"
-                                name="is_demo"
-                                checked={formData.is_demo}
-                                onChange={(e) => setFormData(p => ({ ...p, is_demo: e.target.checked }))}
-                                className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500 bg-white dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                            />
-                            <span className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-300 group-hover:text-white' : 'text-gray-700 group-hover:text-gray-900'}`}>Is Demo Farm?</span>
-                        </label>
-                    </div>
+                    {/* Removed toggles for Is Demo Farm since it is now replaced by Category */}
 
                     {/* Subscription Dates */}
                     <div className={`grid grid-cols-2 gap-4 p-4 rounded-lg border ${isDark ? 'bg-white/[0.03] border-white/[0.06]' : 'bg-gray-50 border-gray-100'}`}>
@@ -280,8 +288,8 @@ export default function EditClientModal({ client, onClose }) {
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>,
+            </div >
+        </div >,
         document.body
     );
 }
