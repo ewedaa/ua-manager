@@ -180,7 +180,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         required=False
     )
     payments = PaymentSerializer(many=True, read_only=True)
-    new_farm_name = serializers.CharField(write_only=True, required=False)
+    new_farm_name = serializers.CharField(write_only=True, required=False, allow_null=True, allow_blank=True)
     
     def create(self, validated_data):
         # Remove non-model fields before saving
