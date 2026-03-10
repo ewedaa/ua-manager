@@ -7,7 +7,6 @@ import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/api';
 import { fetchClient } from '../lib/fetchers';
 import EditClientModal from '../components/EditClientModal';
-import AddInvoiceModal from '../components/AddInvoiceModal';
 import AddContactModal from '../components/AddContactModal';
 import InlineEdit, { InlineEditDate, InlineEditNumber } from '../components/InlineEdit';
 import {
@@ -30,7 +29,6 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
 
     const [activeSection, setActiveSection] = useState('overview');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isAddInvoiceOpen, setIsAddInvoiceOpen] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isDragging, setIsDragging] = useState(false);
     const [previewImage, setPreviewImage] = useState(null);
@@ -447,7 +445,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                 <div className={`rounded-xl border p-4 ${isDark ? 'bg-white/[0.02] border-white/[0.06]' : 'bg-white border-gray-200'}`}>
                                     <h3 className={`text-xs font-bold uppercase tracking-wider mb-3 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Quick Actions</h3>
                                     <div className="flex flex-wrap gap-2">
-                                        {isAdmin && !client.is_4genetics_college && <button onClick={() => { setActiveSection('finance'); setIsAddInvoiceOpen(true); }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"><Plus size={13} /> New Invoice</button>}
+                                        {isAdmin && !client.is_4genetics_college && <button onClick={() => { if (onClose) onClose(); navigate('/invoices', { state: { openNewInvoice: true, preselectedClientId: client.id } }); }} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm"><Plus size={13} /> New Invoice</button>}
                                         <button onClick={() => navigate(`/new-ticket?clientId=${client.id}`)} className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-500 text-white text-xs font-bold hover:bg-blue-600 transition-colors shadow-sm"><Ticket size={13} /> New Ticket</button>
                                         <a href={client.whatsapp_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-600 text-white text-xs font-bold hover:bg-green-700 transition-colors shadow-sm"><MessageSquare size={13} /> WhatsApp</a>
                                         {isAdmin && <button onClick={() => setIsEditModalOpen(true)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold transition-colors shadow-sm ${isDark ? 'bg-white/[0.06] text-gray-300 hover:bg-white/[0.1]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}><Pencil size={13} /> Edit Client</button>}
@@ -559,7 +557,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                     <div className={`flex items-center justify-between p-4 border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                         <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Invoice History</h3>
                                         {isAdmin && (
-                                            <button onClick={() => setIsAddInvoiceOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
+                                            <button onClick={() => { if (onClose) onClose(); navigate('/invoices', { state: { openNewInvoice: true, preselectedClientId: client.id } }); }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-xs font-bold hover:bg-emerald-600 transition-colors shadow-sm">
                                                 <Plus size={12} /> New Invoice
                                             </button>
                                         )}
@@ -902,7 +900,6 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
 
             {/* ═══ MODALS ═══ */}
             {isEditModalOpen && <EditClientModal client={client} onClose={() => setIsEditModalOpen(false)} />}
-            {isAddInvoiceOpen && <AddInvoiceModal clientId={client.id} clientName={client.name} onClose={() => setIsAddInvoiceOpen(false)} />}
             {isAddContactOpen && <AddContactModal clientId={client.id} clientName={client.name} onClose={() => setIsAddContactOpen(false)} />}
 
             {/* ═══ UPLOAD METADATA MODAL ═══ */}

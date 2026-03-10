@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
     FileText, Plus, Search, Loader2, CheckCircle, AlertCircle,
@@ -785,9 +786,22 @@ const InternalPDFButton = ({ invoice }) => {
 // Main InvoiceMaker Page
 // ──────────────────────────────────────────────
 export default function InvoiceMaker() {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editInvoice, setEditInvoice] = useState(null);
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const [isModalOpen, setIsModalOpen] = useState(location.state?.openNewInvoice || false);
+    const [editInvoice, setEditInvoice] = useState(
+        location.state?.preselectedClientId
+            ? { client: location.state.preselectedClientId }
+            : null
+    );
     const [searchTerm, setSearchTerm] = useState('');
+
+    useEffect(() => {
+        if (location.state?.openNewInvoice) {
+            navigate(location.pathname, { replace: true, state: {} });
+        }
+    }, [location, navigate]);
     const [statusFilter, setStatusFilter] = useState('all');
     const { isAdmin } = useAuth();
     const { isDark } = useTheme();
