@@ -49,6 +49,16 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         }
     }, [isOpen]);
 
+    // Fetch modules
+    const { data: modules = [] } = useQuery({
+        queryKey: ['subscription-modules'],
+        queryFn: async () => {
+            const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
+            if (!res.ok) throw new Error('Failed to fetch modules');
+            return res.json();
+        },
+    });
+
     useEffect(() => {
         if (isOpen && !editInvoice && formData.client && modules.length > 0 && formData.client !== lastAutofilledClient) {
             const selectedClient = clients?.find(c => c.id.toString() === formData.client.toString());
@@ -65,15 +75,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
         }
     }, [isOpen, editInvoice, formData.client, modules, clients, lastAutofilledClient]);
 
-    // Fetch modules
-    const { data: modules = [] } = useQuery({
-        queryKey: ['subscription-modules'],
-        queryFn: async () => {
-            const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
-            if (!res.ok) throw new Error('Failed to fetch modules');
-            return res.json();
-        },
-    });
+
 
     const activeModules = modules.filter(m => m.is_active).sort((a, b) => {
         const getOrder = (name) => {
