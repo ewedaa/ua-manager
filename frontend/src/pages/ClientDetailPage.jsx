@@ -188,6 +188,10 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
     const generalFiles = files.filter(f => f.category !== 'whatsapp');
     const whatsappFiles = files.filter(f => f.category === 'whatsapp');
 
+    const parsedModules = Array.isArray(client.subscription_modules)
+        ? client.subscription_modules
+        : (client.subscription_modules || '').split(',').map(s => s.trim()).filter(Boolean);
+
     const getDaysRemaining = () => {
         if (!client.subscription_end_date) return null;
         return Math.ceil((new Date(client.subscription_end_date) - new Date()) / (1000 * 60 * 60 * 24));
@@ -330,11 +334,11 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                             </div>
 
                             {/* Modules */}
-                            {client.subscription_modules?.length > 0 && (
+                            {parsedModules.length > 0 && (
                                 <div className="mt-4">
                                     <p className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Modules</p>
                                     <div className="flex flex-wrap gap-1.5">
-                                        {client.subscription_modules.map((mod, i) => (
+                                        {parsedModules.map((mod, i) => (
                                             <span key={i} className={`text-[10px] font-medium px-2 py-1 rounded-lg ${isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-700'}`}>
                                                 {mod.name || mod}
                                             </span>
