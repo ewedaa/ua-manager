@@ -15,10 +15,9 @@ modules_to_update = [
 
 print("=== SETTING MODULE PRICES ===")
 
-# Standard price for Link process computer was typically 450 purchase / 120 renewal 
-# (You can adjust this as needed within the settings tab if it varies)
-target_purchase_price = 450.00
-target_renewal_price = 120.00
+# The original Link process computer had this exact price configuration:
+target_purchase_price = 495.00
+target_renewal_price = 172.00
 
 for name in modules_to_update:
     mod, created = SubscriptionModule.objects.get_or_create(name=name)
