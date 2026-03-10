@@ -471,8 +471,8 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                             <div className="flex items-center justify-between group">
                                                 <span className={`text-xs whitespace-nowrap ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Farm</span>
                                                 <InlineEdit
-                                                    value={client.name}
-                                                    onSave={(newVal) => updateClientMutation.mutate({ name: newVal, farm_name: newVal })}
+                                                    value={client.farm_name}
+                                                    onSave={(newVal) => updateClientMutation.mutate({ farm_name: newVal })}
                                                     className={`w-full flex justify-end text-sm font-semibold pl-4 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}
                                                     disabled={!isAdmin}
                                                 />
