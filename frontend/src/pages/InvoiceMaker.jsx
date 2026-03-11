@@ -211,7 +211,8 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         if (pdfData.pdf_url) {
                             const backendOrigin = new URL(API_BASE_URL).origin;
                             const fullUrl = pdfData.pdf_url.startsWith('http') ? pdfData.pdf_url : `${backendOrigin}${pdfData.pdf_url}`;
-                            window.open(fullUrl, '_blank');
+                            const noCacheUrl = `${fullUrl}?t=${new Date().getTime()}`;
+                            window.open(noCacheUrl, '_blank');
                         }
                     }
                 } catch (pdfErr) {
@@ -729,7 +730,8 @@ const InvoicePDFButton = ({ invoice }) => {
             queryClient.invalidateQueries(['invoices']);
             const backendOrigin = new URL(API_BASE_URL).origin;
             const fullUrl = data.pdf_url.startsWith('http') ? data.pdf_url : `${backendOrigin}${data.pdf_url}`;
-            window.open(fullUrl, '_blank');
+            const noCacheUrl = `${fullUrl}?t=${new Date().getTime()}`;
+            window.open(noCacheUrl, '_blank');
         } catch (error) {
             console.error(error);
             alert('Failed to generate PDF');
@@ -796,7 +798,8 @@ const InternalPDFButton = ({ invoice }) => {
             // Build full URL from backend origin
             const backendOrigin = new URL(API_BASE_URL).origin;
             const fullUrl = data.pdf_url.startsWith('http') ? data.pdf_url : `${backendOrigin}${data.pdf_url}`;
-            window.open(fullUrl, '_blank');
+            const noCacheUrl = `${fullUrl}?t=${new Date().getTime()}`;
+            window.open(noCacheUrl, '_blank');
         } catch (error) {
             console.error(error);
             alert('Failed to generate internal PDF');
