@@ -17,7 +17,8 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
         currency: 'EUR',
         livestock_ids: [],
         status: 'Due',
-        notes: ''
+        notes: '',
+        include_vat: false
     });
     const [selectedModuleIds, setSelectedModuleIds] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
@@ -129,6 +130,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
             form.append('invoice_type', formData.invoice_type);
             form.append('status', formData.status);
             form.append('currency', formData.currency);
+            form.append('include_vat', formData.include_vat);
             form.append('notes', formData.notes);
             if (selectedFile) {
                 form.append('pdf_file', selectedFile);
@@ -350,6 +352,32 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                     </div>
                                 )}
 
+                                {/* VAT Checkbox */}
+                                <div>
+                                    <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${formData.include_vat
+                                        ? isDark ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-400'
+                                        : isDark ? 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                                        }`}>
+                                        <div
+                                            className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all shrink-0 ${formData.include_vat ? 'bg-indigo-500 border-indigo-500' : isDark ? 'border-gray-600' : 'border-gray-300'}`}
+                                            onClick={() => setFormData({ ...formData, include_vat: !formData.include_vat })}
+                                        >
+                                            {formData.include_vat && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <div onClick={() => setFormData({ ...formData, include_vat: !formData.include_vat })} className="flex-1 select-none">
+                                            <span className={`font-bold text-sm ${formData.include_vat ? isDark ? 'text-indigo-300' : 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Add 14% Value Added Tax (VAT)
+                                            </span>
+                                            <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                Adds a 14% tax to the final total
+                                            </p>
+                                        </div>
+                                        {formData.include_vat && (
+                                            <span className="text-xs font-bold bg-indigo-500 text-white px-2 py-0.5 rounded-full shrink-0">+14% VAT</span>
+                                        )}
+                                    </label>
+                                </div>
+
                                 {/* Next button */}
                                 <button
                                     type="button"
@@ -553,10 +581,41 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
                                                     <span className={`text-[9px] ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>What the client pays</span>
                                                 </div>
                                             </div>
-                                            <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                                                {customerTotal.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}
+                                            <span className={`text-base font-bold tabular-nums flex flex-col items-end ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+                                                <span>{customerTotal.toLocaleString()} {formData.currency === 'EGP' ? 'EGP' : '€'}</span>
                                             </span>
                                         </div>
+
+                                        {formData.include_vat && (
+                                            <>
+                                                <div className={`flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest ${isDark ? 'text-gray-700' : 'text-gray-300'}`}>
+                                                    <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`} />
+                                                    <span>+14% VAT</span>
+                                                    <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`} />
+                                                </div>
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+                                                            <DollarSign size={14} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
+                                                        </div>
+                                                        <div>
+                                                            <span className={`text-xs font-medium block ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>VAT Amount</span>
+                                                        </div>
+                                                    </div>
+                                                    <span className={`text-sm font-bold tabular-nums ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                                        {(customerTotal * 0.14).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {formData.currency === 'EGP' ? 'EGP' : '€'}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between pt-2">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Grand Total</span>
+                                                    </div>
+                                                    <span className={`text-lg font-bold tabular-nums ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                                                        {(customerTotal * 1.14).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {formData.currency === 'EGP' ? 'EGP' : '€'}
+                                                    </span>
+                                                </div>
+                                            </>
+                                        )}
 
                                         {/* Profit */}
                                         <div className={`mt-2 pt-3 border-t flex items-center justify-between ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>

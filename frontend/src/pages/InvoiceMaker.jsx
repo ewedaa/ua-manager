@@ -37,6 +37,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
     const [isDairyLive, setIsDairyLive] = useState(editInvoice?.is_dairylive || false);
     const [currency, setCurrency] = useState(editInvoice?.currency || 'EUR');
     const [exchangeRate, setExchangeRate] = useState(editInvoice?.exchange_rate ? parseFloat(editInvoice.exchange_rate) : null);
+    const [includeVat, setIncludeVat] = useState(editInvoice?.include_vat || false);
     const [rateLoading, setRateLoading] = useState(false);
     const [rateDate, setRateDate] = useState('');
     const [error, setError] = useState('');
@@ -247,6 +248,7 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
             cost_total: parseFloat(toDisplay(costTotal)).toFixed(2),
             customer_total: parseFloat(toDisplay(customerTotal)).toFixed(2),
             is_dairylive: isDairyLive,
+            include_vat: includeVat,
             currency,
             exchange_rate: currency === 'EGP' && exchangeRate ? exchangeRate : null,
         });
@@ -483,6 +485,32 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                         </div>
                     )}
 
+                    {/* VAT Checkbox */}
+                    <div>
+                        <label className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${includeVat
+                            ? isDark ? 'bg-indigo-500/10 border-indigo-500/30' : 'bg-indigo-50 border-indigo-400'
+                            : isDark ? 'border-white/[0.08] bg-white/[0.02] hover:border-white/[0.15]' : 'border-gray-200 bg-gray-50 hover:border-gray-300'
+                            }`}>
+                            <div
+                                className={`w-5 h-5 rounded-md flex items-center justify-center border-2 transition-all shrink-0 ${includeVat ? 'bg-indigo-500 border-indigo-500' : isDark ? 'border-gray-600' : 'border-gray-300'}`}
+                                onClick={() => isAdmin && setIncludeVat(v => !v)}
+                            >
+                                {includeVat && <Check size={12} className="text-white" />}
+                            </div>
+                            <div onClick={() => isAdmin && setIncludeVat(v => !v)} className="flex-1 select-none">
+                                <span className={`font-bold text-sm ${includeVat ? isDark ? 'text-indigo-300' : 'text-indigo-700' : isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    Add 14% Value Added Tax (VAT)
+                                </span>
+                                <p className={`text-xs mt-0.5 ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+                                    Adds a 14% tax to the final total
+                                </p>
+                            </div>
+                            {includeVat && (
+                                <span className="text-xs font-bold bg-indigo-500 text-white px-2 py-0.5 rounded-full shrink-0">+14% VAT</span>
+                            )}
+                        </label>
+                    </div>
+
                     {/* Module Selection */}
                     {activeModules.length > 0 && (
                         <div>
@@ -572,10 +600,40 @@ const InvoiceModal = ({ isOpen, onClose, clients, livestockTypes, editInvoice = 
                                         </div>
                                         <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Customer Price</span>
                                     </div>
-                                    <span className={`text-base font-bold tabular-nums ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
-                                        {toDisplay(customerTotal)} {currSymbol}
+                                    <span className={`text-base font-bold tabular-nums flex flex-col items-end ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>
+                                        <span>{toDisplay(customerTotal)} {currSymbol}</span>
                                     </span>
                                 </div>
+
+                                {includeVat && (
+                                    <>
+                                        <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-gray-600' : 'text-gray-400'}`}>
+                                            <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}></div>
+                                            <span>+14% VAT</span>
+                                            <div className={`flex-1 h-px ${isDark ? 'bg-white/[0.06]' : 'bg-gray-100'}`}></div>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${isDark ? 'bg-indigo-500/10' : 'bg-indigo-50'}`}>
+                                                    <DollarSign size={14} className={isDark ? 'text-indigo-400' : 'text-indigo-600'} />
+                                                </div>
+                                                <span className={`text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>VAT Amount</span>
+                                            </div>
+                                            <span className={`text-base font-bold tabular-nums ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>
+                                                {toDisplay(customerTotal * 0.14)} {currSymbol}
+                                            </span>
+                                        </div>
+                                        <div className="flex items-center justify-between pt-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Grand Total</span>
+                                            </div>
+                                            <span className={`text-lg font-bold tabular-nums ${isDark ? 'text-gray-100' : 'text-gray-900'}`}>
+                                                {toDisplay(customerTotal * 1.14)} {currSymbol}
+                                            </span>
+                                        </div>
+                                    </>
+                                )}
+
                                 <div className={`mt-1 pt-3 border-t flex items-center justify-between ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
                                     <div className="flex items-center gap-2">
                                         <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 shadow-sm shadow-green-500/20">

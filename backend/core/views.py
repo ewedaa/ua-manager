@@ -296,7 +296,18 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         lines.extend([
             "## Financial Summary",
             f"- **💸 Due to Uniform Agri (our cost):** {cost} {curr_label}",
-            f"- **💰 Due from Farm (customer price):** {customer} {curr_label}",
+            f"- **💰 Due from Farm (base customer price):** {customer} {curr_label}",
+        ])
+        
+        if getattr(invoice, 'include_vat', False):
+            vat_amount = round(float(customer) * 0.14, 2)
+            total_with_vat = round(float(customer) + vat_amount, 2)
+            lines.extend([
+                f"- **➕ Value Added Tax (14%):** {vat_amount} {curr_label}",
+                f"- **🛒 Total with VAT:** {total_with_vat} {curr_label}",
+            ])
+
+        lines.extend([
             f"- **📈 Your Profit:** +{profit:.2f} {curr_label}",
             "",
         ])

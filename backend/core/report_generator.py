@@ -730,10 +730,36 @@ def generate_formal_invoice_pdf(invoice, target_currency=None):
                                  textColor=BRAND_GREEN_DARK, alignment=TA_RIGHT)
     label_style = ParagraphStyle('TotalLabel', fontName='Helvetica-Bold', fontSize=12,
                                  textColor=BRAND_GRAY, alignment=TA_RIGHT)
-    total_data = [[
-        Paragraph('Total Amount:', label_style),
-        Paragraph(f'<b>{to_display(eur_total)}</b>', total_style),
-    ]]
+    
+    total_data = []
+    
+    if getattr(invoice, 'include_vat', False):
+        subtotal_style = ParagraphStyle('SubtotalRight', fontName='Helvetica', fontSize=12,
+                                     textColor=BRAND_GRAY_DARK, alignment=TA_RIGHT)
+        sublabel_style = ParagraphStyle('SubtotalLabel', fontName='Helvetica', fontSize=11,
+                                     textColor=BRAND_GRAY, alignment=TA_RIGHT)
+        
+        vat_amount = (eur_total * Decimal('0.14')).quantize(Decimal('0.01'))
+        total_with_vat = eur_total + vat_amount
+        
+        total_data.append([
+            Paragraph('Subtotal:', sublabel_style),
+            Paragraph(f'{to_display(eur_total)}', subtotal_style),
+        ])
+        total_data.append([
+            Paragraph('Value Added Tax (14%):', sublabel_style),
+            Paragraph(f'{to_display(vat_amount)}', subtotal_style),
+        ])
+        total_data.append([
+            Paragraph('Total Amount:', label_style),
+            Paragraph(f'<b>{to_display(total_with_vat)}</b>', total_style),
+        ])
+    else:
+        total_data = [[
+            Paragraph('Total Amount:', label_style),
+            Paragraph(f'<b>{to_display(eur_total)}</b>', total_style),
+        ]]
+
     total_table = Table(total_data, colWidths=[page_w - 2 * inch, 2 * inch])
     total_table.setStyle(TableStyle([
         ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),

@@ -116,6 +116,10 @@ class Invoice(models.Model):
         max_digits=10, decimal_places=4, null=True, blank=True,
         help_text="EUR→EGP exchange rate used at time of invoice creation"
     )
+    include_vat = models.BooleanField(
+        default=False,
+        help_text="Include 14% Value Added Tax on the total amount"
+    )
     paid_to_uniform = models.CharField(
         max_length=20,
         choices=[('Yes', 'Yes'), ('No', 'No'), ('Cancelled', 'Cancelled'), ('Unknown', 'Unknown')],
