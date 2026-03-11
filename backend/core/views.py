@@ -189,10 +189,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         from django.core.files.base import ContentFile
 
         invoice = self.get_object()
+        target_currency = request.data.get('target_currency')
 
         try:
-            buffer = generate_formal_invoice_pdf(invoice)
+            buffer = generate_formal_invoice_pdf(invoice, target_currency=target_currency)
             filename = f"invoice_{invoice.id}.pdf"
+            if target_currency:
+                filename = f"invoice_{invoice.id}_{target_currency.lower()}.pdf"
             if invoice.pdf_file:
                 invoice.pdf_file.delete(save=False)
             invoice.pdf_file.save(filename, ContentFile(buffer.getvalue()), save=True)

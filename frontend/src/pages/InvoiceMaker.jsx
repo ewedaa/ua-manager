@@ -716,14 +716,16 @@ const StatusBadge = ({ status }) => {
 // PDF Button
 // ──────────────────────────────────────────────
 const InvoicePDFButton = ({ invoice }) => {
-    const [isGenerating, setIsGenerating] = useState(false);
+    const [generatingType, setGeneratingType] = useState(null);
     const queryClient = useQueryClient();
 
-    const handleGenerate = async () => {
-        setIsGenerating(true);
+    const handleGenerate = async (currency) => {
+        setGeneratingType(currency);
         try {
             const res = await fetch(`${API_BASE_URL}/invoices/${invoice.id}/generate_pdf/`, {
-                method: 'POST'
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target_currency: currency })
             });
             if (!res.ok) throw new Error('Failed to generate PDF');
             const data = await res.json();
@@ -736,48 +738,31 @@ const InvoicePDFButton = ({ invoice }) => {
             console.error(error);
             alert('Failed to generate PDF');
         } finally {
-            setIsGenerating(false);
+            setGeneratingType(null);
         }
     };
 
-    if (invoice.pdf_file) {
-        const backendOrigin = new URL(API_BASE_URL).origin;
-        const baseHref = invoice.pdf_file.startsWith('http') ? invoice.pdf_file : `${backendOrigin}${invoice.pdf_file}`;
-        const pdfHref = `${baseHref}?t=${new Date().getTime()}`; // Bypass browser cache
-        return (
-            <div className="flex items-center gap-1">
-                <a
-                    href={pdfHref}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-500 border border-green-500/25 rounded-lg transition-all text-xs font-semibold"
-                    title="Download PDF"
-                >
-                    <Download size={14} />
-                    Download
-                </a>
-                <button
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                    className="p-1.5 bg-green-500/10 hover:bg-green-500/20 text-green-500 border border-green-500/20 rounded-lg transition-all disabled:opacity-50"
-                    title="Force Regenerate PDF"
-                >
-                    {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
-                </button>
-            </div>
-        );
-    }
-
     return (
-        <button
-            onClick={handleGenerate}
-            disabled={isGenerating}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-400 border border-blue-500/25 rounded-lg transition-all text-xs font-semibold disabled:opacity-50"
-            title="Generate Client PDF"
-        >
-            {isGenerating ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-            {isGenerating ? 'Generating...' : 'Client PDF'}
-        </button>
+        <div className="flex items-center gap-1">
+            <button
+                onClick={() => handleGenerate('EUR')}
+                disabled={generatingType !== null}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/15 hover:bg-blue-500/25 text-blue-500 border border-blue-500/25 rounded-lg transition-all text-xs font-semibold disabled:opacity-50"
+                title="Download EUR PDF"
+            >
+                {generatingType === 'EUR' ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                EUR
+            </button>
+            <button
+                onClick={() => handleGenerate('EGP')}
+                disabled={generatingType !== null}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-500/15 hover:bg-green-500/25 text-green-500 border border-green-500/25 rounded-lg transition-all text-xs font-semibold disabled:opacity-50"
+                title="Download EGP PDF"
+            >
+                {generatingType === 'EGP' ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
+                EGP
+            </button>
+        </div>
     );
 };
 

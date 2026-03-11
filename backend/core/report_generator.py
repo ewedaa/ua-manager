@@ -541,7 +541,7 @@ def _build_formal_footer(canvas, doc, invoice):
     canvas.restoreState()
 
 
-def generate_formal_invoice_pdf(invoice):
+def generate_formal_invoice_pdf(invoice, target_currency=None):
     """
     Generate a professional formal PDF for Purchase Invoice,
     Renewal Invoice, or Purchase Quotation — matching the official
@@ -576,9 +576,9 @@ def generate_formal_invoice_pdf(invoice):
         valid_until = valid_dt.strftime('%B %d, %Y')
 
     # ── Currency & exchange rate ──
-    inv_currency = getattr(invoice, 'currency', 'EUR')
-    rate = getattr(invoice, 'exchange_rate', None)
-    use_egp = inv_currency == 'EGP' and rate
+    inv_currency = target_currency if target_currency else getattr(invoice, 'currency', 'EUR')
+    rate = getattr(invoice, 'exchange_rate', Decimal('57.5000')) if getattr(invoice, 'exchange_rate', None) else Decimal('57.5000')
+    use_egp = inv_currency == 'EGP'
 
     def to_display(eur_amount):
         """Convert EUR amount to display string in the invoice currency."""
