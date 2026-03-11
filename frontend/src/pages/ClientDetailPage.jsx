@@ -9,12 +9,13 @@ import { fetchClient } from '../lib/fetchers';
 import EditClientModal from '../components/EditClientModal';
 import AddContactModal from '../components/AddContactModal';
 import InlineEdit, { InlineEditDate, InlineEditNumber } from '../components/InlineEdit';
+import { InvoicePDFButton, InternalPDFButton } from '../components/InvoicePDFActions';
 import {
     ArrowLeft, Phone, Calendar, MessageSquare, Hash, FileText,
     Pencil, Receipt, Plus, CheckCircle, Clock, Users, DollarSign,
     Copy, Shield, TrendingUp, Ticket, Trash2, Paperclip, Upload,
     Download, Image, Loader2, Sparkles, ExternalLink, Eye,
-    ChevronRight, Building2, Mail, MapPin, Tag, X, AlertTriangle
+    ChevronRight, Building2, Mail, MapPin, Tag, X, AlertTriangle, Edit2
 } from 'lucide-react';
 
 export default function ClientDetailPage({ embeddedClientId, onClose }) {
@@ -76,6 +77,19 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
         onSuccess: () => {
             queryClient.invalidateQueries(['clients']);
             navigate('/clients');
+        },
+    });
+
+    const deleteInvoiceMutation = useMutation({
+        mutationFn: async (id) => {
+            const response = await fetch(`${API_BASE_URL}/invoices/${id}/`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error('Failed to delete');
+        },
+        onSuccess: () => {
+             queryClient.invalidateQueries(['client', id]);
+             queryClient.invalidateQueries(['clients']);
         },
     });
 
@@ -607,6 +621,32 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
                                                                 : isDark ? 'bg-green-500/10 text-green-400' : 'bg-green-50 text-green-700'
                                                                 }`}>{inv.status}</span>
                                                         )}
+                                                        <div className="flex items-center gap-1.5 flex-wrap ml-2">
+                                                            <InvoicePDFButton invoice={inv} />
+                                                            {isAdmin && <InternalPDFButton invoice={inv} />}
+                                                            {isAdmin && (
+                                                                <>
+                                                                    <button
+                                                                        onClick={() => { if (onClose) onClose(); navigate('/invoices', { state: { editInvoiceId: inv.id } }); }}
+                                                                        className="p-1 hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 rounded-lg transition-colors"
+                                                                        title="Edit"
+                                                                    >
+                                                                        <Edit2 size={15} />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (confirm('Are you sure you want to delete this invoice?')) {
+                                                                                deleteInvoiceMutation.mutate(inv.id);
+                                                                            }
+                                                                        }}
+                                                                        className="p-1 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                                                                        title="Delete"
+                                                                    >
+                                                                        <Trash2 size={15} />
+                                                                    </button>
+                                                                </>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}

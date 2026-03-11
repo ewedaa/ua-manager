@@ -3,10 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
     Search, Loader2, CreditCard, FileDown, Plus, X, Check,
-    ChevronUp, ChevronDown, Edit2, Save, FileText
+    ChevronUp, ChevronDown, Edit2, Save, FileText, Trash2
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { API_BASE_URL } from '../lib/api';
+import { InvoicePDFButton, InternalPDFButton } from '../components/InvoicePDFActions';
 
 const API = API_BASE_URL;
 
@@ -65,6 +67,7 @@ function StatusBadge({ value, onChange, editable = true }) {
 // ─── Main Page ────────────────────────────────────────────────────────
 export default function PaymentTracker() {
     const { isDark } = useTheme();
+    const { isAdmin } = useAuth();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
@@ -87,6 +90,16 @@ export default function PaymentTracker() {
             });
             if (!res.ok) throw new Error('Update failed');
             return res.json();
+        },
+        onSuccess: () => queryClient.invalidateQueries(['invoices']),
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: async (id) => {
+            const response = await fetch(`${API_BASE_URL}/invoices/${id}/`, {
+                method: 'DELETE',
+            });
+            if (!response.ok) throw new Error('Failed to delete');
         },
         onSuccess: () => queryClient.invalidateQueries(['invoices']),
     });
@@ -297,12 +310,13 @@ export default function PaymentTracker() {
                                     <th className={thClass}>Farm Paid ?</th>
                                     <th className={thClass}>We Paid to Uniform ?</th>
                                     <th className={`${thClass} w-48`}>Notes</th>
+                                    <th className={`${thClass} w-32`}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-gray-100'}`}>
                                 {rows.length === 0 && (
                                     <tr>
-                                        <td colSpan={8} className="px-5 py-14 text-center text-gray-400 text-sm">
+                                        <td colSpan={9} className="px-5 py-14 text-center text-gray-400 text-sm">
                                             No invoices found{search ? ` matching "${search}"` : ''}
                                         </td>
                                     </tr>
@@ -427,6 +441,36 @@ export default function PaymentTracker() {
                                                         <Edit2 size={11} className="shrink-0 opacity-0 group-hover/note:opacity-50 ml-auto transition-opacity" />
                                                     </div>
                                                 )}
+                                            </td>
+
+                                            {/* Actions */}
+                                            <td className="px-4 py-3">
+                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                    <InvoicePDFButton invoice={inv} />
+                                                    {isAdmin && <InternalPDFButton invoice={inv} />}
+                                                    {isAdmin && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => navigate('/invoices', { state: { editInvoiceId: inv.id } })}
+                                                                className="p-1 hover:bg-blue-500/10 text-gray-400 hover:text-blue-400 rounded-lg transition-colors"
+                                                                title="Edit"
+                                                            >
+                                                                <Edit2 size={15} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (confirm('Are you sure you want to delete this invoice?')) {
+                                                                        deleteMutation.mutate(inv.id);
+                                                                    }
+                                                                }}
+                                                                className="p-1 hover:bg-red-500/10 text-gray-400 hover:text-red-400 rounded-lg transition-colors"
+                                                                title="Delete"
+                                                            >
+                                                                <Trash2 size={15} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
