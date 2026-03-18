@@ -55,3 +55,9 @@ export const fetchPayments = async () => {
     if (!response.ok) throw new Error('Failed to fetch payments');
     return response.json();
 };
+
+export const fetchSubscriptionModules = async () => {
+    const response = await fetch(`${API}/subscription-modules/`);
+    if (!response.ok) throw new Error('Failed to fetch subscription modules');
+    return response.json();
+};

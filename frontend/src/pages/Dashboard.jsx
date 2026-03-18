@@ -12,7 +12,7 @@ import {
     DollarSign, Activity, Sparkles, AlertCircle, Moon, Barcode, Play, Timer, Zap, Sun,
     Shield, Target, Gauge, Flame, Wallet, Landmark
 } from 'lucide-react';
-import { useSleepMode } from '../App';
+import { useSleepMode } from '../context/SleepModeContext';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
 

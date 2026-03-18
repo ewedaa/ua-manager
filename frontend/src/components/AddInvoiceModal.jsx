@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Save, Loader2, AlertCircle, Upload, FileText, Plus, Package, Check, TrendingUp, ArrowRight, DollarSign, Building2, Users, StickyNote, Receipt, ShoppingCart, RefreshCw, Sparkles, ChevronRight, CheckCircle } from 'lucide-react';
+import { X, Loader2, AlertCircle, Upload, FileText, Package, Check, TrendingUp, ArrowRight, DollarSign, Building2, Users, StickyNote, Receipt, ShoppingCart, RefreshCw, Sparkles, ChevronRight, CheckCircle } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { API_BASE_URL } from '../lib/api';
+import { fetchSubscriptionModules } from '../lib/fetchers';
+import { sortModules, toggleModuleWithCascade, autoOpenInvoicePDF } from '../lib/invoiceUtils';
 
 export default function AddInvoiceModal({ clientId, clientName, onClose }) {
     const queryClient = useQueryClient();
@@ -28,28 +30,10 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
     // Fetch available modules with prices
     const { data: modules = [] } = useQuery({
         queryKey: ['subscription-modules'],
-        queryFn: async () => {
-            const res = await fetch(`${API_BASE_URL}/subscription-modules/`);
-            if (!res.ok) throw new Error('Failed to fetch modules');
-            return res.json();
-        },
+        queryFn: fetchSubscriptionModules,
     });
 
-    const activeModules = modules.filter(m => m.is_active).sort((a, b) => {
-        const getOrder = (name) => {
-            if (name.includes('Base module')) return 0;
-            if (name.toLowerCase().includes('dairylive')) {
-                const match = name.match(/(\d+)/);
-                return 100000 + (match ? parseInt(match[1], 10) : 0);
-            }
-            if (name.includes('Big farm module')) {
-                const match = name.match(/(\d+)/);
-                return 200000 + (match ? parseInt(match[1], 10) : 0);
-            }
-            return 300000;
-        };
-        return getOrder(a.name) - getOrder(b.name);
-    });
+    const activeModules = sortModules(modules.filter(m => m.is_active));
 
     // Calculate totals from selected modules
     const costTotal = selectedModuleIds.reduce((sum, id) => {
@@ -64,29 +48,8 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
 
     const profit = customerTotal - costTotal;
 
-    const toggleModule = (id) => {
-        setSelectedModuleIds(prev => {
-            const isSelecting = !prev.includes(id);
-            if (!isSelecting) return prev.filter(x => x !== id);
-
-            const mod = modules.find(m => m.id === id);
-            if (!mod || !mod.name.includes('Big farm module')) return [...prev, id];
-
-            // Helper to parse cow count
-            const getCows = (name) => {
-                const match = name.match(/(\d+)/);
-                return match ? parseInt(match[1], 10) : 0;
-            };
-
-            const targetCows = getCows(mod.name);
-            const lowerTierIds = activeModules
-                .filter(m => m.name.includes('Big farm module') && getCows(m.name) < targetCows)
-                .map(m => m.id);
-
-            const newSet = new Set([...prev, id, ...lowerTierIds]);
-            return Array.from(newSet);
-        });
-    };
+    const toggleModule = (id) =>
+        setSelectedModuleIds(prev => toggleModuleWithCascade(prev, id, modules, activeModules));
 
     const selectAllModules = () => {
         if (selectedModuleIds.length === activeModules.length) {
@@ -150,17 +113,7 @@ export default function AddInvoiceModal({ clientId, clientName, onClose }) {
             const invoice = await response.json();
 
             // Auto-generate and download PDF
-            try {
-                const pdfRes = await fetch(`${API_BASE_URL}/invoices/${invoice.id}/generate_pdf/`, { method: 'POST' });
-                if (pdfRes.ok) {
-                    const pdfData = await pdfRes.json();
-                    if (pdfData.pdf_url) {
-                        window.open(pdfData.pdf_url, '_blank');
-                    }
-                }
-            } catch (pdfErr) {
-                console.warn('PDF auto-download failed:', pdfErr);
-            }
+            await autoOpenInvoicePDF(invoice.id);
 
             queryClient.invalidateQueries(['clients']);
             queryClient.invalidateQueries(['invoices']);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Download, Loader2, FileText } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL } from '../lib/api';
 
 export const InvoicePDFButton = ({ invoice }) => {
     const [generatingType, setGeneratingType] = useState(null);

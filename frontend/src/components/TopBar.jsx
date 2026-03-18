@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
-import { useSleepMode } from '../App';
+import { useSleepMode } from '../context/SleepModeContext';
 import NotificationCenter from './NotificationCenter';
 import { Sun, Moon, Plus, Ticket, Users, Sparkles, FileText, Music, VolumeX } from 'lucide-react';
 
