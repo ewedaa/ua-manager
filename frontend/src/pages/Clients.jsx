@@ -7,6 +7,7 @@ import ClientCard from '../components/ClientCard';
 import EmptyState from '../components/EmptyState';
 
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 
 import { fetchClients } from '../lib/fetchers';
@@ -37,6 +38,7 @@ const createClient = async (newClient) => {
 
 export default function Clients() {
     const { isAdmin } = useAuth();
+    const { addToast } = useNotifications();
     const queryClient = useQueryClient();
     const [searchParams, setSearchParams] = useSearchParams();
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -125,9 +127,11 @@ export default function Clients() {
                 role: ''
             });
             setFormError(null);
+            if (addToast) addToast('Client created successfully', 'success');
         },
         onError: (err) => {
             setFormError(err.message);
+            if (addToast) addToast(err.message || 'Failed to create client', 'error');
         },
     });
 

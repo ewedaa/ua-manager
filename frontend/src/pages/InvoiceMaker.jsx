@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
 import StatCard from '../components/StatCard';
 import StatusBadge from '../components/StatusBadge';
 import InvoiceModal from '../components/InvoiceModal';
@@ -40,12 +41,20 @@ export default function InvoiceMaker() {
     const { data: invoices, isLoading, isError } = useQuery({ queryKey: ['invoices'], queryFn: fetchInvoices });
     const { data: livestockTypes } = useQuery({ queryKey: ['livestockTypes'], queryFn: fetchLivestockTypes });
 
+    const { addToast } = useNotifications();
+
     const deleteMutation = useMutation({
         mutationFn: async (id) => {
             const res = await fetch(`${API_BASE_URL}/invoices/${id}/`, { method: 'DELETE' });
             if (!res.ok) throw new Error('Failed to delete');
         },
-        onSuccess: () => queryClient.invalidateQueries(['invoices']),
+        onSuccess: () => {
+            queryClient.invalidateQueries(['invoices']);
+            if (addToast) addToast('Invoice deleted successfully', 'success');
+        },
+        onError: () => {
+            if (addToast) addToast('Failed to delete invoice', 'error');
+        }
     });
 
     // Open edit modal when navigated to with editInvoiceId state

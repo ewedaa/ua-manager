@@ -4,8 +4,9 @@ import {
     Plus, Trash2, Calendar, GripVertical,
     Loader2, ListTodo, Sparkles, Clock, CheckCircle2, Circle
 } from 'lucide-react';
-import { API_BASE_URL } from '../lib/api';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
+import { API_BASE_URL } from '../lib/api';
 
 const API = `${API_BASE_URL}/todos/`;
 
@@ -166,6 +167,7 @@ function KanbanColumn({ column, todos, isDark, onDelete, onDragStart, onDrop, dr
 export default function TodoPage() {
     const queryClient = useQueryClient();
     const { isDark } = useTheme();
+    const { addToast } = useNotifications();
     const [newText, setNewText] = useState('');
     const [newPriority, setNewPriority] = useState('Medium');
     const [newDueDate, setNewDueDate] = useState('');
@@ -195,7 +197,11 @@ export default function TodoPage() {
             queryClient.invalidateQueries({ queryKey: ['todos'] });
             setNewText('');
             setNewDueDate('');
+            if (addToast) addToast('Task created successfully', 'success');
         },
+        onError: () => {
+            if (addToast) addToast('Failed to create task', 'error');
+        }
     });
 
     // Update status (drag-and-drop)
@@ -206,12 +212,21 @@ export default function TodoPage() {
             body: JSON.stringify({ status, is_done: status === 'done' }),
         }).then(r => r.json()),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+        onError: () => {
+            if (addToast) addToast('Failed to update task status', 'error');
+        }
     });
 
     // Delete
     const deleteMutation = useMutation({
         mutationFn: (id) => fetch(`${API}${id}/`, { method: 'DELETE' }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['todos'] });
+            if (addToast) addToast('Task deleted successfully', 'success');
+        },
+        onError: () => {
+            if (addToast) addToast('Failed to delete task', 'error');
+        }
     });
 
     const handleAdd = (e) => {

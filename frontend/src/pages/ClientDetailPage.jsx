@@ -4,6 +4,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 import { fetchClient } from '../lib/fetchers';
 import EditClientModal from '../components/EditClientModal';
@@ -24,6 +25,7 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
     const navigate = useNavigate();
     const { isDark } = useTheme();
     const { isAdmin } = useAuth();
+    const { addToast } = useNotifications();
     const queryClient = useQueryClient();
     const fileInputRef = useRef(null);
     const whatsappInputRef = useRef(null);
@@ -66,7 +68,11 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
         onSuccess: () => {
             queryClient.invalidateQueries(['client', id]);
             queryClient.invalidateQueries(['clients']);
+            if (addToast) addToast('Invoice updated successfully', 'success');
         },
+        onError: () => {
+            if (addToast) addToast('Failed to update invoice', 'error');
+        }
     });
 
     const deleteClientMutation = useMutation({
@@ -76,8 +82,12 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries(['clients']);
+            if (addToast) addToast('Client deleted successfully', 'success');
             navigate('/clients');
         },
+        onError: () => {
+            if (addToast) addToast('Failed to delete client', 'error');
+        }
     });
 
     const deleteInvoiceMutation = useMutation({
@@ -90,7 +100,11 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
         onSuccess: () => {
              queryClient.invalidateQueries(['client', id]);
              queryClient.invalidateQueries(['clients']);
+             if (addToast) addToast('Invoice deleted successfully', 'success');
         },
+        onError: () => {
+            if (addToast) addToast('Failed to delete invoice', 'error');
+        }
     });
 
     const updateClientMutation = useMutation({
@@ -115,7 +129,11 @@ export default function ClientDetailPage({ embeddedClientId, onClose }) {
         onSuccess: () => {
             queryClient.invalidateQueries(['client', id]);
             queryClient.invalidateQueries(['clients']);
+            if (addToast) addToast('Client updated successfully', 'success');
         },
+        onError: (err) => {
+            if (addToast) addToast(err.message || 'Failed to update client', 'error');
+        }
     });
 
     // Helpers

@@ -100,7 +100,7 @@ export default function CommandPalette({ isOpen, onClose }) {
                         newResults.push({
                             section: 'Tickets',
                             icon: Ticket,
-                            label: `Tx #${t.id}: ${t.issue_description.substring(0, 30)}...`,
+                            label: `Tx #${t.id}: ${(t.issue_description || t.title || 'Ticket').substring(0, 30)}...`,
                             subLabel: t.status,
                             path: `/tickets?id=${t.id}`
                         });
@@ -146,15 +146,19 @@ export default function CommandPalette({ isOpen, onClose }) {
             switch (e.key) {
                 case 'ArrowDown':
                     e.preventDefault();
-                    setSelectedIndex(prev => (prev + 1) % combinedResults.length);
+                    if (combinedResults.length > 0) {
+                        setSelectedIndex(prev => (prev + 1) % combinedResults.length);
+                    }
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
-                    setSelectedIndex(prev => (prev - 1 + combinedResults.length) % combinedResults.length);
+                    if (combinedResults.length > 0) {
+                        setSelectedIndex(prev => (prev - 1 + combinedResults.length) % combinedResults.length);
+                    }
                     break;
                 case 'Enter':
                     e.preventDefault();
-                    if (combinedResults[selectedIndex]) {
+                    if (combinedResults.length > 0 && combinedResults[selectedIndex]) {
                         handleSelect(combinedResults[selectedIndex]);
                     }
                     break;

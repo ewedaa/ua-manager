@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Plus, Edit2, Trash2, Loader2, Barcode, X, Check, ToggleLeft, ToggleRight, FileDown, Printer, Building2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 
 import { fetchSerials } from '../lib/fetchers';
@@ -29,6 +30,7 @@ export default function SerialsPage() {
     const { isDark } = useTheme();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { addToast } = useNotifications();
     const [search, setSearch] = useState('');
     const [filterType, setFilterType] = useState('');
     const [activeCardFilter, setActiveCardFilter] = useState('Total');
@@ -68,13 +70,26 @@ export default function SerialsPage() {
                 return r.json();
             });
         },
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['serials'] }); closeModal(); },
-        onError: (err) => setFormError(err.message),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['serials'] }); 
+            closeModal(); 
+            if (addToast) addToast(`Serial ${editingId ? 'updated' : 'added'} successfully`, 'success');
+        },
+        onError: (err) => {
+            setFormError(err.message);
+            if (addToast) addToast(err.message || 'Failed to save serial', 'error');
+        },
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id) => fetch(`${API}/genetics-serials/${id}/`, { method: 'DELETE' }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['serials'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['serials'] });
+            if (addToast) addToast('Serial deleted successfully', 'success');
+        },
+        onError: () => {
+             if (addToast) addToast('Failed to delete serial', 'error');
+        }
     });
 
     const toggleActive = useMutation({
@@ -83,7 +98,13 @@ export default function SerialsPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_active: !is_active }),
         }),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['serials'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['serials'] });
+            if (addToast) addToast('Serial status updated', 'success');
+        },
+        onError: () => {
+            if (addToast) addToast('Failed to update serial status', 'error');
+        }
     });
 
     const closeModal = () => { setShowModal(false); setEditingId(null); setForm({ serial_number: '', product_type: 'Dairy Cows', college_name: '', role: '', modules: '', notes: '', is_active: true, start_date: '', end_date: '' }); setFormError(''); };

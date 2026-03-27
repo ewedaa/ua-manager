@@ -8,6 +8,7 @@ import {
     RefreshCw, Flame, XCircle, Plus, X
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 
 // ─── Shared Helpers ───────────────────────────────────────────
@@ -517,6 +518,7 @@ export default function StatDetailPage() {
     const [demoSaving, setDemoSaving] = useState(false);
     const [demoError, setDemoError] = useState('');
     const [activeFilter, setActiveFilter] = useState('all'); // 'all', '4genetics', 'uniform'
+    const { addToast } = useNotifications();
 
     const config = TILE_CONFIG[tileId];
 
@@ -539,7 +541,11 @@ export default function StatDetailPage() {
             queryClient.invalidateQueries([config?.fetchKey]);
             queryClient.invalidateQueries(['dashboardStats']);
             setDeleteConfirm(null);
+            if (addToast) addToast(`Deleted successfully`, 'success');
         },
+        onError: () => {
+            if (addToast) addToast('Failed to delete', 'error');
+        }
     });
 
     const handleDemoSubmit = async (e) => {
@@ -571,8 +577,10 @@ export default function StatDetailPage() {
             queryClient.invalidateQueries(['dashboardStats']);
             setShowDemoModal(false);
             setDemoForm({ farm_name: '', name: '', phone: '', demo_end_date: thirtyDaysLater, general_notes: '' });
+            if (addToast) addToast('Demo farm created successfully', 'success');
         } catch (err) {
             setDemoError(err.message);
+            if (addToast) addToast(err.message || 'Failed to create demo farm', 'error');
         } finally {
             setDemoSaving(false);
         }

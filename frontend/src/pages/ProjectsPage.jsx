@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Monitor, Plus, Trash2, Edit2, X, FolderKanban, Loader2, FileDown, Printer } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 
 const API = API_BASE_URL;
@@ -159,8 +160,8 @@ export default function ProjectsPage() {
     const [editId, setEditId] = useState(null);
     const [form, setForm] = useState({ name: '', description: '', status: 'Active' });
     const [filter, setFilter] = useState('');
-    const [error, setError] = useState(null);
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const { addToast } = useNotifications();
 
     // --- REPLACED LOCALSTORAGE WITH REACT QUERY ---
     const { data: projects = [], isLoading } = useQuery({
@@ -177,9 +178,11 @@ export default function ProjectsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries(['projects']);
             closeModal();
-            setError(null);
+            if (addToast) addToast('Project created successfully', 'success');
         },
-        onError: (err) => setError('Failed to create project: ' + err.message)
+        onError: (err) => {
+            if (addToast) addToast('Failed to create project: ' + err.message, 'error');
+        }
     });
 
     const updateMutation = useMutation({
@@ -191,15 +194,23 @@ export default function ProjectsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries(['projects']);
             closeModal();
-            setError(null);
+            if (addToast) addToast('Project updated successfully', 'success');
         },
-        onError: (err) => setError('Failed to update project: ' + err.message)
+        onError: (err) => {
+            if (addToast) addToast('Failed to update project: ' + err.message, 'error');
+        }
     });
 
     const deleteMutation = useMutation({
         mutationFn: (id) => fetch(`${API}/projects/${id}/`, { method: 'DELETE' }),
-        onSuccess: () => { queryClient.invalidateQueries(['projects']); setDeleteConfirmId(null); },
-        onError: (err) => setError('Failed to delete project: ' + err.message)
+        onSuccess: () => { 
+            queryClient.invalidateQueries(['projects']); 
+            setDeleteConfirmId(null); 
+            if (addToast) addToast('Project deleted successfully', 'success');
+        },
+        onError: (err) => {
+            if (addToast) addToast('Failed to delete project: ' + err.message, 'error');
+        }
     });
     // ----------------------------------------------
 
@@ -208,8 +219,10 @@ export default function ProjectsPage() {
 
     const handleSave = (e) => {
         e.preventDefault();
-        if (!form.name.trim()) { setError('Project name is required'); return; }
-        setError(null);
+        if (!form.name.trim()) { 
+            if (addToast) addToast('Project name is required', 'error'); 
+            return; 
+        }
         if (editId) {
             updateMutation.mutate({ id: editId, ...form });
         } else {
@@ -353,13 +366,6 @@ export default function ProjectsPage() {
                 )
             )}
 
-            {/* Error Toast */}
-            {error && (
-                <div className="fixed bottom-6 right-6 z-50 bg-red-500 text-white px-5 py-3 rounded-xl shadow-lg shadow-red-500/25 animate-in slide-in-from-bottom-3 duration-300 flex items-center gap-3">
-                    <span className="text-sm font-medium">{error}</span>
-                    <button onClick={() => setError(null)} className="text-white/80 hover:text-white"><X size={16} /></button>
-                </div>
-            )}
         </div>
     );
 }

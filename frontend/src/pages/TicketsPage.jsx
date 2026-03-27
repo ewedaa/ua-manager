@@ -7,6 +7,7 @@ import InlineEdit from '../components/InlineEdit';
 import StatCard from '../components/StatCard';
 import EmptyState from '../components/EmptyState';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 
 import { API_BASE_URL } from '../lib/api';
 
@@ -14,6 +15,7 @@ import { fetchTickets } from '../lib/fetchers';
 
 export default function TicketsPage() {
     const { isAdmin } = useAuth();
+    const { addToast } = useNotifications();
     const queryClient = useQueryClient();
     const [searchParams] = useSearchParams();
     const [searchTerm, setSearchTerm] = useState('');
@@ -42,9 +44,11 @@ export default function TicketsPage() {
             const data = await response.json();
             if (data.draft) {
                 await updateTicketField(ticket.id, 'resolution_notes', data.draft);
+                if (addToast) addToast('AI Draft applied successfully', 'success');
             }
         } catch (err) {
             console.error('Error drafting reply:', err);
+            if (addToast) addToast('Failed to generate AI draft', 'error');
         } finally {
             setDraftingId(null);
         }
@@ -62,8 +66,13 @@ export default function TicketsPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ [field]: value }),
         });
-        if (!response.ok) throw new Error('Failed to update');
+        if (!response.ok) {
+            const errBody = await response.text();
+            if (addToast) addToast(`Failed to update: ${errBody}`, 'error');
+            throw new Error('Failed to update');
+        }
         queryClient.invalidateQueries(['tickets']);
+        if (addToast) addToast('Ticket updated successfully', 'success');
         return response.json();
     };
 
@@ -82,8 +91,10 @@ export default function TicketsPage() {
             );
             queryClient.invalidateQueries(['tickets']);
             setSelectedIds(new Set());
+            if (addToast) addToast(`Updated status for ${selectedIds.size} tickets`, 'success');
         } catch (err) {
             console.error('Failed to update tickets', err);
+            if (addToast) addToast('Failed to bulk update tickets', 'error');
         }
     };
 
@@ -101,8 +112,10 @@ export default function TicketsPage() {
             );
             queryClient.invalidateQueries(['tickets']);
             setSelectedIds(new Set());
+            if (addToast) addToast(`Deleted ${selectedIds.size} tickets`, 'success');
         } catch (err) {
             console.error('Failed to delete tickets', err);
+            if (addToast) addToast('Failed to delete tickets', 'error');
         }
     };
 
