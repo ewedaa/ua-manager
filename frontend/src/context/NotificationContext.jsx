@@ -230,38 +230,37 @@ export const NotificationProvider = ({ children }) => {
         return Object.values(groups);
     }, [notifications]);
 
-    // Initial fetch and smart polling
+    // Stable ref to always call the latest fetchNotifications without it being an effect dependency
+    const fetchNotificationsRef = useRef(fetchNotifications);
     useEffect(() => {
-        fetchNotifications();
+        fetchNotificationsRef.current = fetchNotifications;
+    }, [fetchNotifications]);
+
+    // Initial fetch and smart polling — does NOT restart when fetchNotifications identity changes
+    useEffect(() => {
+        fetchNotificationsRef.current();
         requestNotificationPermission();
 
         let interval;
-        let isVisible = true;
 
-        // Visibility-based polling - pause when tab hidden
-        const handleVisibilityChange = () => {
-            isVisible = !document.hidden;
-
-            if (interval) {
-                clearInterval(interval);
-            }
-
-            if (isVisible) {
-                fetchNotifications();
-                interval = setInterval(fetchNotifications, 30000);
-            } else {
-                interval = setInterval(fetchNotifications, 120000);
-            }
+        const startPolling = (ms) => {
+            if (interval) clearInterval(interval);
+            interval = setInterval(() => fetchNotificationsRef.current(), ms);
         };
 
-        interval = setInterval(fetchNotifications, 30000);
+        const handleVisibilityChange = () => {
+            startPolling(document.hidden ? 120000 : 30000);
+            if (!document.hidden) fetchNotificationsRef.current();
+        };
+
+        startPolling(30000);
         document.addEventListener('visibilitychange', handleVisibilityChange);
 
         return () => {
             clearInterval(interval);
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [fetchNotifications]);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const value = {
         notifications,

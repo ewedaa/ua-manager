@@ -47,9 +47,9 @@ export function SleepModeOverlay() {
 
     if (!isSleepMode) return null;
 
-    const timeStr = currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const [hourPart, minutePart] = timeStr.split(':');
-    const amPm = currentTime.toLocaleTimeString([], { hour: '2-digit' }).includes('AM') ? 'AM' : 'PM';
+    const timeStr12 = currentTime.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    const [timePart, amPm] = timeStr12.split(' ');
+    const [hourPart, minutePart] = timePart.split(':');
 
     return (
         <div
@@ -88,7 +88,7 @@ export function SleepModeOverlay() {
                             </span>
                             <span className="text-5xl font-thin text-green-400 animate-pulse">:</span>
                             <span className="text-5xl font-thin tracking-tight text-white" style={{ fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                                {minutePart?.split(' ')[0]}
+                                {minutePart}
                             </span>
                             <span className="text-xl font-light text-white/50 ml-2 self-end mb-1">{amPm}</span>
                         </div>

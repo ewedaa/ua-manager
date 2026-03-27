@@ -121,9 +121,8 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    <div className="mt-6 text-center text-xs text-green-200/50">
-                        <p>Admin: <span className="text-green-300">admin / admin123</span></p>
-                        <p className="mt-1">Other users get viewer access</p>
+                    <div className="mt-6 text-center text-xs text-green-200/40">
+                        <p>Uniform Agri Manager v2.0</p>
                     </div>
                 </div>
             </div>

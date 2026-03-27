@@ -1,13 +1,25 @@
 from rest_framework import viewsets, filters, views, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from django.core.mail import EmailMessage
-from .models import Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule, Reminder, GeneticsSerial, ActivityLog, ClientFile, IssueCategory, Contact
+from django.core.files.base import ContentFile
+from django.conf import settings
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from datetime import timedelta
+from .models import (
+    Client, LivestockType, Invoice, Payment, Ticket, SubscriptionModule,
+    Reminder, GeneticsSerial, ActivityLog, ClientFile, IssueCategory, Contact,
+    Todo, Project,
+)
 from .serializers import (
     ClientSerializer, ClientDetailSerializer, LivestockTypeSerializer,
     InvoiceSerializer, PaymentSerializer, TicketSerializer, SubscriptionModuleSerializer,
-    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer, ContactSerializer
+    ReminderSerializer, GeneticsSerialSerializer, ClientFileSerializer, IssueCategorySerializer,
+    ContactSerializer, ActivityLogSerializer, TodoSerializer, ProjectSerializer,
 )
 from .report_generator import generate_pdf_report, generate_formal_invoice_pdf
 try:
@@ -36,7 +48,11 @@ class ClientViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def expiring_soon(self, request):
         """Get all clients with subscriptions expiring within 60 days."""
-        expiring_clients = [c for c in self.queryset if c.is_expiring_soon]
+        today = timezone.now().date()
+        expiring_clients = self.queryset.filter(
+            subscription_end_date__gte=today,
+            subscription_end_date__lte=today + timedelta(days=60)
+        )
         serializer = self.get_serializer(expiring_clients, many=True)
         return Response(serializer.data)
 
@@ -48,7 +64,7 @@ class ClientViewSet(viewsets.ModelViewSet):
             GeneticsSerial.objects.create(
                 client=instance,
                 serial_number=f"4GEN-{instance.id}-{uuid.uuid4().hex[:6].upper()}",
-                product_type='Other',
+                product_type='Dairy Cows',  # Default valid choice
                 is_active=True,
                 notes="Auto-created from 4Genetics College designation"
             )
@@ -84,10 +100,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
-        from .models import Client, ActivityLog
-        from django.utils import timezone
-        from datetime import timedelta
-        
         data = self.request.data
         new_farm_name = data.get('new_farm_name')
         inv_type = data.get('invoice_type')
@@ -186,8 +198,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def generate_pdf(self, request, pk=None):
         """Generate a formal, professional customer-facing PDF for this invoice."""
-        from django.core.files.base import ContentFile
-
         invoice = self.get_object()
         target_currency = request.data.get('target_currency')
 
@@ -206,7 +216,6 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def generate_internal_pdf(self, request, pk=None):
         """Generate an INTERNAL PDF with full cost breakdown (what we owe Uniform) for 4Genetics."""
-        from django.core.files.base import ContentFile
         from decimal import Decimal
 
         invoice = self.get_object()
@@ -432,11 +441,7 @@ class ClientContactView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from django.utils import timezone
-from datetime import timedelta
-from django.db.models import Sum, Count
+# ── Dashboard & Analytics Views ──────────────────────────────────────────────
 
 
 class DashboardStatsView(APIView):
@@ -444,16 +449,19 @@ class DashboardStatsView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .models import Client, Invoice, Ticket, Payment, GeneticsSerial
-        
+        today = timezone.now().date()
+
         # Client statistics (exclude legacy 4Genetics colleges)
         base_clients = Client.objects.filter(is_4genetics_college=False)
         total_clients = base_clients.count()
-        expiring_clients = [c for c in base_clients if c.is_expiring_soon]
-        expiring_count = len(expiring_clients)
-        
-        # Expired clients (subscription end date has passed)
-        today = timezone.now().date()
+        expiring_count = base_clients.filter(
+            subscription_end_date__gte=today,
+            subscription_end_date__lte=today + timedelta(days=60)
+        ).count()
+        expiring_clients = base_clients.filter(
+            subscription_end_date__gte=today,
+            subscription_end_date__lte=today + timedelta(days=60)
+        )
         expired_count = Client.objects.filter(subscription_end_date__lt=today).count()
         
         # Demo farms statistics
@@ -476,14 +484,12 @@ class DashboardStatsView(APIView):
         paid_to_uniform = real_invoices.filter(status='Paid to Uniform').count()
         
         # Calculate monetary amounts for due invoices
-        due_to_4genetics_amount = real_invoices.filter(status='Due').aggregate(
-            total=Sum('customer_total')
-        )['total']
-        if due_to_4genetics_amount is None:
-            due_to_4genetics_amount = real_invoices.filter(status='Due').aggregate(
-                total=Sum('total_amount')
-            )['total'] or 0.0
-        
+        due_qs = real_invoices.filter(status='Due')
+        due_to_4genetics_amount = (
+            due_qs.aggregate(total=Sum('customer_total'))['total']
+            or due_qs.aggregate(total=Sum('total_amount'))['total']
+            or 0.0
+        )
         due_to_uniform_amount = real_invoices.filter(status__in=['Due', 'Paid to Us']).aggregate(
             total=Sum('cost_total')
         )['total'] or 0.0
@@ -636,11 +642,9 @@ class ChartDataView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .models import Client, Invoice, Ticket
         from django.db.models.functions import TruncMonth, ExtractQuarter
-        from django.db.models import Count
         from collections import defaultdict
-        
+
         today = timezone.now().date()
         six_months_ago = today - timedelta(days=180)
         
@@ -698,11 +702,14 @@ class ChartDataView(APIView):
             count=Count('id')
         ))
         
-        # Subscription health - active vs expiring vs expired
+        # Subscription health - active vs expiring vs expired (all DB-level)
         active_subs = Client.objects.filter(
             subscription_end_date__gt=today + timedelta(days=60)
         ).count()
-        expiring_subs = len([c for c in Client.objects.all() if c.is_expiring_soon])
+        expiring_subs = Client.objects.filter(
+            subscription_end_date__gte=today,
+            subscription_end_date__lte=today + timedelta(days=60)
+        ).count()
         expired_subs = Client.objects.filter(subscription_end_date__lt=today).count()
         
         subscription_health = [
@@ -982,9 +989,6 @@ class ActivityLogView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .models import ActivityLog
-        from .serializers import ActivityLogSerializer
-        
         limit = int(request.query_params.get('limit', 20))
         logs = ActivityLog.objects.all()[:limit]
         serializer = ActivityLogSerializer(logs, many=True)
@@ -996,9 +1000,6 @@ class TodoView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request):
-        from .models import Todo
-        from .serializers import TodoSerializer
-        
         filter_status = request.query_params.get('status', 'all')
         todos = Todo.objects.all()
         
@@ -1011,8 +1012,6 @@ class TodoView(APIView):
         return Response({'todos': serializer.data})
 
     def post(self, request):
-        from .serializers import TodoSerializer
-        
         serializer = TodoSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -1020,17 +1019,12 @@ class TodoView(APIView):
         return Response(serializer.errors, status=400)
 
     def patch(self, request, pk=None):
-        from .models import Todo
-        from .serializers import TodoSerializer
-        
         if not pk:
             return Response({'error': 'Todo ID required'}, status=400)
-        
         try:
             todo = Todo.objects.get(pk=pk)
         except Todo.DoesNotExist:
             return Response({'error': 'Todo not found'}, status=404)
-        
         serializer = TodoSerializer(todo, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -1038,11 +1032,8 @@ class TodoView(APIView):
         return Response(serializer.errors, status=400)
 
     def delete(self, request, pk=None):
-        from .models import Todo
-        
         if not pk:
             return Response({'error': 'Todo ID required'}, status=400)
-        
         try:
             todo = Todo.objects.get(pk=pk)
             todo.delete()
@@ -1053,9 +1044,6 @@ class TodoView(APIView):
 
 class ProjectViewSet(viewsets.ModelViewSet):
     """ViewSet for Project CRUD operations."""
-    from .models import Project
-    from .serializers import ProjectSerializer
-    
     queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -1064,19 +1052,12 @@ class ProjectViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        # Log activity
         try:
-            from .models import ActivityLog
             ActivityLog.log('project_created', f'Project "{instance.name}" was created', 'project', instance.id)
-        except:
+        except Exception:
             pass
 
 
-
-from django.core.files.base import ContentFile
-import os
-from django.conf import settings
-import uuid
 
 class BusinessReportView(APIView):
     """
@@ -1085,10 +1066,6 @@ class BusinessReportView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        from .models import Client, Invoice, Ticket
-        from django.db.models import Sum
-        from django.utils import timezone
-        
         today = timezone.now().date()
         total_clients = Client.objects.count()
         active_clients = Client.objects.filter(subscription_end_date__gte=today).count()
@@ -1222,10 +1199,6 @@ class ReportBuilderView(views.APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        from .models import Client, Invoice, Ticket, Payment, GeneticsSerial, Project
-        from django.utils import timezone
-        from datetime import datetime
-
         from datetime import datetime as _dt
         _now = _dt.now()
         _mods = request.data.get('modules', [])
@@ -1443,8 +1416,6 @@ class ReportBuilderPreviewView(views.APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        from .models import Client, Invoice, Ticket, Payment, GeneticsSerial, Project
-
         modules = request.data.get('modules', [])
         result = {}
         today = timezone.now().date()

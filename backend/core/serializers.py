@@ -206,12 +206,12 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 class ClientDetailSerializer(ClientSerializer):
-    """Detailed client serializer with nested invoices and tickets."""
+    """Detailed client serializer — uses full InvoiceSerializer for nested invoices/tickets."""
     invoices = InvoiceSerializer(many=True, read_only=True)
     tickets = TicketSerializer(many=True, read_only=True)
-    
+
     class Meta(ClientSerializer.Meta):
-        fields = ClientSerializer.Meta.fields + ['invoices', 'tickets']
+        pass  # fields already include 'invoices' and 'tickets' from parent
 
 
 class ReminderSerializer(serializers.ModelSerializer):

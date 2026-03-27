@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from datetime import timedelta
+from datetime import timedelta, datetime
 
 
 class Client(models.Model):
@@ -376,9 +376,6 @@ class Reminder(models.Model):
     @classmethod
     def generate_auto_reminders(cls):
         """Generate automatic reminders for expiring subscriptions, due invoices, stale tickets."""
-        from django.utils import timezone
-        from datetime import timedelta
-        
         today = timezone.now()
         reminders_created = 0
         
@@ -403,7 +400,7 @@ class Reminder(models.Model):
                     message=f"{client.name}'s subscription expires in {days_left} days on {client.subscription_end_date}",
                     reminder_type='subscription_expiring',
                     priority=priority,
-                    due_date=timezone.make_aware(timezone.datetime.combine(client.subscription_end_date, timezone.datetime.min.time())),
+                    due_date=timezone.make_aware(datetime.combine(client.subscription_end_date, datetime.min.time())),
                     client=client,
                     is_auto_generated=True
                 )
