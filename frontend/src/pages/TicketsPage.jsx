@@ -119,15 +119,18 @@ export default function TicketsPage() {
         }
     };
 
-    const filteredTickets = tickets.filter(ticket => {
-        const matchSearch = !searchTerm ||
-            ticket.issue_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            ticket.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            ticket.category?.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchStatus = !statusFilter || ticket.status === statusFilter;
-        const matchCategory = !categoryFilter || ticket.category === categoryFilter;
-        return matchSearch && matchStatus && matchCategory;
-    });
+    const filteredTickets = React.useMemo(() => {
+        if (!tickets) return [];
+        return tickets.filter(ticket => {
+            const matchSearch = !searchTerm ||
+                ticket.issue_description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                ticket.client_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                ticket.category?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchStatus = !statusFilter || ticket.status === statusFilter;
+            const matchCategory = !categoryFilter || ticket.category === categoryFilter;
+            return matchSearch && matchStatus && matchCategory;
+        });
+    }, [tickets, searchTerm, statusFilter, categoryFilter]);
 
     const handleExport = async () => {
         if (!tickets) return;

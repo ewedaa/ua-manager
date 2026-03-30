@@ -34,7 +34,7 @@ import uuid
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     """ViewSet for Invoice CRUD operations."""
-    queryset = Invoice.objects.select_related('client').prefetch_related('livestock_selection', 'payments')
+    queryset = Invoice.objects.select_related('client').prefetch_related('livestock_selection', 'payments', 'selected_modules')
     serializer_class = InvoiceSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['client__name', 'client__farm_name']

@@ -34,7 +34,9 @@ import uuid
 
 class ClientViewSet(viewsets.ModelViewSet):
     """ViewSet for Client CRUD operations."""
-    queryset = Client.objects.all()
+    queryset = Client.objects.prefetch_related(
+        'contacts', 'files', 'invoices', 'tickets', 'subscription_modules'
+    ).select_related('livestock_type')
     serializer_class = ClientSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'farm_name', 'phone']

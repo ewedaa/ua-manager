@@ -135,43 +135,46 @@ export default function Clients() {
         },
     });
 
-    const filteredClients = clients?.filter(client => {
-        const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.farm_name.toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredClients = React.useMemo(() => {
+        if (!clients) return [];
+        return clients.filter(client => {
+            const matchesSearch = client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                client.farm_name.toLowerCase().includes(searchTerm.toLowerCase());
 
-        let matchesStatus = true;
-        let matchesFinance = true;
+            let matchesStatus = true;
+            let matchesFinance = true;
 
-        if (filterStatus === 'active') matchesStatus = client.status === 'Active';
-        if (filterStatus === 'expiring_soon') matchesStatus = client.status === 'Expiring Soon';
-        if (filterStatus === 'expired') matchesStatus = client.status === 'Expired';
+            if (filterStatus === 'active') matchesStatus = client.status === 'Active';
+            if (filterStatus === 'expiring_soon') matchesStatus = client.status === 'Expiring Soon';
+            if (filterStatus === 'expired') matchesStatus = client.status === 'Expired';
 
-        if (filterFinance === 'due_invoices') {
-            const hasDue = client.invoices?.some(inv => !inv.invoice_type?.toLowerCase().includes('quotation') && inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
-            matchesFinance = !!hasDue;
-        }
+            if (filterFinance === 'due_invoices') {
+                const hasDue = client.invoices?.some(inv => !inv.invoice_type?.toLowerCase().includes('quotation') && inv.status === 'Due' && parseFloat(inv.total_amount) > 0);
+                matchesFinance = !!hasDue;
+            }
 
-        let matchesType = false;
-        if (filterType === 'active') matchesType = !client.is_demo && !client.is_quoted;
-        if (filterType === 'demo') matchesType = client.is_demo;
-        if (filterType === 'quoted') matchesType = client.is_quoted;
+            let matchesType = false;
+            if (filterType === 'active') matchesType = !client.is_demo && !client.is_quoted;
+            if (filterType === 'demo') matchesType = client.is_demo;
+            if (filterType === 'quoted') matchesType = client.is_quoted;
 
-        return matchesSearch && matchesStatus && matchesFinance && matchesType;
-    }).sort((a, b) => {
-        if (sortBy === 'name') return a.farm_name.localeCompare(b.farm_name);
+            return matchesSearch && matchesStatus && matchesFinance && matchesType;
+        }).sort((a, b) => {
+            if (sortBy === 'name') return a.farm_name.localeCompare(b.farm_name);
 
-        const dateA = new Date(a.subscription_end_date).getTime() || 0;
-        const dateB = new Date(b.subscription_end_date).getTime() || 0;
-        if (sortBy === 'expiry_asc') return dateA - dateB;
-        if (sortBy === 'expiry_desc') return dateB - dateA;
+            const dateA = new Date(a.subscription_end_date).getTime() || 0;
+            const dateB = new Date(b.subscription_end_date).getTime() || 0;
+            if (sortBy === 'expiry_asc') return dateA - dateB;
+            if (sortBy === 'expiry_desc') return dateB - dateA;
 
-        if (sortBy === 'due_amount') {
-            const dueA = a.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
-            const dueB = b.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
-            return dueB - dueA;
-        }
-        return 0;
-    });
+            if (sortBy === 'due_amount') {
+                const dueA = a.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
+                const dueB = b.invoices?.filter(i => !i.invoice_type?.toLowerCase().includes('quotation') && i.status === 'Due').reduce((sum, i) => sum + parseFloat(i.total_amount), 0) || 0;
+                return dueB - dueA;
+            }
+            return 0;
+        });
+    }, [clients, searchTerm, filterStatus, filterFinance, filterType, sortBy]);
 
     const handleInputChange = (e) => {
         let { name, value } = e.target;

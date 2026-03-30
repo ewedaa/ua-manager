@@ -119,33 +119,39 @@ export default function PaymentTracker() {
     };
 
     // Filter + sort
-    const rows = invoices
-        .filter(inv => !inv.invoice_type?.toLowerCase().includes('quotation'))
-        .filter(inv => {
-            if (!search) return true;
-            const q = search.toLowerCase();
-            return (
-                (inv.client_name || '').toLowerCase().includes(q) ||
-                String(inv.id).includes(q) ||
-                (inv.invoice_type || '').toLowerCase().includes(q) ||
-                (inv.notes || '').toLowerCase().includes(q)
-            );
-        })
-        .sort((a, b) => {
-            let av = a[sortCol] ?? '';
-            let bv = b[sortCol] ?? '';
-            if (sortCol === 'created_at') { av = new Date(av); bv = new Date(bv); }
-            if (sortCol === 'cost_total') { av = parseFloat(av) || 0; bv = parseFloat(bv) || 0; }
-            if (av < bv) return sortDir === 'asc' ? -1 : 1;
-            if (av > bv) return sortDir === 'asc' ? 1 : -1;
-            return 0;
-        });
+    const rows = React.useMemo(() => {
+        return invoices
+            .filter(inv => !inv.invoice_type?.toLowerCase().includes('quotation'))
+            .filter(inv => {
+                if (!search) return true;
+                const q = search.toLowerCase();
+                return (
+                    (inv.client_name || '').toLowerCase().includes(q) ||
+                    String(inv.id).includes(q) ||
+                    (inv.invoice_type || '').toLowerCase().includes(q) ||
+                    (inv.notes || '').toLowerCase().includes(q)
+                );
+            })
+            .sort((a, b) => {
+                let av = a[sortCol] ?? '';
+                let bv = b[sortCol] ?? '';
+                if (sortCol === 'created_at') { av = new Date(av); bv = new Date(bv); }
+                if (sortCol === 'cost_total') { av = parseFloat(av) || 0; bv = parseFloat(bv) || 0; }
+                if (av < bv) return sortDir === 'asc' ? -1 : 1;
+                if (av > bv) return sortDir === 'asc' ? 1 : -1;
+                return 0;
+            });
+    }, [invoices, search, sortCol, sortDir]);
 
     // Summary stats (Exclude Quotations)
-    const financialInvoices = invoices.filter(i => !i.invoice_type?.toLowerCase().includes('quotation'));
-    const totalDue = financialInvoices.filter(i => i.status === 'Due').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
-    const totalPaidUs = financialInvoices.filter(i => i.status === 'Paid to Us').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0);
-    const totalPaidUniform = financialInvoices.filter(i => i.status === 'Paid to Uniform').reduce((s, i) => s + parseFloat(i.cost_total || 0), 0);
+    const { totalDue, totalPaidUs, totalPaidUniform } = React.useMemo(() => {
+        const financialInvoices = invoices.filter(i => !i.invoice_type?.toLowerCase().includes('quotation'));
+        return {
+            totalDue: financialInvoices.filter(i => i.status === 'Due').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0),
+            totalPaidUs: financialInvoices.filter(i => i.status === 'Paid to Us').reduce((s, i) => s + parseFloat(i.customer_total || i.total_amount || 0), 0),
+            totalPaidUniform: financialInvoices.filter(i => i.status === 'Paid to Uniform').reduce((s, i) => s + parseFloat(i.cost_total || 0), 0)
+        };
+    }, [invoices]);
 
     // Invoice # format matching Notion convention: V + YY + padded invoice id
     const invoiceNumber = (inv) => {
