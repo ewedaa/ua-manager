@@ -32,6 +32,7 @@ const ReportWriter    = React.lazy(() => import('./pages/ReportWriter'));
 const ClientDetailPage  = React.lazy(() => import('./pages/ClientDetailPage'));
 const StatDetailPage    = React.lazy(() => import('./pages/StatDetailPage'));
 const SerialDetailPage  = React.lazy(() => import('./pages/SerialDetailPage'));
+const AskAIPage         = React.lazy(() => import('./pages/AskAIPage'));
 
 // ── Page loading spinner ──────────────────────────────────────────────────────
 const PageLoader = () => (
@@ -120,6 +121,7 @@ function AppContent() {
                                 <Route path="/docs"            element={<DocsPage />} />
                                 <Route path="/analytics"       element={<Analytics />} />
                                 <Route path="/reports/writer"  element={<ReportWriter />} />
+                                <Route path="/ask-ai"          element={<AskAIPage />} />
                                 <Route path="/settings"        element={<Settings />} />
                             </Routes>
                         </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Monitor, Plus, Trash2, Edit2, X, FolderKanban, Loader2, FileDown, Printer } from 'lucide-react';
+import { Monitor, Plus, Trash2, Edit2, X, FolderKanban, Loader2, FileDown, Printer, LayoutGrid, Columns } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
@@ -162,6 +162,28 @@ export default function ProjectsPage() {
     const [filter, setFilter] = useState('');
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
     const { addToast } = useNotifications();
+    const [viewMode, setViewMode] = useState(() => localStorage.getItem('projectsViewMode') || 'grid');
+
+    const handleDragStart = (e, project) => {
+        e.dataTransfer.setData('projectId', project.id.toString());
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+    };
+
+    const handleDrop = (e, targetStatus) => {
+        e.preventDefault();
+        const projectIdString = e.dataTransfer.getData('projectId');
+        if (!projectIdString) return;
+        
+        const projectId = parseInt(projectIdString);
+        const project = projects.find(p => p.id === projectId);
+        
+        if (project && project.status !== targetStatus) {
+            updateMutation.mutate({ id: projectId, status: targetStatus });
+        }
+    };
 
     // --- REPLACED LOCALSTORAGE WITH REACT QUERY ---
     const { data: projects = [], isLoading } = useQuery({
@@ -247,6 +269,10 @@ export default function ProjectsPage() {
                     <p className="text-gray-500 dark:text-gray-400 mt-1">Track your ongoing projects</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
+                    <div className={`flex items-center rounded-xl p-1 shrink-0 ${isDark ? 'bg-white/[0.04]' : 'bg-gray-100'}`}>
+                        <button onClick={() => { setViewMode('grid'); localStorage.setItem('projectsViewMode', 'grid'); }} className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-white text-gray-900 shadow-sm') : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`} title="Grid View"><LayoutGrid size={18} /></button>
+                        <button onClick={() => { setViewMode('kanban'); localStorage.setItem('projectsViewMode', 'kanban'); }} className={`p-2 rounded-lg transition-colors ${viewMode === 'kanban' ? (isDark ? 'bg-white/[0.1] text-white' : 'bg-white text-gray-900 shadow-sm') : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`} title="Kanban View"><Columns size={18} /></button>
+                    </div>
                     <button onClick={async () => {
                         if (!projects?.length) return;
                         const XLSX = await import('xlsx');
@@ -295,13 +321,13 @@ export default function ProjectsPage() {
                 ))}
             </div>
 
-            {/* Project Cards - 3D */}
-            {filtered.length === 0 ? (
+            {/* Project Listing / Kanban Board */}
+            {projects.length === 0 ? (
                 <div className="text-center py-16 text-gray-400">
                     <Monitor size={48} className="mx-auto mb-3 opacity-30" />
                     <p>No projects yet. Create one!</p>
                 </div>
-            ) : (
+            ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {filtered.map(p => (
                         <ProjectCard
@@ -312,6 +338,50 @@ export default function ProjectsPage() {
                             onDelete={handleDelete}
                         />
                     ))}
+                </div>
+            ) : (
+                <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4 md:-mx-6 md:px-6 scrollbar-thin scrollbar-thumb-emerald-500/20 dark:scrollbar-thumb-emerald-500/10 min-h-[400px]">
+                    {STATUSES.map(status => {
+                        const columnProjects = projects.filter(p => (!filter || filter === status) && p.status === status);
+                        const isFilteredOut = filter && filter !== status;
+                        
+                        return (
+                            <div 
+                                key={status} 
+                                className={`flex-1 min-w-[320px] max-w-[400px] flex flex-col rounded-2xl p-4 transition-all duration-300 ${isDark ? 'bg-white/[0.02] border border-white/[0.05]' : 'bg-gray-50 border border-gray-200'} ${isFilteredOut ? 'opacity-30 pointer-events-none' : ''}`}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, status)}
+                            >
+                                <div className="flex items-center justify-between mb-4 px-1 sticky top-0">
+                                    <h3 className={`font-bold tracking-wider text-xs flex items-center gap-2 ${statusColors[status].split(' ')[1]}`}>
+                                        <div className={`w-2 h-2 rounded-full ${statusColors[status].split(' ')[1].replace('text-', 'bg-')}`} />
+                                        {status}
+                                    </h3>
+                                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${isDark ? 'bg-white/[0.06] text-gray-300' : 'bg-white shadow-sm text-gray-600'}`}>
+                                        {columnProjects.length}
+                                    </span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto space-y-3 pr-1">
+                                    {columnProjects.length === 0 ? (
+                                        <div className={`h-28 rounded-xl border-2 border-dashed flex items-center justify-center text-xs font-semibold ${isDark ? 'border-white/[0.05] text-gray-600 hover:border-white/[0.1] hover:text-gray-500' : 'border-gray-300 text-gray-400 hover:border-gray-400 hover:text-gray-500'} transition-colors`}>
+                                            Drop to set as {status}
+                                        </div>
+                                    ) : (
+                                        columnProjects.map(p => (
+                                            <div 
+                                                key={p.id} 
+                                                draggable 
+                                                onDragStart={(e) => handleDragStart(e, p)}
+                                                className="cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:shadow-lg transition-all"
+                                            >
+                                                <ProjectCard project={p} isDark={isDark} onEdit={openEdit} onDelete={handleDelete} />
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
 

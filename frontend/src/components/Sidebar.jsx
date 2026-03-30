@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Home, Ticket, Users, Settings, Shield, Barcode, CreditCard, Monitor, FileText, Sun, Moon, RefreshCw, Download, Wifi, WifiOff, Mail, MessageCircle, Phone, ClipboardList, BookOpen, ChevronLeft, ChevronRight, Search as SearchIcon, Activity, PenTool } from 'lucide-react';
+import { Home, Ticket, Users, Settings, Shield, Barcode, CreditCard, Monitor, FileText, Sun, Moon, RefreshCw, Download, Wifi, WifiOff, Mail, MessageCircle, Phone, ClipboardList, BookOpen, ChevronLeft, ChevronRight, Search as SearchIcon, Activity, PenTool, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { queryClient } from '../lib/queryClient';
@@ -101,6 +101,7 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
 
     const navItems = [
         { icon: Home, label: 'Dashboard', path: '/' },
+        { icon: Sparkles, label: 'Ask AI Assistant', path: '/ask-ai' },
         { icon: Activity, label: 'Analytics & Reports', path: '/analytics' },
         { icon: PenTool, label: 'Report Writer', path: '/reports/writer' },
         { icon: Users, label: 'Clients', path: '/clients', onHover: () => prefetch(['clients'], fetchClients) },
