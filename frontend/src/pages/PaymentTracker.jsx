@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
+import { useNotifications } from '../context/NotificationContext';
 import { API_BASE_URL } from '../lib/api';
 import { InvoicePDFButton, InternalPDFButton } from '../components/InvoicePDFActions';
 
@@ -65,12 +66,15 @@ function StatusBadge({ value, onChange, editable = true }) {
 }
 
 // ─── Main Page ────────────────────────────────────────────────────────
+
 export default function PaymentTracker() {
     const { isDark } = useTheme();
     const { isAdmin } = useAuth();
     const navigate = useNavigate();
     const queryClient = useQueryClient();
+    const { addToast } = useNotifications();
     const [search, setSearch] = useState('');
+    const [selectedIds, setSelectedIds] = useState(new Set());
     const [sortCol, setSortCol] = useState('created_at');
     const [sortDir, setSortDir] = useState('desc');
     const [editingNote, setEditingNote] = useState(null);
@@ -80,6 +84,48 @@ export default function PaymentTracker() {
         queryKey: ['invoices'],
         queryFn: () => fetch(`${API}/invoices/`).then(r => r.json()),
     });
+
+    const handleBulkFarmPaid = async (status) => {
+        if (!isAdmin || selectedIds.size === 0) return;
+        try {
+            await Promise.all(
+                Array.from(selectedIds).map(id =>
+                    fetch(`${API_BASE_URL}/invoices/${id}/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status }),
+                    })
+                )
+            );
+            queryClient.invalidateQueries(['invoices']);
+            setSelectedIds(new Set());
+            if (addToast) addToast(`Updated ${selectedIds.size} invoices`, 'success');
+        } catch (err) {
+            console.error(err);
+            if (addToast) addToast('Failed to bulk update', 'error');
+        }
+    };
+
+    const handleBulkUniformPaid = async (paid) => {
+        if (!isAdmin || selectedIds.size === 0) return;
+        try {
+            await Promise.all(
+                Array.from(selectedIds).map(id =>
+                    fetch(`${API_BASE_URL}/invoices/${id}/`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ paid_to_uniform: paid }),
+                    })
+                )
+            );
+            queryClient.invalidateQueries(['invoices']);
+            setSelectedIds(new Set());
+            if (addToast) addToast(`Updated ${selectedIds.size} invoices`, 'success');
+        } catch (err) {
+            console.error(err);
+            if (addToast) addToast('Failed to bulk update', 'error');
+        }
+    };
 
     const updateMutation = useMutation({
         mutationFn: async ({ id, patch }) => {
@@ -273,19 +319,33 @@ export default function PaymentTracker() {
                 ))}
             </div>
 
-            {/* ── Search ── */}
-            <div className="relative max-w-md">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search invoices, farms, notes…"
-                    className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-green-500 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-gray-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
-                />
-                {search && (
-                    <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        <X size={14} />
-                    </button>
+            {/* ── Action Bar ── */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+                <div className="relative w-full max-w-md">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        placeholder="Search invoices, farms, notes…"
+                        className={`w-full pl-9 pr-4 py-2.5 rounded-xl border text-sm outline-none focus:ring-2 focus:ring-green-500 ${isDark ? 'bg-white/[0.04] border-white/[0.08] text-white placeholder:text-gray-600' : 'bg-white border-gray-200 text-gray-900 placeholder:text-gray-400'}`}
+                    />
+                    {search && (
+                        <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                            <X size={14} />
+                        </button>
+                    )}
+                </div>
+                
+                {/* Bulk Actions Menu */}
+                {selectedIds.size > 0 && isAdmin && (
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border animate-in zoom-in-95 ${isDark ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-green-50 border-green-200 text-green-700'}`}>
+                        <span className="text-sm font-semibold mr-2">{selectedIds.size} selected</span>
+                        <div className="h-4 w-px bg-current opacity-20 mr-2" />
+                        <button onClick={() => handleBulkFarmPaid('Paid to Us')} className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors">Set Farm Paid</button>
+                        <button onClick={() => handleBulkFarmPaid('Due')} className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors">Set Farm Due</button>
+                        <div className="h-4 w-px bg-current opacity-20 mx-1" />
+                        <button onClick={() => handleBulkUniformPaid('Yes')} className="px-2.5 py-1 text-xs font-semibold rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors">Set Uniform Paid</button>
+                    </div>
                 )}
             </div>
 
@@ -298,6 +358,17 @@ export default function PaymentTracker() {
                         <table className="w-full min-w-[900px]">
                             <thead className={isDark ? 'bg-white/[0.025]' : 'bg-gray-50'}>
                                 <tr className={`border-b ${isDark ? 'border-white/[0.06]' : 'border-gray-100'}`}>
+                                    <th className={`px-4 ${isDark ? 'border-white/[0.06]' : 'border-gray-100'} w-10`}>
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                                            checked={rows.length > 0 && selectedIds.size === rows.length}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setSelectedIds(new Set(rows.map(r => r.id)));
+                                                else setSelectedIds(new Set());
+                                            }}
+                                        />
+                                    </th>
                                     <th className={thClass} onClick={() => handleSort('id')}>
                                         <span className="flex items-center gap-1">Invoice # <SortIcon col="id" /></span>
                                     </th>
@@ -322,7 +393,7 @@ export default function PaymentTracker() {
                             <tbody className={`divide-y ${isDark ? 'divide-white/[0.04]' : 'divide-gray-100'}`}>
                                 {rows.length === 0 && (
                                     <tr>
-                                        <td colSpan={9} className="px-5 py-14 text-center text-gray-400 text-sm">
+                                        <td colSpan={10} className="px-5 py-14 text-center text-gray-400 text-sm">
                                             No invoices found{search ? ` matching "${search}"` : ''}
                                         </td>
                                     </tr>
@@ -347,8 +418,21 @@ export default function PaymentTracker() {
                                             className={`group transition-colors duration-100 ${isDark
                                                 ? idx % 2 === 0 ? 'bg-transparent' : 'bg-white/[0.012]'
                                                 : idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                                                } hover:bg-green-500/[0.04]`}
+                                                } ${selectedIds.has(inv.id) ? (isDark ? 'bg-green-500/[0.08]' : 'bg-green-50') : 'hover:bg-green-500/[0.04]'}`}
                                         >
+                                            <td className="px-4 py-3 w-10">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                                                    checked={selectedIds.has(inv.id)}
+                                                    onChange={(e) => {
+                                                        const newSet = new Set(selectedIds);
+                                                        if (e.target.checked) newSet.add(inv.id);
+                                                        else newSet.delete(inv.id);
+                                                        setSelectedIds(newSet);
+                                                    }}
+                                                />
+                                            </td>
                                             {/* Invoice # */}
                                             <td className="px-4 py-3 text-xs font-mono font-semibold text-gray-400 dark:text-gray-500 whitespace-nowrap">
                                                 {invoiceNumber(inv)}
