@@ -2,7 +2,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { queryClient, persister } from './lib/queryClient';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { SleepModeProvider, SleepModeOverlay } from './context/SleepModeContext';
@@ -15,6 +15,7 @@ import NotificationToasts from './components/NotificationToasts';
 import { Loader2, Menu } from 'lucide-react';
 
 // ── Lazy-loaded pages ─────────────────────────────────────────────────────────
+const LoginPage       = React.lazy(() => import('./pages/LoginPage'));
 const Dashboard       = React.lazy(() => import('./pages/Dashboard'));
 const NewTicket       = React.lazy(() => import('./pages/NewTicket'));
 const Clients         = React.lazy(() => import('./pages/Clients'));
@@ -50,6 +51,7 @@ const PageLoader = () => (
 // ── Main application shell ────────────────────────────────────────────────────
 function AppContent() {
     const { isDark } = useTheme();
+    const { isLoggedIn } = useAuth();
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isCollapsed, setIsCollapsed] = useState(false);
@@ -65,6 +67,14 @@ function AppContent() {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+
+    if (!isLoggedIn) {
+        return (
+            <Suspense fallback={<PageLoader />}>
+                <LoginPage />
+            </Suspense>
+        );
+    }
 
     return (
         <Router>

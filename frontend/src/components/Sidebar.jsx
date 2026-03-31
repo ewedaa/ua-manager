@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Home, Ticket, Users, Settings, Shield, Barcode, CreditCard, Monitor, FileText, Sun, Moon, RefreshCw, Download, Wifi, WifiOff, Mail, MessageCircle, Phone, ClipboardList, BookOpen, ChevronLeft, ChevronRight, Search as SearchIcon, Activity, PenTool, Sparkles } from 'lucide-react';
+import { Home, Ticket, Users, Settings, Shield, Barcode, CreditCard, Monitor, FileText, Sun, Moon, RefreshCw, Download, Wifi, WifiOff, Mail, MessageCircle, Phone, ClipboardList, BookOpen, ChevronLeft, ChevronRight, Search as SearchIcon, Activity, PenTool, Sparkles, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { queryClient } from '../lib/queryClient';
@@ -321,12 +321,17 @@ export default function Sidebar({ isOpen, onClose, isCollapsed, toggleCollapse }
                                 {isAdmin ? <Shield size={15} className="text-white" /> : <Monitor size={15} className="text-white" />}
                             </div>
                             {!isCollapsed && (
-                                <div className="flex-1 min-w-0">
-                                    <p className={`font-semibold text-sm truncate ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.username}</p>
-                                    <p className={`text-[11px] font-medium ${isAdmin ? 'text-green-400' : 'text-blue-400'}`}>
-                                        {isAdmin ? 'Administrator' : 'Viewer'}
-                                    </p>
-                                </div>
+                                <>
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`font-semibold text-sm truncate ${isDark ? 'text-gray-200' : 'text-gray-900'}`}>{user?.username}</p>
+                                        <p className={`text-[11px] font-medium ${isAdmin ? 'text-green-400' : 'text-blue-400'}`}>
+                                            {isAdmin ? 'Administrator' : 'Viewer'}
+                                        </p>
+                                    </div>
+                                    <button onClick={() => logout()} className={`p-1.5 flex-shrink-0 rounded-lg transition-colors ${isDark ? 'text-gray-400 hover:text-red-400 hover:bg-red-500/10' : 'text-gray-500 hover:text-red-500 hover:bg-red-50'}`} title="Log Out">
+                                        <LogOut size={16} />
+                                    </button>
+                                </>
                             )}
                         </div>
                     </div>
